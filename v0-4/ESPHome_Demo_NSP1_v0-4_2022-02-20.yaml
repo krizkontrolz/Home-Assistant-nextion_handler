@@ -1,0 +1,286 @@
+# ESPHome Sonoff NSPanel configuration to act as broker between Nextion and HA nextion_handler
+# Nextion Handler Framework v0.4 2022-02-18 ...
+#___________________________________________________________
+# You can add slider controls below to control exposed Nextion Program.s* HMI variables if you wish (or in HA)
+# ----- Global Settings controlling UPDATE_LOOP behaviour ------
+# DESIGNED TO BE ADJUSTED/fined-tuned live from HA (by sending Nextion Intructions)
+# int upate_secs=15         //Passive polling interval when inactive
+# int sleep_secs=300        //Inactivity period before sleeping
+# int fastupdate_rpt=3      //Default number of fast repeats after SEND_ACTIONS
+# int fastupdate_tim=2000   //Default fast update interval after SEND_ACTIONS
+# int dim_default=20        //Default screen brightness when there is activity
+# int dim_min=5             //Minimum screen brightness screen dims to without actvity
+
+#___________________________________________________________
+# Base NSPanel config adapted from:
+#   https://www.esphome.io/components/display/nextion.html
+#   https://github.com/masto/NSPanel-Demo-Files/blob/main/Dimming%20Update/Screensaver%20Page/nspanel-demo.yaml
+# ESPHome Class Reference for Nextion (for Lamdas):
+#   https://esphome.io/api/classesphome_1_1nextion_1_1_nextion.html
+#
+#***nextion_handler requirement*** <<< these mark additions required to a working base ESPHome YAML config
+
+
+#----------------------------------------
+#* DEVICE/USER-SPECIFIC DETAILS (customise for each of your own Nextion Devices)
+#! BACKUP YOUR ORIGINAL ESPHome YAML config for your device
+#! GET THE PASSWORDS etc from that config & enter them in the 'substitutions:' below:
+substitutions:
+  long_name: NSPanel 1                            # descriptive name
+  tft_url: !secret nsp1_tft_url                    # path, including filename, where you put TFT file created in the Nextion Editor
+  wifi_ssid: !secret wifi_ssid                     # your home wifit
+  wifi_password: !secret wifi_password
+  # Replace with automatically-genearted details ESPHome created in the orginal config YAML for this device
+  short_name: nsp1                                 # original 'name:' under 'sesphome:' << keep short for unique & efficient entity names etc. (assign informative friendly name in HA)
+  fallback_ap_ssid: "NSP1 Fallback Hotspot"        # fallback accesspoint on the ESP/Nextion
+  fallback_ap_password: !secret fall_back_password
+  ota_password: "00000000000000000000000000000000" #<< replace with the one from you own device
+#----------------------------------------
+
+
+esphome:
+  name: $short_name
+  comment: $long_name
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+
+ota:
+  password: $ota_password
+
+wifi:
+  ssid: $wifi_ssid
+  password: $wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: $fallback_ap_ssid
+    password: $fallback_ap_password
+
+captive_portal:
+
+#! Fix for Sonoff NSPanel display to escape Protocol Reparse Mode so standard communication protocol will work: see https://github.com/esphome/esphome/pull/2956
+external_components:
+  - source: github://pr#2956
+    components: [nextion]
+    refresh: 1h
+
+# Enable Home Assistant API.
+api:
+  # Configure some useful NSP services to be able to control from HA.
+  services:
+    #***nextion_handler requirement***
+    # service calls to nextion_handler in HA need to specify the entity_id of the ESPHome 'send_command' in the 'nx_cmd_service:'.
+    # the 'send_command' allows nextion_handler to complete the communications loop by sending Nextion Instructions back to the Nextion device.
+    - service: send_command
+      variables:
+        cmd: string
+      then:
+        - lambda: 'id(nx1).send_command_printf("%s", cmd.c_str());'
+    #* Service to upload cutom TFT files (created in the Nextion Editor)
+    - service: upload_tft
+      then:
+        - lambda: 'id(nx1).upload_tft();'
+    # Service to play a song: for RTTTL strings see https://picaxe.com/rtttl-ringtones-for-tune-command/
+    - service: play_rtttl
+      variables:
+        song_str: string
+      then:
+        - rtttl.play:
+            rtttl: !lambda 'return song_str;'
+
+# Sync the time.
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    on_time:
+      - seconds: 0
+        minutes: '*'
+        then:
+          - lambda: |-
+              auto time_text = id(homeassistant_time).now().strftime("%I:%M%p");
+              id(nx1).set_component_text("time", time_text.c_str());
+
+#***nextion_handler requirement***
+# Text sensors for transferring 'HA command strings' (comma separated sequences of HaCmds).
+text_sensor:
+  # v0.4 strings
+  # All strings are to sent by the Nextion to the ESP32 using 'Nextion Custom Text Sensor Protocol': https://esphome.io/components/text_sensor/nextion.html#nextion-custom-text-sensor-protocol
+  # NB: cannot use "_" or "-" etc for ESPHome variable names ('name:' setting below).
+  #
+  # nextion_handler command_string with ACTION HaCmds set by a Nextion UI event, and sent by the SEND_ACTIONS subroutine.
+  - platform: nextion
+    name: $short_name HA Act
+    component_name: HaAct
+  #
+  # List of nextion_handler command_string with SET HaCmds specifiying how each pages data should be UPDATED from HA.
+  #   The strings are manually configured by the user on each page.
+  #   The strings are sent by the PostInitialize Event on each page.
+  - platform: nextion
+    name: $short_name HA Set1  # used for entity_id in HA (spaces will be converted to '_', can't use '_' directly).
+    component_name: HaSet1     # name used in Nextion write instructions (remove underscores - can be different from the Nextion variable itself).
+  - platform: nextion
+    name: $short_name HA Set2
+    component_name: HaSet2
+  - platform: nextion
+    name: $short_name HA Set3
+    component_name: HaSet3
+  - platform: nextion
+    name: $short_name HA Set4
+    component_name: HaSet4
+  - platform: nextion
+    name: $short_name HA Set5
+    component_name: HaSet5
+
+
+# HA Buttons to add & easily execute some useful device management features.
+button:
+  #* Allow uploading TFT files (created in Nextion Editor) from HA.
+  - platform: template
+    name: $short_name TFT Upload
+    device_class: update
+    on_press:
+      - lambda: 'id(nx1).upload_tft();'
+  # Allow restarting NSP from HA.
+  - platform: restart
+    name: $short_name Restart
+    device_class: restart
+
+
+# Physical buttons on NSP
+#*NB: rename buttons logically to match NSP orientation.
+binary_sensor:
+  - platform: gpio
+    name: $short_name Left Button  # Top Button  # Left for vertical orientation, Top for horizontal orientation.
+    pin:
+      number: 14
+      inverted: true
+    # It is more consistent with the nextion_hanlder approach to respond to button presses in HA automations,
+    # but you can enter a lambda for local control here (most useful for tight coupling to NSPanel relays)
+    # on_release:
+    #   lambda: ''  #<<< enter your lamda here
+  - platform: gpio
+    name: $short_name Right Button  # Bottom Button  # Right for vertical orientation, Bottom for horizontal orientation.
+    pin:
+      number: 27
+      inverted: true
+    # on_release:
+    #   lambda: ''  #<<< enter your lamda here
+
+sensor:
+  #***nextion_handler requirement***
+  # nextion_handler variables - written to ESP32 by Nx using Nextion Custom Sensor Protocol: https://esphome.io/components/sensor/nextion.html
+  # Integer sensor that enforces state changes as a trigger for HA to use in nextion_handler automation (UI Events & Passive updates).
+  - platform: nextion
+    name: $short_name Trigger
+    component_name: TRIGGER
+
+
+  #* NSP SENSORS
+  # NSP (ESP) WiFi signal strength.
+  - platform: wifi_signal
+    name: $short_name WiFi
+    update_interval: 60s
+  # NSP temperature sensor (conversion from analogue resistance sensor).
+  - platform: ntc
+    id: temperature
+    sensor: resistance_sensor
+    calibration:
+      b_constant: 3950
+      reference_temperature: 25°C
+      reference_resistance: 10kOhm
+    name: $short_name Temperature
+  - platform: resistance
+    id: resistance_sensor
+    sensor: ntc_source
+    configuration: DOWNSTREAM
+    resistor: 11.2kOhm
+  - platform: adc
+    id: ntc_source
+    pin: 38
+    update_interval: 10s
+    attenuation: 11db
+
+
+# Controls for NSP outputs.
+switch:
+  # The two relays - #1 set for pass-through power (normally on); #2 set to normally off.
+  - platform: gpio
+    name: $short_name Relay 1
+    id: relay_1
+    pin:
+      number: 22
+    restore_mode: ALWAYS_ON  # comment out if you want this to always be OFF.
+  - platform: gpio
+    name: $short_name Relay 2
+    id: relay_2
+    pin:
+      number: 19
+    #restore_mode: ALWAYS_ON  # uncomment if you want this to typically be ON.
+
+  # Pin 4 always needs to be on to power up the display.
+  - platform: gpio
+    id: screen_power
+    entity_category: config
+    pin:
+      number: 4
+      inverted: true
+    restore_mode: ALWAYS_ON
+
+number:
+  # Control NSP brightness from HA (convient backup way to restore UI if screen is dimmed to 0).
+  # Main brightness settings for nextion_handler are controlled by the Nextion global variables 'dim_default' and 'dim_min'
+  platform: template
+  name: $short_name Brightness
+  id: brightness
+  entity_category: config
+  unit_of_measurement: '%'
+  min_value: 0
+  max_value: 100
+  step: 1
+  initial_value: 20
+  set_action:
+    then:
+      - lambda: 'id(nx1).set_backlight_brightness(x/100);'
+
+# Configure NSP internal bleeper.
+output:
+  - platform: ledc
+    id: buzzer_out
+    pin:
+      number: 21
+
+# Enable ringtone music support.
+rtttl:
+  id: buzzer
+  output: buzzer_out
+
+# Configure UART for communicating with the screen.
+uart:
+  id: tf_uart
+  tx_pin: 16
+  rx_pin: 17
+  baud_rate: 115200
+
+# Configure the NEXTION DISPLAY.
+display:
+  - platform: nextion
+    id: nx1
+    uart_id: tf_uart
+    tft_url: $tft_url
+    on_setup:
+      then:
+        # Starting display brightness - screens look very washed out at high brightness.
+        # For nextion_handler Nextion global settings 'dim_max' and 'dim_min' will quickly take over control of screen brightness
+        - number.set:
+            id: brightness
+            value: 20
+        # Audible notification of device rebooting after crash (and on first boot).
+        - rtttl.play: "REBOOT-doodle-dah:d=8,o=5,b=250:d#6,a#,d#6"
+

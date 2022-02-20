@@ -1,0 +1,59 @@
+# title: Home Assistant
+# views:
+#   # __/ HOME \_____________________________________________________________
+#   - title: Home
+#     path: default_view
+#     icon: "mdi:home-assistant"
+#     badges: []
+#     cards:
+
+#* Add this template MarkDown card to your ui-lovelace.yaml (optional, but useful)
+
+      # Monitor Nextion Handler commands
+      # Set your DEVICE below in: {%- set DEVICE = 'nsp1' %} to match the device prefix in your entity-ids
+      # Or rename each entity_id based on DEVICE manually to match your Nextion
+      - type: markdown
+        title: Nextion HA command_strings
+        content: |
+          ``` {# Display as code/monospaced font #}
+          {%- set DEVICE = 'nsp1' %} {#-<< Set your device short name (prefix part of each entity_id) #}
+          TRIGGER: >> {% set n = states('sensor.'+DEVICE+'_trigger')|int -%}
+          {%- if n > 0 -%}
+            {{n}} (ACTION)
+          {%- elif n == 0 -%}
+            {{n}} (SLEEPING)
+          {%- else -%}
+            {{n}} (UPDATING)
+          {%- endif %}
+          HA_Act (<- Last SEND_ACTIONS):
+          {%- set s = states('sensor.'+DEVICE+'_ha_act').replace(',','\n') %}
+          {%- for i in s.split('\n') %}
+            > {{i}}
+          {%- endfor %}
+          Update settings (<- Page PostInit):
+          HA_Set1 ---------------
+          {%- set s = states('sensor.'+DEVICE+'_ha_set1').replace(',','\n') %}
+          {%- for i in s.split('\n') %}
+            > {{i}}
+          {%- endfor %}
+          HA_Set2 ---------------
+          {%- set s = states('sensor.'+DEVICE+'_ha_set2').replace(',','\n') %}
+          {%- for i in s.split('\n') %}
+            > {{i}}
+          {%- endfor %}
+          HA_Set3 ---------------
+          {%- set s = states('sensor.'+DEVICE+'_ha_set3').replace(',','\n') %}
+          {%- for i in s.split('\n') %}
+            > {{i}}
+          {%- endfor %}
+          HA_Set4 ---------------
+          {%- set s = states('sensor.'+DEVICE+'_ha_set4').replace(',','\n') %}
+          {%- for i in s.split('\n') %}
+            > {{i}}
+          {%- endfor %}
+          HA_Set5 ---------------
+          {%- set s = states('sensor.'+DEVICE+'_ha_set5').replace(',','\n') %}
+          {%- for i in s.split('\n') %}
+            > {{i}}
+          {%- endfor %}
+          ```

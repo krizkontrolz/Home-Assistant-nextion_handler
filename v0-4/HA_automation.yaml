@@ -1,0 +1,51 @@
+# automations:
+# Add this to your Home Assistant automations YAML file
+
+
+#* nextion_handler.py v0.4
+# If you renamed your Nextion from 'NSP1' used in the demo,
+# edit the entity_ids below to match your system.
+# Then pair your own lights etc. under 'aliases:' to match your own
+# HA entity_ids to the layout of buttons/tiles in the Demo Nextion 
+- alias: "NSP1 Nextion handler"
+  mode: queued # need a good sequential queue to handle multiple calls in quick succession
+  max: 10
+  trigger:
+    - platform: state
+      entity_id: sensor.nsp1_trigger # << TRIGGER - state changes sent from Nx to initiate ACTION (positive) or UPDATE (negative) (or SLEEPing (0))
+  action:
+    - service: python_script.nextion_handler
+      data:
+        trig_val: sensor.nsp1_trigger # << TRIGGER (send the value to the nextion_handler)
+        nx_cmd_service: esphome.nsp1_send_command # << ESPhome service to send Nextion Instructions to the Nextion device
+        action_cmds: # << List of ACTION command_strings (programmed in Nextion Editor for each event with required Action HaCmd sequence)
+          - sensor.nsp1_ha_act
+        update_cmds: # << List of SET command_strings (programmed in Nextion Editor as the sequence of HaCmds required to update the data for each page)
+          - sensor.nsp1_ha_set1
+          - sensor.nsp1_ha_set2
+          - sensor.nsp1_ha_set3
+          - sensor.nsp1_ha_set4
+          - sensor.nsp1_ha_set5
+        aliases: # << 'Dictionary' with key: value pairs of {Nextion alias (excluding '$' prefix and '.val'/'.txt' suffix): HA entity_id}
+          #DM1 Template Demo page________________________________________________________
+          #Row1: Lights (#*REPLACE with your light.*)
+          DM.bLT1: light.kitchen
+          DM.bLT2: light.lounge
+          DM.bLT3: light.tv_room
+          DM.bLT4: light.porch
+          #Row2: Switches (#*REPLACE with your switch.*)
+          DM.bSW1: switch.nsp1_relay_1
+          DM.bSW2: switch.nsp1_relay_2
+          DM.bSW3: switch.tv
+          DM.bSW4: switch.coffee_machine
+          #Row3: dismissable alerts (#*REPLACE with your input_boolean.*)
+          DM.bAL1: input_boolean.new_mail
+          DM.bAL2: input_boolean.recycling_day
+          DM.bAL3: input_boolean.dishes_washed
+          DM.bAL4: input_boolean.laundry_washed
+          #Row4: non-dismissable alerts (#*REPLACE with your binary_sensor.* /motion sensors)
+          DM.bMT1: binary_sensor.porch_motion
+          DM.bMT2: binary_sensor.lounge_motion
+          DM.bMT3: binary_sensor.kitchen_motion
+          DM.bMT4: binary_sensor.tv_room_motion
+
