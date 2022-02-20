@@ -48,3 +48,7 @@ If you got the template demo going, then you should now be in a good position to
 The SVG file that was used to create the pair of UI images is also included.  This includes some annotations that may be useful for designing your own UI.  Inkscape is an excellent freeware program for editing vector files (and other design resources are linked on the main [readme.md](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/README.md#credits--related-resources)).
 
 >**TIP**: Change the font of the Nextion Editor to a proper programming ```mono-space font``` (I like Consolas), and rearrange the panels to allocate most of the space to the 'Event' panel.  It makes writing bug-free code much easier.
+
+Here is an example of my own set up, which is running very smoothly.  The HMI is included if you want to look at more examples of to use the nextion_handler in practice.
+
+![Animated GIF of Nextion Handler example](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/v0-4/NextionHandlerExample.gif)
