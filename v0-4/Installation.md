@@ -27,10 +27,7 @@ All files referred to are in the same Github folder as this installation documen
 * (You already backed up your existing TFT file, right?) Put the demo TFT file in the location you specified in the ```tft_url``` of your ESPHome configuration, and rename it to match the filename you set in ```tft_url```.  Then press the ```TFT upload button``` on the device's page in Home Assistant (that we referred to and located above).
 * Wait for the NSPanel to reboot with the new demo UI.  It should look something like the image below.  It should gradually dim while not in use and then turn off after ~5 minutes.  Touching the display will wake it up again (but we have to add the HA components to make it do anything useful.) (The HMI file used to generate the demo TFT in the Nextion Editor is included here too - we'll get to that later.)
 
-Add link to image <<<<<>>>>>
-
-
-
+![Demo Nextion UI icon layout](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/v0-4/Demo_off.png)
 
 ### Home Assistant configuration:
 * Copy the ```nextion_handler.py``` script into the ```<config>/python_scripts/``` folder of your Home Assistant device.
