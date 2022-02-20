@@ -16,7 +16,7 @@ There are 2 types of HA commands (**HaCmds**) in the ```nextion_handler.py```:
   Nextion Instructions (sent with the **nx_cmd_service** configured on the ESP32).
   **HA_Set1..5** **command_strings** are a sequence of HaCmds defined for each
     page in the Nextion Editor.
-  The **Preinit of each page** sends the HA_Set1..5 command_strings to HA.
+  The **Postinit of each page** sends the HA_Set1..5 command_strings to HA.
   Updates to page data are applied by nextion_handler when **TRIGGER**ed.
 
 >'**ACTION**' commands perform requested actions in HA (scripts, scenes etc.).
