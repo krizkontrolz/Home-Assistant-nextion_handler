@@ -41,6 +41,9 @@ There are 2 types of HA commands (**HaCmds**) in the ```nextion_handler.py```:
 
 ![Nextion handler framework](https://user-images.githubusercontent.com/100061886/154831899-4fbf9ff9-cb42-4a55-88d7-86fd3c81443d.png "Nextion handler framework")
 
+------------------------------------------------------------------------------
+## Template Files with Demo
+Template files for getting a simple demo up and running are [here](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/tree/main/v0-4), including [instructions on how to use them](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/v0-4/Installation.md).
 
 ------------------------------------------------------------------------------
 ## HaCmd Instruction Set
