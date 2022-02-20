@@ -49,6 +49,11 @@ The SVG file that was used to create the pair of UI images is also included.  Th
 
 >**TIP**: Change the font of the Nextion Editor to a proper programming ```mono-space font``` (I like Consolas), and rearrange the panels to allocate most of the space to the 'Event' panel.  It makes writing bug-free code much easier.
 
-Here is an example of my own set up, which is running very smoothly.  The HMI is included if you want to look at more examples of to use the nextion_handler in practice.
+### My own NSPanel
+Here is an example of my own set up, which is running very smoothly.  The HMI is included if you want to look at more examples of to use the nextion_handler in practice.  It has pages that meet all my initial priorities:
+* The main page is a status page - it is designed to show alert information clearly at glance from a distance (most icons are typically disabled), together with information on energy use.  It also shows the status of motion-activated lights in the living & sleeping areas (with manual overrides for when these are automations are active).
+* The second page gives quick access to a good set of 'scenes', mainly for the living area of the house (too many lights to want to adjust them individually).
+* There is a page for quickly turning on/off the most used devices.
+* And a screen to adjust/override the garden watering program.  
 
 ![Animated GIF of Nextion Handler example](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/v0-4/NextionHandlerExample.gif)
