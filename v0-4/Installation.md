@@ -49,7 +49,7 @@ If you got the template demo going, then you should now be in a good position to
 
 The SVG file that was used to create the pair of UI images is also included.  This includes some annotations that may be useful for designing your own UI.  Inkscape is an excellent freeware program for editing vector files (and other design resources are linked on the main [readme.md](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/README.md#credits--related-resources)).
 
->**TIP**: The Nextion display has a very strong blue cast, which washes out and distorts many colours (from how you prepare the graphics on you computer screen).  You can compensate for this tilting the hue of affect colours towards yellow.  (That has been done for the demo graphics, which is why they will look odd when you view them here, but will look better on the Nextion display.)
+>**TIP**: The Nextion display has a very strong blue cast, which washes out and distorts many colours (from how you prepare the graphics on you computer screen).  You can compensate for this by shifting the hue of affect colours towards yellow.  (That has been done for the graphics used in the demo, which is why they will look odd when you view them on your computer screen, but will look better on the Nextion display.)
 
 ### My own NSPanel
 Here is an example of my own set up, which is running very smoothly.  [The HMI is included](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/v0-4/Working_Example_2022-02-18_v0-4.HMI) if you want to look at more examples of how to use the ```nextion_handler``` in practice.  It has pages that meet all my initial priorities:
