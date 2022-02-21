@@ -47,9 +47,9 @@ Template files for getting a simple demo up and running are [here](https://githu
 
 ------------------------------------------------------------------------------
 ## HaCmd Instruction Set
-
+(```Nx``` = Nextion variable name (_excluding_ '.val'/'.txt'); ```E``` = $alias/HA entity_id; as a **shorthand**, ```$``` alone can be used fore ```E``` in set_ commands to indicate the alias should be the same as the associated ```Nx```; and in Action commands, the entity class can be ommited where it is implicit, e.g. you can drop ```script.``` from ```E``` when calling the ```scpt E``` command).
 ### SET COMMAND LIST
-   (```Nx``` = Nextion variable name (_excluding_ '.val'/'.txt'); ```E``` = $alias/HA entity_id).
+
 *  ```sett Nx len E```  (assign ```len``` chars of state of ```E```, as string/text, to ```Nx```).
 *  ```setn Nx scale E``` (assign ```Nx``` the integer value of ```scale``` * state of ```E```).
 *  ```setb Nx E``` (assign ```Nx``` a value of 0 or 1 based the binary interpretation of
@@ -78,7 +78,7 @@ Template files for getting a simple demo up and running are [here](https://githu
 
   (Equivalent to long form of ```setb ST.bDSH.val binary_sensor.dishes_washed```.)
 
-  Set the Nextion variable ```ST.bDSH.val``` to state of the HA entity with
+  Set the Nextion variable ```ST.bDSH.val``` to boolean-interpreted state of the HA entity with
   the alias ```ST.bDSH``` (where the enitity_id for each alias is configured under the ```alias``` section of the service call to nextion_handler in the HA automation, e.g., ```'ST.bDSH': 'binary_sensor.dishes_washed'```).
 
 >**ACTION HaCmd**:  ```tgl $ST.bDSH```
