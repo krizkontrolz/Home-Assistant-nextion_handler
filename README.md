@@ -1,5 +1,5 @@
 # Home Assistant Nextion Handler
-(*Last updated: 2022-02-20*)
+(*Last updated: 2022-02-23*)
 
 A framework that allows a Nextion touch screen device (NSPanels in particular) to be programmed to interact with Home Assistant.  This uses a supporting Python script (that handles HA '**command_strings**' sent from Nextion to request updates of HA data and to perform actions on HA) and some boilerplate code (to handle the loop of sending actions and receiving updated data).
 
@@ -86,6 +86,31 @@ Template files for getting a simple demo up and running are [here](https://githu
   (Equivalent to long form of ```tgl binary_sensor.dishes_washed```.)
 
   Toggles the binary sensor (on/off) that we set up to fetch HA data updates for above.
+
+>**ALIAS in service automation**: linking ```sensor.rain_delay``` to Nextion ```IR.nRN_DL.val```
+
+Aliases are convenient because they save having to switch back & forth between the Nextion Editor & HA, the alias is typically based on the name of the Nextion (global) variable it is associated with, they save having to reflash the Nextion TFT each time you fix a typo in an entity_id, and you enter the entity_ids in the HA YAML editor (where autocompletion helps avoid typos in the first place).  The YAML automation for the ```nextion_handler``` shows how the example alias is added to the 'dictionary'.
+```YAML
+#  Nextion Handler service automation (this handles everything coming from and going back to Nextion)
+- alias: "NSPanel 1 Nextion Handler"
+  mode: queued
+  max: 10
+  trigger:
+    - platform: state
+      entity_id: sensor.nsp1_trigger
+  action:
+    - service: python_script.nextion_handler
+      data:
+        trig_val: sensor.nsp1_trigger
+        nx_cmd_service: esphome.nsp1_send_command
+        action_cmds:
+          - sensor.nsp1_ha_act
+        update_cmds:
+          - sensor.nsp1_ha_set1
+        aliases: # << Nextion alias (excl. '$' prefix and '.val'/'.txt' suffix) paired with HA entity_id
+          "IR.nRN_DL": "sensor.rain_delay"
+          "PAGE.Variable": "sensor.another" # ... etc.
+```
 
 
 > **Lovelace UI Markdown Card** for monitoring flow of nextion_handler command_strings & TRIGGERs.
