@@ -113,6 +113,15 @@ Aliases are convenient because they save having to switch back & forth between t
 ```
 
 
+>**Nextion Event to SEND and  HA ACTION**: set ```HA_Act.txt``` with commands, then send with  ```SEND_ACTIONS``` (boilerplate subroutine)
+
+This example shows how to program calling Home Assistant actions from within Nextion Editor Events.
+The 'basic' version of the Event in the screenshot duplicates similar logic to the HA Lovelace UI, where pressing a toggle button simply toggles a Home Assistant entity.  This is done in the Nextion Event panel by assigning one or more Nextion Handler commands (separated by commas) to the ```HA_Act.txt``` variable then entering ```click SEND_ACTIONS,1``` (a 'subroutine' attached to a hidden Nextion hotspot component).  When the event is triggered the commands in HA_Act will be sent by boilerplate code in ```SEND_ACTIONS``` (that you never need to edit), which will do all the magic of sending the commands to the nextion_handler in Home Assistant (via ESPHome), getting back the updated data needed for the Nextion page, and applying that data to update the UI components on the Nextion.
+
+The second version of the Event in the screenshot 'Adds some Nextion smarts' to do something a bit more complicated in the code, but to the user would still be intuitively thought of as toggling.  When the switch is toggled to 'on', it will run a script in Home Assistant that will run through a program of all the irrigation stations sequentially; when it is toggled to 'off', it stop *all* possible scripts that control irrigation valves and then turn off all the valves (a very thorough way of making sure everything is *really* off).  This just demonstrates that the Nextion Handler framework doesn't stop you in any way from being as creative as you like.  You can have really complicated Nextion Events that conditionally add progressively additional HA commands to the HA_Act string (each separated by a comma), then use the ```SEND_ACTIONS``` 'subroutine` to take care of all the book-keeping to make your magic happen.  (Or, you can start as simple as the basic example with just 2 lines in your Nextion event code).
+
+<img src="https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/v0-4/Example_HA_Act_Event.png" alt="drawing" width="656"/>
+
 > **Lovelace UI Markdown Card** for monitoring flow of nextion_handler command_strings & TRIGGERs.
 
   Example Lovelace card after just having pushed a 'button' (on the Nextion 'ST' page) to clear an alert that the dish washing was done.
