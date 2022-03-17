@@ -263,8 +263,8 @@ Click to expand sections below for boilerplate code (that can be cut and pasted,
 ---
 
 There is no need to edit boilerplate code at all - you can just copy and paste it.
-You can modify the behaviour of the ```UPDATE_LOOP``` through Global Settings (see the Program.s* details below).
-The ```UPDATE_LOOP`` is a Nextion ```Timer Event``` attached to a timer on each page to controls all the fetching of data from Home Assistant in a very efficient and scaleable manner to prevent flooding the Nextion, ESP chip or Home Assistant with communications requests.
+You can modify the behaviour of the ```UPDATE_LOOP``` through Nextion Global Settings (see the ```Program.s``` details below).
+The ```UPDATE_LOOP``` is a Nextion ```Timer Event``` attached to a timer on each page to controls all the fetching of data from Home Assistant in a very efficient and scaleable manner to prevent flooding the Nextion, ESP chip or Home Assistant with communications requests.
 ```
 //~~~~~~boilerplate~~~~
 // UPDATE LOOP controls:
@@ -425,7 +425,10 @@ if(override_frpts==0)
   <summary>Global settings (Nextion Editor - Program.s tab)</summary>
   
 ---
-
+  
+Nextion Global Settings are set in the ```Program.s``` tab in the Nextion Editor.
+Some of these settings can be used to fine tune the behaviour of the boilerplate ```UPDATE_LOOP``` code (including adjusting these 'live' while the Nextion is running, see comments in code), while other variables are only for internal use.
+  
 ```
 //~~~~~~boilerplate~~~~
 // DEVICE CONFIG & GLOBAL SETTINGS (directly controllable from HA)
@@ -433,30 +436,7 @@ if(override_frpts==0)
 //
 // CHANGELOG for Nextion Handler framework:
 // v0.4 2022-02-22
-//       Added GESTURE control for swipes and long-press
-//       REQURIED Moving most activity to 'TOUCH RELEASE Events' to allow Gesture control
-// v0.4 2022-02-18 Bring most timing control back to Nx with repeatable 'fast_updates'
-//        and modifying the duration of the main UPDATE_LOOP
-//      Brought global variables across from 'page G' to Program.s*
-//        (in preparation for setting up ESPhome control for more Nx settings)
-// v0.3 2022-02-13 Took HA timing delays out of Py script into YAML script
-//      Set all Nx event ACTIONs to:
-//        set Nx variables to anticipated data responses to HA updates
-//        APPLY_VARS (subroutine) to update UI elements (with interactions)
-//        Send HA_ACT and (after HA YAML script delay) let HA confirm/change data update
-//     The last HaCmd for every pages HA_SET1... should be 'sub APPLY_VARS' ()
-//     ! Works very well
-//       But, slightly clunkly requireing nextion_handler.py to be configured in
-//       in 3 places in HA YAML (ACTION automation, UPDATE automation, DELAYed update script)
-//     Got sleep, with black screen, working well (but slow to update on wake)
-// v0.2 2022-02-11 Tranferred feedback loop control to HA nextion_handler.py
-//      Tried using timing delays in HA (multi-threaded).  BAD PRACTICE - AVOID
-//      Renamed Boilerplate components to longer more informative names
-//      Split 'subroutines' into separate components: SEND_ACTIONS, APPLY_VARS
-//      Added sub() instruction for HA to control timing of APPLY_VARS after SETting Nx data
-// v0.1 2022-01 Tried controlling feedback loop entirely from linked Nx timer 'subroutines'
-//      Timing didn't work cleanly for data updates
-//      Needed a way for
+//   ....
 // ------------------------------------------------------------------------------------------
 // Nextion Progra.s* notes:
 // The following code is only run once when power on, and is generally used for global variable definition and power on initialization data
