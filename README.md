@@ -1,5 +1,5 @@
 # Home Assistant Nextion Handler
-(*Last updated: 2022-02-23*)
+(*Last updated: 2022-03-17*)
 
 A framework that allows a Nextion touch screen device (NSPanels in particular) to be programmed to interact with Home Assistant.  This uses a supporting Python script (that handles HA '**command_strings**' sent from Nextion to request updates of HA data and to perform actions on HA) and some boilerplate code (to handle the loop of sending actions and receiving updated data).
 
@@ -51,7 +51,7 @@ Template files for getting a simple demo up and running are [here](https://githu
 ## HaCmd Instruction Set
 (```Nx``` = Nextion variable name (_excluding_ '.val'/'.txt'); ```E``` = $alias/HA entity_id; as a **shorthand**, ```$``` alone can be used fore ```E``` in set_ commands to indicate the alias should be the same as the associated ```Nx```; and in Action commands, the entity class can be ommited where it is implicit, e.g. you can drop ```script.``` from ```E``` when calling the ```scpt E``` command).
 ### SET COMMAND LIST
-SET commands are entered in the Nextion Editor in string HA_SET1 .. HA_SET5 on each page.  They configure how you want to pull data from Home Assistant each time that Nextion page is updated by configuring how HA data is assigned to Nextion global variables.
+SET commands are entered in the Nextion Editor in strings ```HA_SET1``` .. ```HA_SET5``` on each page.  They configure how you want to pull data from Home Assistant each time that Nextion page is updated by configuring how HA data is assigned to Nextion global variables.
 
 *  ```sett Nx len E```  (assign ```len``` chars of state of ```E```, as string/text, to ```Nx```).
 *  ```setn Nx scale E``` (assign ```Nx``` the integer value of ```scale``` * state of ```E```).
@@ -91,7 +91,7 @@ ACTION commands are assigned to the HA_ACT string in Nextion Editor 'events' tab
 *  ```say E string``` (Play TTS of message ```string``` to media player ```E```)
 *  ```ntf string``` (Display a persistent notification with message ```string``` to HA)
 *  ```sub Nx``` ('click' the Nextionx (hidden) hotspot ```Nx``` to execute a 'subroutine')
-
+*  TODO: RGBWW light controls with colour wheel UI (I prefer using scenes, but am working on this feature)
 
 <details>
   <summary>Example ACTION HaCmd (Click to expand)</summary>
