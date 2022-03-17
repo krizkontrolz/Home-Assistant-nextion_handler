@@ -1,5 +1,5 @@
 # Home Assistant Nextion Handler
-(*Last updated: 2022-03-17*)
+(*Last updated: 2022-03-18*)
 
 A framework that allows a Nextion touch screen device (NSPanels in particular) to be programmed to interact with Home Assistant.  This uses a supporting Python script (that handles HA '**command_strings**' sent from Nextion to request updates of HA data and to perform actions on HA) and some boilerplate code (to handle the loop of sending actions and receiving updated data).
 
@@ -41,7 +41,7 @@ There are 2 types of HA commands (**HaCmds**) in the ```nextion_handler.py```:
 
 ![Nextion handler framework](https://user-images.githubusercontent.com/100061886/154831899-4fbf9ff9-cb42-4a55-88d7-86fd3c81443d.png "Nextion handler framework")
 
-See expandable details and examples under CUSOTOMISABLE and BOILERPLATE sections below.
+See expandable details and examples for each CUSTOMISABLE and BOILERPLATE component below.
 
 ------------------------------------------------------------------------------
 ## Template Files with Demo
@@ -65,19 +65,18 @@ SET commands are entered in the Nextion Editor in strings ```HA_SET1``` .. ```HA
 
 ---
 
->```setb ST.bDSH $```
-
-  (Equivalent to long form of ```setb ST.bDSH.val binary_sensor.dishes_washed```.)
+>```setb ST.bDSH $``` (using shorthand notation).  
+(Equivalent to long form of ```setb ST.bDSH.val binary_sensor.dishes_washed```.)
 
   Set the Nextion variable ```ST.bDSH.val``` to boolean-interpreted state of the HA entity with
-  the alias ```ST.bDSH``` (where the enitity_id for each alias is configured under the ```alias``` section of the service call to nextion_handler in the HA automation, e.g., ```'ST.bDSH': 'binary_sensor.dishes_washed'```).
+  the alias ```ST.bDSH``` (where the enitity_id for each alias is configured under the ```aliases:``` section of the service call to nextion_handler in the HA automation, e.g., ```'ST.bDSH': 'binary_sensor.dishes_washed'``` - see the ALIAS example below for more detail).
 
 --- 
   
 </details>
 
 ### ACTION COMMAND LIST
-ACTION commands are assigned to the HA_ACT string in Nextion Editor 'events' tabs.  They configure what commands are sent to Home Assistant when events, such as button pushes, are triggered on the Nextion.
+ACTION commands are assigned to the ```HA_ACT``` string in Nextion Editor 'events' tabs.  They configure what commands are sent to Home Assistant when events, such as button pushes, are triggered on the Nextion.
 
 
 *  ```tgl E``` (toggle ```E```)
@@ -98,9 +97,8 @@ ACTION commands are assigned to the HA_ACT string in Nextion Editor 'events' tab
   
 ---
   
->```tgl $ST.bDSH```
-
-  (Equivalent to long form of ```tgl binary_sensor.dishes_washed```.)
+>```tgl $ST.bDSH``` (using shorthand notation).  
+(Equivalent to long form of ```tgl binary_sensor.dishes_washed```.)
 
   Toggles the binary sensor (on/off) that we set up to fetch HA data updates for above.
   
@@ -109,7 +107,7 @@ ACTION commands are assigned to the HA_ACT string in Nextion Editor 'events' tab
 </details>
 
 ------------------------------------------------------------------------------
-## CUSOMISABLE components (with shorthand notation)
+## CUSTOMISABLE components (with shorthand notation)
 
 Click to expand sections below for examples of each of the components of the framework that can be customised.
 
@@ -118,7 +116,7 @@ Click to expand sections below for examples of each of the components of the fra
   
 ---
 
->Assign ACTION HaCmds to  ```HA_Act.txt```, then send with  ```SEND_ACTIONS``` (boilerplate subroutine - see boilerplate section below)
+>Nextion events assign ACTION HaCmds to  ```HA_Act.txt```, then send with  ```SEND_ACTIONS``` (boilerplate subroutine - see boilerplate section below)
 
 This example shows how to program calling Home Assistant actions from within Nextion Editor Events.
 The 'basic' version of the Event in the screenshot duplicates similar logic to the HA Lovelace UI, where pressing a toggle button simply toggles a Home Assistant entity.  This is done in the Nextion Event panel by assigning one or more Nextion Handler commands (separated by commas) to the ```HA_Act.txt``` variable then entering ```click SEND_ACTIONS,1``` (a 'subroutine' attached to a hidden Nextion hotspot component).  When the event is triggered the commands in HA_Act will be sent by boilerplate code in ```SEND_ACTIONS``` (that you never need to edit), which will do all the magic of sending the commands to the nextion_handler in Home Assistant (via ESPHome), getting back the updated data needed for the Nextion page, and applying that data to update the UI components on the Nextion.
@@ -146,7 +144,7 @@ TO DO! - add screen shot example with explanation
 
 
 <details>
-  <summary>Example APPLY_VARS to update Nextion UI with updated data from HA (Nextion Handler - hidden hotspot 'subroutine')</summary>
+  <summary>Example APPLY_VARS to update Nextion UI with updated data from HA (Nextion Editor - hidden hotspot 'subroutine')</summary>
   
 ---
   
@@ -263,7 +261,10 @@ Click to expand sections below for boilerplate code (that can be cut and pasted,
   <summary>UPDATE_LOOP (Nextion Editor - timer)</summary>
   
 ---
-  
+
+There is no need to edit boilerplate code at all - you can just copy and paste it.
+You can modify the behaviour of the ```UPDATE_LOOP``` through Global Settings (see the Program.s* details below).
+The ```UPDATE_LOOP`` is a Nextion ```Timer Event``` attached to a timer on each page to controls all the fetching of data from Home Assistant in a very efficient and scaleable manner to prevent flooding the Nextion, ESP chip or Home Assistant with communications requests.
 ```
 //~~~~~~boilerplate~~~~
 // UPDATE LOOP controls:
@@ -364,6 +365,10 @@ if(flag1==1)
   <summary>SEND_ACTIONS (Nextion Editor - hidden hotspot 'subroutine')</summary>
   
 ---
+
+```SEND_ACTIONS``` is the code attached to a ```Touch Press Event``` for a hidden hotspot on each Nextion page (to serve as a 'subroutine').
+Each Nextion Event should first add the sequence of ACTION HaCmds to the ```HA_ACT.txt``` string on that page, followed by ```click SEND_ACTIONS,1``` (which then sends the Action commands to the nextion_handler on Home Assistant to be excecuted).
+(See the example Nextion Event above for how this done in the Nextion Editor.)
 
 ```
 //~~~~~~boilerplate~~~~
