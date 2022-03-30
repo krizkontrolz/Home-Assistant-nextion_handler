@@ -11,21 +11,20 @@ Nextion Handler allows you to program a Nextion touch screen device (NSPanels in
 
 ------------------------------------------------------------------------------
 ## Nextion Handler Framework Overview
-There are only 3 places in the Nextion Editor where you need to enter customized
+There are only 3 places in your Nextion Editor HMI file where you need to enter customized
 code: 2 types of Nextion Handler commands (**NHCmds**), and 1 'subroutine'.
 
 >'**SET**' commands assign Nextion variables the values of data you request from
   Home Assistant. These are configured as 5 **command strings** (**HA_Set1..5**)
   in each page of the Nextion Editor to define all the data you want for that
   page from Home Assistant.
-  '**command_string**'s are comma- or linebreak- separated lists of NHCmds
-  (255 chars max each) with arguements separated by spaces.
+  '**command_string**'s are comma- or linebreak- separated lists of NHCmds with arguements separated by spaces.
   The boilerplate **Postinit of each page** sends the HA_Set1..5 command_strings to HA.
   
 >'**ACTION**' commands perform actions you request in HA (scripts, scenes etc.).
   Your Events in Nextion Editor need to assign a sequence of Action NHCmds to
   the **HA_Act** string, then call the boilerplate **SEND_ACTIONS** subroutine. SEND_ACTIONS
-  will also temporarilly speed up '**UPDATE_LOOP**' (a boilerplate timer on the Nextion that controls
+  will also temporarilly speeds up '**UPDATE_LOOP**' (a boilerplate timer on the Nextion that controls
   the interaction-response loop between the user, the Nextion and HA -  
   State changes to a **TRIGGER** value are used to signal how Home Assistant should respond).
 
