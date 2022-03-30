@@ -15,21 +15,24 @@ There are only 3 places in your Nextion Editor HMI file where you need to enter 
 code: 2 types of Nextion Handler commands (**NHCmds**), and 1 'subroutine'.
 
 >'**SET**' commands assign Nextion variables the values of data you request from
-  Home Assistant. These are configured as 5 **command strings** (**HA_Set1..5**)
+  Home Assistant.
+  
+  These are configured as 5 **command strings** (**HA_Set1..5**)
   in each page of the Nextion Editor to define all the data you want for that
   page from Home Assistant.
   '**command_string**'s are comma- or linebreak- separated lists of NHCmds with arguements separated by spaces.
   The boilerplate **Postinit of each page** sends the HA_Set1..5 command_strings to HA.
   
 >'**ACTION**' commands perform actions you request in HA (scripts, scenes etc.).
+  
   Your Events in Nextion Editor need to assign a sequence of Action NHCmds to
   the **HA_Act** string, then call the boilerplate **SEND_ACTIONS** subroutine. SEND_ACTIONS
   will also temporarilly speeds up '**UPDATE_LOOP**' (a boilerplate timer on the Nextion that controls
-  the interaction-response loop between the user, the Nextion and HA -  
-  State changes to a **TRIGGER** value are used to signal how Home Assistant should respond).
+  the interaction-response loop between the user, the Nextion and HA: State changes to a **TRIGGER** value
+  are used to signal how Home Assistant should respond).
 
->'**APPLY_VARS**' (a subroutine on the Nextion) updates any 'conditional' UI elements that
-  need to respond to show changes in data - to make your UI more informative and interactive.
+>'**APPLY_VARS**' (a subroutine on the Nextion) updates any 'conditional' UI elements you use
+  to visualise changes in your data to make it more informative and interactive.
 ------------------------------------------------------------------------------
 
 ![Nextion handler framework](https://user-images.githubusercontent.com/100061886/154831899-4fbf9ff9-cb42-4a55-88d7-86fd3c81443d.png "Nextion handler framework")
@@ -42,13 +45,16 @@ Template files for getting a simple demo up and running are [here](https://githu
 
 ------------------------------------------------------------------------------
 ## Nextion Handler Instruction Set
-* ```Nx``` = Nextion variable name (_excluding_ '.val'/'.txt');
+* ```Nx``` = Nextion variable name
+ 
+    (If you have included the page prefix with the variable, you can _exclude_ the '.val'/'.txt' suffix.);
 * ```E``` = $alias/HA entity_id;
+
   as a **shorthand**, ```$``` alone can be used fore ```E``` in set_* commands to indicate the alias should be the same as the associated ```Nx```; and in Action
   commands, the entity class can be ommited where it is implicit, e.g. you can drop ```script.``` from ```E``` when calling the ```scpt E``` command).
 
 ### SET COMMAND LIST
-SET commands are entered in the Nextion Editor in strings ```HA_SET1``` .. ```HA_SET5``` on each page.  They configure how you want to pull data from Home Assistant each time that Nextion page is updated by configuring how HA data is assigned to Nextion global variables.
+SET commands are entered in the Nextion Editor in strings ```HA_SET1``` .. ```HA_SET5``` on each page.  They configure how you want to pull data from Home Assistant each time that Nextion page is updated by configuring what HA data is assigned to each Nextion global variable.
 
 *  ```sett Nx len E```  (assign ```len``` chars of state of ```E```, as string/text, to ```Nx```).
 *  ```setn Nx scale E``` (assign ```Nx``` the integer value of ```scale``` * state of ```E```).
@@ -65,15 +71,15 @@ SET commands are entered in the Nextion Editor in strings ```HA_SET1``` .. ```HA
 >```setb ST.bDSH $``` (using shorthand notation).  
 (Equivalent to long form of ```setb ST.bDSH.val binary_sensor.dishes_washed```.)
 
-  Set the Nextion variable ```ST.bDSH.val``` to boolean-interpreted state of the HA entity with
-  the alias ```ST.bDSH``` (where the enitity_id for each alias is configured under the ```aliases:``` section of the service call to nextion_handler in the HA automation, e.g., ```'ST.bDSH': 'binary_sensor.dishes_washed'``` - see the ALIAS example below for more detail).
+  Set the Nextion variable ```ST.bDSH.val``` to the state of the HA entity with
+  the alias ```ST.bDSH``` (see the ALIAS example below for more detail).
 
 --- 
   
 </details>
 
 ### ACTION COMMAND LIST
-ACTION commands are assigned to the ```HA_ACT``` string in Nextion Editor 'events' tabs.  They configure what commands are sent to Home Assistant when events, such as button pushes, are triggered on the Nextion.
+ACTION commands are assigned to the ```HA_ACT``` string in Nextion Editor 'events' tabs.  They configure what commands are sent to Home Assistant when events, such as button clicks, are triggered on the Nextion.
 
 
 *  ```tgl E``` (toggle ```E```)
@@ -87,7 +93,7 @@ ACTION commands are assigned to the ```HA_ACT``` string in Nextion Editor 'event
 *  ```say E string``` (Play TTS of message ```string``` to media player ```E```)
 *  ```ntf string``` (Display a persistent notification with message ```string``` to HA)
 *  ```sub Nx``` ('click' the Nextionx (hidden) hotspot ```Nx``` to execute a 'subroutine')
-*  TODO: RGBWW light controls with colour wheel UI (I prefer using scenes, but am working on this feature)
+*  TODO: RGBWW light controls (code working, documentation to come).
 
 <details>
   <summary>Example ACTION HaCmd (Click to expand)</summary>
