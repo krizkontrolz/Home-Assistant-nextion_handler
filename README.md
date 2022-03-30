@@ -1,42 +1,36 @@
 # Home Assistant Nextion Handler
-(*Last updated: 2022-03-18*)
+(*Version 0.4; Last updated: 2022-03-30*)
 
-A framework that allows a Nextion touch screen device (NSPanels in particular) to be programmed to interact with Home Assistant.  This uses a supporting Python script (that handles HA '**command_strings**' sent from Nextion to request updates of HA data and to perform actions on HA) and some boilerplate code (to handle the loop of sending actions and receiving updated data).
+Nextion Handler allows you to program a Nextion touch screen device (NSPanels in particular) to interact with Home Assistant (HA) **without having to do any coding in ESPHome YAML or Home Assistant automations**.  It uses a supporting Python script (to handle '**command_strings**' that you program into your HMI files) together with some boilerplate code (that does the heavy lifting for the routine parts of implementing your programmed commands).
 
-* **ESPhome** acts as simple broker tranferring command_strings from Nextion to HA and Nextion Instructions back from HA to Nextion (fixed boilerplate configuration, after entering device details and passwords in a list of ```substitutions:```).
+* **ESPhome** acts as simple broker tranferring command_strings from the Nextion to HA and Nextion Instructions back from HA to the Nextion (fixed boilerplate YAML configuration, after entering device details and passwords in a list of ```substitutions:```).
 
-* **Home Assistant** configuration is a single automation calling ```nextion_handler.py``` and includes a dictionary of entity_id aliases (that makes book-keeping much easier in the Nextion Editor).
+* **Home Assistant** configuration is a single automation calling ```nextion_handler.py``` and includes a dictionary of entity_id aliases (that makes book-keeping much easier for linking Nextion variables with associated Home Assitant entities).
 
-* All programming logic is coded in one place, the **Nextion Editor**, supported by cut-and-paste boilerplate code to handle the HA interaction loop.
+* All programming logic is coded in one place, the **Nextion Editor** HMI files, supported by cut-and-paste boilerplate code to handle the HA interaction loop.
 
 ------------------------------------------------------------------------------
 ## Nextion Handler Framework Overview
-There are 2 types of HA commands (**HaCmds**) in the ```nextion_handler.py```:
->'**SET**' commands assign HA entity states to Nextion variable by sending back
-  Nextion Instructions (sent with the **nx_cmd_service** configured on the ESP32).
-  **HA_Set1..5** **command_strings** are a sequence of HaCmds defined for each
-    page in the Nextion Editor.
-  The **Postinit of each page** sends the HA_Set1..5 command_strings to HA.
-  Updates to page data are applied by nextion_handler when **TRIGGER**ed.
+There are only 3 places in the Nextion Editor where you need to enter customized
+code: 2 types of Nextion Handler commands (**NHCmds**), and 1 'subroutine'.
 
->'**ACTION**' commands perform requested actions in HA (scripts, scenes etc.).
-  Events in Nextion Editor need to assign a sequence of Action HaCmds to
-  the **command_string HA_Act**, then call the **SEND_ACTIONS** subroutine.
-
->'**command_string**'s are comma- or linebreak- separated lists of HaCmds
+>'**SET**' commands assign Nextion variables the values of data you request from
+  Home Assistant. These are configured as 5 **command strings** (**HA_Set1..5**)
+  in each page of the Nextion Editor to define all the data you want for that
+  page from Home Assistant.
+  '**command_string**'s are comma- or linebreak- separated lists of NHCmds
   (255 chars max each) with arguements separated by spaces.
+  The boilerplate **Postinit of each page** sends the HA_Set1..5 command_strings to HA.
+  
+>'**ACTION**' commands perform actions you request in HA (scripts, scenes etc.).
+  Your Events in Nextion Editor need to assign a sequence of Action NHCmds to
+  the **HA_Act** string, then call the boilerplate **SEND_ACTIONS** subroutine. SEND_ACTIONS
+  will also temporarilly speed up '**UPDATE_LOOP**' (a boilerplate timer on the Nextion that controls
+  the interaction-response loop between the user, the Nextion and HA -  
+  State changes to a **TRIGGER** value are used to signal how Home Assistant should respond).
 
->'**UPDATE_LOOP**' on the Nextion controls the sending of a **TRIGGER** value (INT):
-   >> POSITIVE TRIGGER values direct the nextion_handler to apply the HaCmds in
-   the most recent **HA_Act** command_string sent to HA.
-
-   >> NEGATIVE TRIGGER values direct the nextion_handler to apply the HaCmds in
-   the most recent **HA_Set1..** comand_strings sent to HA.
-
-   >> ZERO TRIGGER value indicates the Nextion is SLEEPing.
-
->'**APPLY_VARS**' subroutine on Nextion updates UI elements using the refreshed 
-  Nextion data.
+>'**APPLY_VARS**' (a subroutine on the Nextion) updates any 'conditional' UI elements that
+  need to respond to show changes in data - to make your UI more informative and interactive.
 ------------------------------------------------------------------------------
 
 ![Nextion handler framework](https://user-images.githubusercontent.com/100061886/154831899-4fbf9ff9-cb42-4a55-88d7-86fd3c81443d.png "Nextion handler framework")
@@ -48,8 +42,12 @@ See expandable details and examples for each CUSTOMISABLE and BOILERPLATE compon
 Template files for getting a simple demo up and running are [here](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/tree/main/v0-4), including [instructions on how to use them](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/v0-4/Installation.md).
 
 ------------------------------------------------------------------------------
-## HaCmd Instruction Set
-(```Nx``` = Nextion variable name (_excluding_ '.val'/'.txt'); ```E``` = $alias/HA entity_id; as a **shorthand**, ```$``` alone can be used fore ```E``` in set_ commands to indicate the alias should be the same as the associated ```Nx```; and in Action commands, the entity class can be ommited where it is implicit, e.g. you can drop ```script.``` from ```E``` when calling the ```scpt E``` command).
+## Nextion Handler Instruction Set
+* ```Nx``` = Nextion variable name (_excluding_ '.val'/'.txt');
+* ```E``` = $alias/HA entity_id;
+  as a **shorthand**, ```$``` alone can be used fore ```E``` in set_* commands to indicate the alias should be the same as the associated ```Nx```; and in Action
+  commands, the entity class can be ommited where it is implicit, e.g. you can drop ```script.``` from ```E``` when calling the ```scpt E``` command).
+
 ### SET COMMAND LIST
 SET commands are entered in the Nextion Editor in strings ```HA_SET1``` .. ```HA_SET5``` on each page.  They configure how you want to pull data from Home Assistant each time that Nextion page is updated by configuring how HA data is assigned to Nextion global variables.
 
@@ -116,7 +114,7 @@ Click to expand sections below for examples of each of the components of the fra
   
 ---
 
->Nextion events assign ACTION HaCmds to  ```HA_Act.txt```, then send with  ```SEND_ACTIONS``` (boilerplate subroutine - see boilerplate section below)
+>Nextion events assign ACTION NHCmds to  ```HA_Act.txt```, then send with  ```SEND_ACTIONS``` (boilerplate subroutine - see boilerplate section below)
 
 This example shows how to program calling Home Assistant actions from within Nextion Editor Events.
 The 'basic' version of the Event in the screenshot duplicates similar logic to the HA Lovelace UI, where pressing a toggle button simply toggles a Home Assistant entity.  This is done in the Nextion Event panel by assigning one or more Nextion Handler commands (separated by commas) to the ```HA_Act.txt``` variable then entering ```click SEND_ACTIONS,1``` (a 'subroutine' attached to a hidden Nextion hotspot component).  When the event is triggered the commands in HA_Act will be sent by boilerplate code in ```SEND_ACTIONS``` (that you never need to edit), which will do all the magic of sending the commands to the nextion_handler in Home Assistant (via ESPHome), getting back the updated data needed for the Nextion page, and applying that data to update the UI components on the Nextion.
@@ -203,7 +201,7 @@ Aliases are convenient because they save having to switch back & forth between t
 TRIGGER: >> 1 (ACTION)
 HA_Act (<- Last SEND_ACTIONS):
   > tgl $ST.bDSH
-HaCmds for Update (<- Page PostInit):
+NHCmds for Update (<- Page PostInit):
 HA_Set1 ---------------
   > setn ST.nGDA 1 $
   > setb ST.bMAIL $
@@ -367,12 +365,12 @@ if(flag1==1)
 ---
 
 ```SEND_ACTIONS``` is the code attached to a ```Touch Press Event``` for a hidden hotspot on each Nextion page (to serve as a 'subroutine').
-Each Nextion Event should first add the sequence of ACTION HaCmds to the ```HA_ACT.txt``` string on that page, followed by ```click SEND_ACTIONS,1``` (which then sends the Action commands to the nextion_handler on Home Assistant to be excecuted).
+Each Nextion Event should first add the sequence of ACTION NHCmds to the ```HA_ACT.txt``` string on that page, followed by ```click SEND_ACTIONS,1``` (which then sends the Action commands to the nextion_handler on Home Assistant to be excecuted).
 (See the example Nextion Event above for how this done in the Nextion Editor.)
 
 ```
 //~~~~~~boilerplate~~~~
-// SEND ACTION HaCmds (CSV sequencence set in HA_Act string by calling Event)
+// SEND ACTION NHCmds (CSV sequencence set in HA_Act string by calling Event)
 //~~~~~~~~~~~~~~~~~~~~~
 // This subroutine is called by each Event programmed for Nextion UI elements.
 // The HA_Act string_commands are sent to the HA nextion_handler, which performs the
@@ -486,7 +484,7 @@ page 255   //Power on start page (255 = last page)
 //~~~~~~boilerplate~~~~
 // INITIALISE UPDATE settings by sending list of HA_Set command_strings to HA nextion_handler
 //~~~~~~~~~~~~~~~~~~~~~
-// Enter the sequence of HaCmds required to update this page with data from HA
+// Enter the sequence of NHCmds required to update this page with data from HA
 // in the text field of the list of HA_Set (1..5) local text variables (for each page).
 // HA nextion_handler will then use the command_strings when triggered
 //   by state changes sent using the TRIGGER variable either by the
@@ -617,7 +615,7 @@ TO DO! - link to script and brief description of how it works
     * UPDATE automation
     * DELAYED update script (with repeats) - called at the end of this Py script IF it was an ACTION
 * v0.2 2022-02-10 ...
-  * Transferred  control of  looping and sequencing from Nx to this script (with new sub, rpt and noupdt HaCmds)
+  * Transferred  control of  looping and sequencing from Nx to this script (with new sub, rpt and noupdt NHCmds)
 * v0.1 2022-01 ...
   * First version where all loop/sequencing control was attempted on the Nextion (double inter-linked timer loops)
 ------------------------------------------------------------------------------
