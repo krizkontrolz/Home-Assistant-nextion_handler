@@ -50,8 +50,7 @@ Template files for getting a simple demo up and running are [here](https://githu
     (If you have included the page prefix with the variable, you can _exclude_ the '.val'/'.txt' suffix.);
 * ```E``` = $alias/HA entity_id;
 
-  as a **shorthand**, ```$``` alone can be used fore ```E``` in set_* commands to indicate the alias should be the same as the associated ```Nx```; and in Action
-  commands, the entity class can be ommited where it is implicit, e.g. you can drop ```script.``` from ```E``` when calling the ```scpt E``` command).
+  as a **shorthand**, ```$``` alone can be used for ```E``` in set_* commands to indicate the alias should be the same as the associated ```Nx``` (shorthand) variable; and in Action commands, the entity class can be ommited where it is implicit, e.g. you can drop ```script.``` from ```E``` when calling the ```scpt E``` command).
 
 ### SET COMMAND LIST
 SET commands are entered in the Nextion Editor in strings ```HA_SET1``` .. ```HA_SET5``` on each page.  They configure how you want to pull data from Home Assistant each time that Nextion page is updated by configuring what HA data is assigned to each Nextion global variable.
@@ -168,7 +167,7 @@ TO DO! - add screen shot example with explanation
 
 Aliases are convenient because they save having to switch back & forth between the Nextion Editor & HA, the alias is typically based on the name of the Nextion (global) variable it is associated with, they save having to reflash the Nextion TFT each time you fix a typo in an entity_id, and you enter the entity_ids in the HA YAML editor (where autocompletion helps avoid typos in the first place).  The YAML automation for the ```nextion_handler``` shows how the example alias is added to the 'dictionary'.
 ```YAML
-#  Nextion Handler service automation (this handles everything coming from and going back to Nextion)
+#  Nextion Handler service automation (this handles everything coming from and going back a Nextion device)
 - alias: "NSPanel 1 Nextion Handler"
   mode: queued
   max: 10
@@ -176,7 +175,7 @@ Aliases are convenient because they save having to switch back & forth between t
     - platform: state
       entity_id: sensor.nsp1_trigger
   action:
-    - service: python_script.nextion_handler
+    - service: python_script.nextion_handler  # the one script can handle multiple Nextion devices
       data:
         trig_val: sensor.nsp1_trigger
         nx_cmd_service: esphome.nsp1_send_command
@@ -185,8 +184,8 @@ Aliases are convenient because they save having to switch back & forth between t
         update_cmds:
           - sensor.nsp1_ha_set1
         aliases: # << Nextion alias (excl. '$' prefix and '.val'/'.txt' suffix) paired with HA entity_id
-          "IR.nRN_DL": "sensor.rain_delay"
-          "PAGE.Variable": "sensor.another" # ... etc.
+          IR.nRN_DL: sensor.rain_delay
+          PAGE.Variable: sensor.another # ... etc.
 ```
 
 ---
@@ -203,37 +202,23 @@ Aliases are convenient because they save having to switch back & forth between t
 
   Example Lovelace card after just having pushed a 'button' (on the Nextion 'ST' page) to clear an alert that the dish washing was done.
 ```
-TRIGGER: >> 1 (ACTION)
+TRIGGER: >> -3 (FAST UPDATES)
 HA_Act (<- Last SEND_ACTIONS):
-  > tgl $ST.bDSH
-NHCmds for Update (<- Page PostInit):
+  <scpt $rain+7>
+Update settings (<- Page PostInit):
 HA_Set1 ---------------
-  > setn ST.nGDA 1 $
-  > setb ST.bMAIL $
-  > setb ST.bRCYC $
-  > setn ST.nNTFC 1 $
-  > setb ST.bIRR $
-  > setb ST.bGUEST $
-  > setb ST.bDSH $
-  > setb ST.bLNDY $
-  > 
-HA_Set2 ---------------
-  > setb ST.bGRG $
-  > setb ST.bPATD $
-  > setb ST.bFNTD $
-  > setb ST.bPCHM $
-  > setn ST.x1SOL 0.01 $
-  > setn ST.x1CONS -0.01 $
-  > setn ST.x1GRD 0.01 $
-  > setn ST.x1EN 0.01 $
-  > setb ST.bMLGR $
-  > setb ST.bMLLR $
-HA_Set3 ---------------
-  > 
-HA_Set4 ---------------
-  > 
-HA_Set5 ---------------
-  > sub APPLY_VARS
+  <setn IR.nIR_AL 1 $>
+  <setn IR.nIR_BG 1 $>
+  <setn IR.nIR_FG 1 $>
+  <setn IR.nIR_BL 1 $>
+  <setn IR.nIR_FL 1 $>
+  <setb ST.bIRR $>
+  <setb IR.bIR_BG $>
+  <setb IR.bIR_FG $>
+  <setb IR.bIR_BL $>
+  <setb IR.bIR_FL $>
+  <setn IR.nRN_DL 1 $>
+  <sett IR.tIRR 20 $>
 ```
 
 
