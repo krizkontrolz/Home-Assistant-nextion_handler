@@ -1,17 +1,17 @@
 # Home Assistant Nextion Handler
-(*Version 0.4; Last updated: 2022-03-30*)
+(*Version 0.4; Last updated: 2022-03-31*)
 
-Nextion Handler allows you to program a Nextion touch screen device (NSPanels in particular) to interact with Home Assistant (HA) **without having to do any coding in ESPHome YAML or Home Assistant automations**.  It uses a supporting Python script (to handle '**command_strings**' that you program into your HMI files) together with some boilerplate code (that does the heavy lifting for the routine parts of implementing your programmed commands).
+Nextion Handler allows you to program a Nextion touch screen device (NSPanels in particular) to interact with Home Assistant (HA) **without having to do any coding in ESPHome YAML or Home Assistant automations**.  It uses a supporting Python script (to handle '**command_strings**' that you program into your HMI files) together with some boilerplate code (that does the routine parts of implementing your programmed commands).
 
 * **ESPhome** acts as simple broker tranferring command_strings from the Nextion to HA and Nextion Instructions back from HA to the Nextion (fixed boilerplate YAML configuration, after entering device details and passwords in a list of ```substitutions:```).
 
-* **Home Assistant** configuration is a single automation calling ```nextion_handler.py``` and includes a dictionary of entity_id aliases (that makes book-keeping much easier for linking Nextion variables with associated Home Assitant entities).
+* **Home Assistant** configuration is a single automation calling ```nextion_handler.py``` and includes a dictionary of entity_id aliases (which makes it easier to manage which Home Assitant entity you associate with each Nextion variable).
 
-* All programming logic is coded in one place, the **Nextion Editor** HMI files, supported by cut-and-paste boilerplate code to handle the HA interaction loop.
+* All programming logic is kept together in one place, the **Nextion Editor** HMI files, supported by standardised boilerplate code to handle the HA interaction loop.
 
 ------------------------------------------------------------------------------
 ## Nextion Handler Framework Overview
-There are only 3 places in your Nextion Editor HMI file where you need to enter customized
+There are only 3 places in your Nextion Editor HMI file where you need to enter customised
 code: 2 types of Nextion Handler commands (**NHCmds**), and 1 'subroutine'.
 
 >'**SET**' commands assign Nextion variables the values of data you request from
@@ -20,16 +20,17 @@ code: 2 types of Nextion Handler commands (**NHCmds**), and 1 'subroutine'.
   These are configured as 5 **command strings** (**HA_Set1..5**)
   in each page of the Nextion Editor to define all the data you want for that
   page from Home Assistant.
-  '**command_string**'s are comma- or linebreak- separated lists of NHCmds with arguements separated by spaces.
-  The boilerplate **Postinit of each page** sends the HA_Set1..5 command_strings to HA.
+  '**command_string**'s are lists of NHCmds, where commands are separated by commas or
+  linebreaks, and arguements are separated by spaces.
+  The boilerplate **Postinit** event of each page sends the HA_Set command_strings to HA.
   
->'**ACTION**' commands perform actions you request in HA (scripts, scenes etc.).
+>'**ACTION**' commands perform actions you request in HA (lights, scenes, scripts,  etc.).
   
   Your Events in Nextion Editor need to assign a sequence of Action NHCmds to
   the **HA_Act** string, then call the boilerplate **SEND_ACTIONS** subroutine. SEND_ACTIONS
   will also temporarilly speeds up '**UPDATE_LOOP**' (a boilerplate timer on the Nextion that controls
-  the interaction-response loop between the user, the Nextion and HA: State changes to a **TRIGGER** value
-  are used to signal how Home Assistant should respond).
+  the interaction-response loop between the user, the Nextion and HA: UPDATE_LOOP enforces state changes
+  to a **TRIGGER** value to signal how Home Assistant should respond).
 
 >'**APPLY_VARS**' (a subroutine on the Nextion) updates any 'conditional' UI elements you use
   to visualise changes in your data to make it more informative and interactive.
@@ -47,13 +48,13 @@ Template files for getting a simple demo up and running are [here](https://githu
 ## Nextion Handler Instruction Set
 * ```Nx``` = Nextion variable name
  
-    (If you have included the page prefix with the variable, you can _exclude_ the '.val'/'.txt' suffix.);
+    as **shorthand** for ```Nx``` you can _exclude_ the '.val'/'.txt' suffix if you have include the page prefix with the variable name ;
 * ```E``` = $alias/HA entity_id;
 
-  as a **shorthand**, ```$``` alone can be used for ```E``` in set_* commands to indicate the alias should be the same as the associated ```Nx``` (shorthand) variable; and in Action commands, the entity class can be ommited where it is implicit, e.g. you can drop ```script.``` from ```E``` when calling the ```scpt E``` command).
+  as **shorthand** for ```E```: _a)_ in Set commands ```$``` alone can be used for ```E``` to indicate the alias should be the same as the associated ```Nx``` (shorthand) variable name; _b)_ in Action commands the entity class can be ommited where it is implicit, e.g. you can drop ```script.``` from ```E``` when calling the ```scpt E``` command).
 
 ### SET COMMAND LIST
-SET commands are entered in the Nextion Editor in strings ```HA_SET1``` .. ```HA_SET5``` on each page.  They configure how you want to pull data from Home Assistant each time that Nextion page is updated by configuring what HA data is assigned to each Nextion global variable.
+You enter SET commands in the Nextion Editor strings ```HA_SET1``` .. ```HA_SET5``` on each page.  You use them to configure how you want to pull data from Home Assistant each time that the Nextion page is updated and what HA data you want assigned to each Nextion variable.
 
 *  ```sett Nx len E```  (assign ```len``` chars of state of ```E```, as string/text, to ```Nx```).
 *  ```setn Nx scale E``` (assign ```Nx``` the integer value of ```scale``` * state of ```E```).
@@ -71,14 +72,14 @@ SET commands are entered in the Nextion Editor in strings ```HA_SET1``` .. ```HA
 (Equivalent to long form of ```setb ST.bDSH.val binary_sensor.dishes_washed```.)
 
   Set the Nextion variable ```ST.bDSH.val``` to the state of the HA entity with
-  the alias ```ST.bDSH``` (see the ALIAS example below for more detail).
+  the alias ```ST.bDSH``` (see the _ALIAS example_ below for more detail).
 
 --- 
   
 </details>
 
 ### ACTION COMMAND LIST
-ACTION commands are assigned to the ```HA_ACT``` string in Nextion Editor 'events' tabs.  They configure what commands are sent to Home Assistant when events, such as button clicks, are triggered on the Nextion.
+You assign ACTION commands to the ```HA_ACT``` string in your Nextion Editor 'events'.  You use them to configure what commands are sent to Home Assistant when events, such as button clicks, are triggered on the Nextion.
 
 
 *  ```tgl E``` (toggle ```E```)
@@ -165,7 +166,7 @@ TO DO! - add screen shot example with explanation
   
 >**ALIAS in service automation**: linking ```sensor.rain_delay``` to Nextion ```IR.nRN_DL.val```
 
-Aliases are convenient because they save having to switch back & forth between the Nextion Editor & HA, the alias is typically based on the name of the Nextion (global) variable it is associated with, they save having to reflash the Nextion TFT each time you fix a typo in an entity_id, and you enter the entity_ids in the HA YAML editor (where autocompletion helps avoid typos in the first place).  The YAML automation for the ```nextion_handler``` shows how the example alias is added to the 'dictionary'.
+Aliases are convenient because _a)_ they save you having to switch back & forth between the Nextion Editor & HA, _b)_ the alias is typically based on the name of the Nextion (global) variable it is associated with, _c)_ they save you having to reflash the Nextion TFT each time you fix a typo in an entity_id, and _d)_ you enter the entity_ids in the HA YAML editor (where autocompletion helps avoid typos in the first place).  The YAML automation for the ```nextion_handler``` shows an example of how you add an alias to the 'dictionary'.
 ```YAML
 #  Nextion Handler service automation (this handles everything coming from and going back a Nextion device)
 - alias: "NSPanel 1 Nextion Handler"
@@ -200,7 +201,7 @@ Aliases are convenient because they save having to switch back & forth between t
   
 > **Lovelace UI Markdown Card** for monitoring flow of nextion_handler command_strings & TRIGGERs.
 
-  Example Lovelace card after just having pushed a 'button' (on the Nextion 'ST' page) to clear an alert that the dish washing was done.
+  Example Lovelace card after just having pushed a 'button' (which has executed a script and initiated fast updates to pass resulting state changes in HA back to the Nextion).
 ```
 TRIGGER: >> -3 (FAST UPDATES)
 HA_Act (<- Last SEND_ACTIONS):
@@ -243,16 +244,14 @@ TO DO!
 ------------------------------------------------------------------------------
 ## BOILERPLATE components
 
-Click to expand sections below for boilerplate code (that can be cut and pasted, without editing, to do all the heavy lifting in managing the Nextion interactions with Home Assistant).
+Click to expand sections below for boilerplate code (this is standardised code that you can copy and paste, without editing. It performs the routine tasks that help your customised components do what you programmed them to do.)  
 
 <details>
   <summary>UPDATE_LOOP (Nextion Editor - timer)</summary>
   
 ---
 
-There is no need to edit boilerplate code at all - you can just copy and paste it.
-You can modify the behaviour of the ```UPDATE_LOOP``` through Nextion Global Settings (see the ```Program.s``` details below).
-The ```UPDATE_LOOP``` is a Nextion ```Timer Event``` attached to a timer on each page to controls all the fetching of data from Home Assistant in a very efficient and scaleable manner to prevent flooding the Nextion, ESP chip or Home Assistant with communications requests.
+You can modify the behaviour of the ```UPDATE_LOOP``` through Nextion Global Settings variables (see the ```Program.s``` details below), without having to edit the code.  The ```UPDATE_LOOP``` is attached to a timer on each Nextion page to control all your fetching of data from Home Assistant in a controlled and efficient way.
 ```
 //~~~~~~boilerplate~~~~
 // UPDATE LOOP controls:
