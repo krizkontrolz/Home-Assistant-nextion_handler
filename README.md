@@ -3,9 +3,9 @@
 
 Nextion Handler allows you to program a Nextion touch screen device (NSPanels in particular) to interact with Home Assistant (HA) **without having to do any coding in ESPHome YAML or Home Assistant automations**.  It uses a supporting Python script (to handle '**command_strings**' that you program into your HMI files) together with some boilerplate code (that does the routine parts of implementing your programmed commands).
 
-* **ESPhome** acts as simple broker tranferring command_strings from the Nextion to HA and Nextion Instructions back from HA to the Nextion (fixed boilerplate YAML configuration, after entering device details and passwords in a list of ```substitutions:```).
+* **ESPhome** acts as simple broker tranferring command_strings from the Nextion to HA and Nextion Instructions back from HA to the Nextion (fixed boilerplate YAML configuration, after entering device details and passwords in a list of `substitutions:`).
 
-* **Home Assistant** configuration is a single automation calling ```nextion_handler.py``` and includes a dictionary of entity_id aliases (which makes it easier to manage which Home Assitant entity you associate with each Nextion variable).
+* **Home Assistant** configuration is a single automation calling `nextion_handler.py` and includes a dictionary of entity_id aliases (which makes it easier to manage which Home Assitant entity you associate with each Nextion variable).
 
 * All programming logic is kept together in one place, the **Nextion Editor** HMI files, supported by standardised boilerplate code to handle the HA interaction loop.
 
@@ -46,53 +46,53 @@ Template files for getting a simple demo up and running are [here](https://githu
 
 ------------------------------------------------------------------------------
 ## Nextion Handler Instruction Set
-* ```Nx``` = Nextion variable name
+* `Nx` = Nextion variable name
  
-    as **shorthand** for ```Nx``` you can _exclude_ the '.val'/'.txt' suffix if you have include the page prefix with the variable name ;
-* ```E``` = $alias/HA entity_id;
+    as **shorthand** for `Nx` you can _exclude_ the '.val'/'.txt' suffix if you have include the page prefix with the variable name ;
+* `E` = $alias/HA entity_id;
 
-  as **shorthand** for ```E```: _a)_ in Set commands ```$``` alone can be used for ```E``` to indicate the alias should be the same as the associated ```Nx``` (shorthand) variable name; _b)_ in Action commands the entity class can be ommited where it is implicit, e.g. you can drop ```script.``` from ```E``` when calling the ```scpt E``` command).
+  as **shorthand** for `E`: _a)_ in Set commands `$` alone can be used for `E` to indicate the alias should be the same as the associated `Nx` (shorthand) variable name; _b)_ in Action commands the entity class can be ommited where it is implicit, e.g. you can drop `script.` from `E` when calling the `scpt E` command).
 
 ### SET COMMAND LIST
-You enter SET commands in the Nextion Editor strings ```HA_SET1``` .. ```HA_SET5``` on each page.  You use them to configure how you want to pull data from Home Assistant each time that the Nextion page is updated and what HA data you want assigned to each Nextion variable.
+You enter SET commands in the Nextion Editor strings `HA_SET1` .. `HA_SET5` on each page.  You use them to configure how you want to pull data from Home Assistant each time that the Nextion page is updated and what HA data you want assigned to each Nextion variable.
 
-*  ```sett Nx len E```  (assign ```len``` chars of state of ```E```, as string/text, to ```Nx```).
-*  ```setn Nx scale E``` (assign ```Nx``` the integer value of ```scale``` * state of ```E```).
-*  ```setb Nx E``` (assign ```Nx``` a value of 0 or 1 based the binary interpretation of
-        the state of ```E``` (given by str(state of E) in FALSE_STATES)).
-*  ```setb Nx E cp x``` (assign ```Nx``` the value of the binary expression from
-        comparing the state of ```E``` to ```x``` where ```cp``` in ```[eq, ne, lt, le, gt, ge]```)
+*  `sett Nx len E`  (assign `len` chars of state of `E`, as string/text, to `Nx`).
+*  `setn Nx scale E` (assign `Nx` the integer value of `scale` * state of `E`).
+*  `setb Nx E` (assign `Nx` a value of 0 or 1 based the binary interpretation of
+        the state of `E` (given by str(state of E) in FALSE_STATES)).
+*  `setb Nx E cp x` (assign `Nx` the value of the binary expression from
+        comparing the state of `E` to `x` where `cp` in `[eq, ne, lt, le, gt, ge, =, !=, <, <=, >, >=]`)
 
 <details>
   <summary>Example SET HaCmd (Click to expand)</summary>
 
 ---
 
->```setb ST.bDSH $``` (using shorthand notation).  
-(Equivalent to long form of ```setb ST.bDSH.val binary_sensor.dishes_washed```.)
+>`setb ST.bDSH $` (using shorthand notation).  
+(Equivalent to long form of `setb ST.bDSH.val binary_sensor.dishes_washed`.)
 
-  Set the Nextion variable ```ST.bDSH.val``` to the state of the HA entity with
-  the alias ```ST.bDSH``` (see the _ALIAS example_ below for more detail).
+  Set the Nextion variable `ST.bDSH.val` to the state of the HA entity with
+  the alias `ST.bDSH` (see the _ALIAS example_ below for more detail).
 
 --- 
   
 </details>
 
 ### ACTION COMMAND LIST
-You assign ACTION commands to the ```HA_ACT``` string in your Nextion Editor 'events'.  You use them to configure what commands are sent to Home Assistant when events, such as button clicks, are triggered on the Nextion.
+You assign ACTION commands to the `HA_ACT` string in your Nextion Editor 'events'.  You use them to configure what commands are sent to Home Assistant when events, such as button clicks, are triggered on the Nextion.
 
 
-*  ```tgl E``` (toggle ```E```)
-*  ```ton E``` (turn on ```E```)
-*  ```tof E``` (turn off ```E```)
-*  ```inps E string``` (set value of input_select ```E``` to ```string```)
-*  ```inpb E 0/1``` (set value of input_binary to (state of ```E``` != 0))
-*  ```inpn E x``` (set value of input_number ```E``` to ```x```)
-*  ```scpt E``` (call script ```E```)
-*  ```scn E``` (turn on scene ```E```)
-*  ```say E string``` (Play TTS of message ```string``` to media player ```E```)
-*  ```ntf string``` (Display a persistent notification with message ```string``` to HA)
-*  ```sub Nx``` ('click' the Nextionx (hidden) hotspot ```Nx``` to execute a 'subroutine')
+*  `tgl E` (toggle `E`)
+*  `ton E` (turn on `E`)
+*  `tof E` (turn off `E`)
+*  `inps E string` (set value of input_select `E` to `string`)
+*  `inpb E 0/1` (set value of input_binary to (state of `E` != 0))
+*  `inpn E x` (set value of input_number `E` to `x`)
+*  `scpt E` (call script `E`)
+*  `scn E` (turn on scene `E`)
+*  `say E string` (Play TTS of message `string` to media player `E`)
+*  `ntf string` (Display a persistent notification with message `string` to HA)
+*  `sub Nx` ('click' the Nextionx (hidden) hotspot `Nx` to execute a 'subroutine')
 *  TODO: RGBWW light controls (code working, documentation to come).
 
 <details>
@@ -100,8 +100,8 @@ You assign ACTION commands to the ```HA_ACT``` string in your Nextion Editor 'ev
   
 ---
   
->```tgl $ST.bDSH``` (using shorthand notation).  
-(Equivalent to long form of ```tgl binary_sensor.dishes_washed```.)
+>`tgl $ST.bDSH` (using shorthand notation).  
+(Equivalent to long form of `tgl binary_sensor.dishes_washed`.)
 
   Toggles the binary sensor (on/off) that we set up to fetch HA data updates for above.
   
@@ -115,18 +115,18 @@ You assign ACTION commands to the ```HA_ACT``` string in your Nextion Editor 'ev
 Click to expand sections below for examples of each of the components of the framework that can be customised.
 
 <details>
-  <summary>Example NEXTION EVENT to SEND an ACTION command to Home Assistant (Nextion Editor - event tab)</summary>
+  <summary>Example NEXTION EVENT to SEND a ACTION commands to Home Assistant (Nextion Editor - event tab, HA_ACT)</summary>
   
 ---
 
->Nextion events assign ACTION NHCmds to  ```HA_Act.txt```, then send with  ```SEND_ACTIONS``` (boilerplate subroutine - see boilerplate section below)
+>You assign ACTION NHCmds to  `HA_Act.txt` in Nextion events, then send the commands with  `SEND_ACTIONS` (see **boilerplate SEND_ACTIONS** 'subroutine', see code & details below).
 
 This example shows how to program calling Home Assistant actions from within Nextion Editor Events.
-The 'basic' version of the Event in the screenshot duplicates similar logic to the HA Lovelace UI, where pressing a toggle button simply toggles a Home Assistant entity.  This is done in the Nextion Event panel by assigning one or more Nextion Handler commands (separated by commas) to the ```HA_Act.txt``` variable then entering ```click SEND_ACTIONS,1``` (a 'subroutine' attached to a hidden Nextion hotspot component).  When the event is triggered the commands in HA_Act will be sent by boilerplate code in ```SEND_ACTIONS``` (that you never need to edit), which will do all the magic of sending the commands to the nextion_handler in Home Assistant (via ESPHome), getting back the updated data needed for the Nextion page, and applying that data to update the UI components on the Nextion.
+The code is for the orange [+7] button at the bottom of a page for controlling irrigation automations.  The [Touch Release Event] has been programmed so that when this button is given a short press, a script will be called in Home Assistant to add 7 days to the 'rain delay' until automatic scheduling resumes.  Long-pressing the button is programmed instead to call a script that reduces this delay by 7 days.
 
-The second version of the Event in the screenshot 'Adds some Nextion smarts' to do something a bit more complicated in the code, but to the user would still be intuitively thought of as toggling.  When the switch is toggled to 'on', it will run a script in Home Assistant that will run through a program of all the irrigation stations sequentially; when it is toggled to 'off', it stop *all* possible scripts that control irrigation valves and then turn off all the valves (a very thorough way of making sure everything is *really* off).  This just demonstrates that the Nextion Handler framework doesn't stop you in any way from being as creative as you like.  You can have really complicated Nextion Events that conditionally add progressively additional HA commands to the HA_Act string (each separated by a comma), then use the ```SEND_ACTIONS``` 'subroutine` to take care of all the book-keeping to make your magic happen.  (Or, you can start as simple as the basic example with just 2 lines in your Nextion event code).
+<img src="https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/current_version/images/HA_ACT_example.png" alt="HA_ACT example">
 
-<img src="https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/v0-4/Example_HA_Act_Event.png" alt="drawing" width="656"/>
+
 
 ---
   
@@ -135,11 +135,16 @@ The second version of the Event in the screenshot 'Adds some Nextion smarts' to 
 
 
 <details>
-  <summary>Example HA_SET string for pulling HA data into Nextion on each page update (Nextion Editor - string)</summary>
+  <summary>Example HA_SET string for pulling required HA data into Nextion pages (Nextion Editor - string, HA_SET1)</summary>
   
 ---
-  
-TO DO! - add screen shot example with explanation
+
+>You assign SET NHCmds directly to `HA_SET1.txt` (and up to 4 more) local strings on each page.  The Page [Post Initialization Event] will then send the strings to HA to store for use in future page updates (see **boilerplate Page PostInit** code & details below).
+
+This example shows the `HA_SET1.txt` string to bring in the data required a page that controls irrigation automations.  It fetches 6 numeric values (`setn`: for irrigation duration sliders and the rain delay), 5 binary values (`setb`: for the 5 toggle switches), and one text value (`sett`: for the `input_select` in HA that indicates the current status of the irrigation system.)  For all SET commands the enitity_id is specified with `$` which means that aliases will be used in HA, based on the name of the Nextion variable in each command (see the aliases example below, matching this `HA_SET1` string.)
+
+<img src="https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/current_version/images/HA_SET_example.png" alt="HA_SET example">
+
 
 ---
   
@@ -147,11 +152,15 @@ TO DO! - add screen shot example with explanation
 
 
 <details>
-  <summary>Example APPLY_VARS to update Nextion UI with updated data from HA (Nextion Editor - hidden hotspot 'subroutine')</summary>
-  
+  <summary>Example APPLY_VARS to update Nextion UI with returned data from HA (Nextion Editor - APPLY_VARS 'subroutine')</summary>
+
 ---
+
+>You put your Nextion code for modifying any UI components that use HA data in a 'subrountine' (a hidden `Hotspot`).  This allows HA to apply the UI changes immediately after sending updated data by sending a Nextion Instruction to `click` on the `APPLY_VARS` hotspot.
+
+This example shows part of the `APPLY_VARS` subroutine for apply updates to the display of 'rain delay' information on a Nextion page for controlling irrigation automations.  The code updates the numeric value displayed then also: _a)_ changes a `Crop` image to show the cloud icon and label in a highlighted color if the rain delay is greater than 0; _b_ changes the background image for the displayed number to match (so the number seems transparent as the background changes); and _c_ changes the font color for displaying the number.  (The complete subroutine applies updates to all the other UI components too.)
   
-TO DO! - add screen shot example with explanation
+<img src="https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/current_version/images/APPLY_VARS_example.png" alt="APPLY_VARS example">
 
 ---
   
@@ -164,9 +173,9 @@ TO DO! - add screen shot example with explanation
   
 ---
   
->**ALIAS in service automation**: linking ```sensor.rain_delay``` to Nextion ```IR.nRN_DL.val```
+>**ALIAS in service automation**: linking `sensor.rain_delay` to Nextion `IR.nRN_DL.val`
 
-Aliases are convenient because _a)_ they save you having to switch back & forth between the Nextion Editor & HA, _b)_ the alias is typically based on the name of the Nextion (global) variable it is associated with, _c)_ they save you having to reflash the Nextion TFT each time you fix a typo in an entity_id, and _d)_ you enter the entity_ids in the HA YAML editor (where autocompletion helps avoid typos in the first place).  The YAML automation for the ```nextion_handler``` shows an example of how you add an alias to the 'dictionary'.
+Aliases are convenient because _a)_ they save you having to switch back & forth between the Nextion Editor & HA, _b)_ the alias is typically based on the name of the Nextion (global) variable it is associated with, _c)_ they save you having to reflash the Nextion TFT each time you fix a typo in an entity_id, and _d)_ you enter the entity_ids in the HA YAML editor (where autocompletion helps avoid typos in the first place).  The YAML automation for the `nextion_handler` shows an example of how you add an alias to the 'dictionary'.
 ```YAML
 #  Nextion Handler service automation (this handles everything coming from and going back a Nextion device)
 - alias: "NSPanel 1 Nextion Handler"
@@ -251,7 +260,7 @@ Click to expand sections below for boilerplate code (this is standardised code t
   
 ---
 
-You can modify the behaviour of the ```UPDATE_LOOP``` through Nextion Global Settings variables (see the ```Program.s``` details below), without having to edit the code.  The ```UPDATE_LOOP``` is attached to a timer on each Nextion page to control all your fetching of data from Home Assistant in a controlled and efficient way.
+You can modify the behaviour of the `UPDATE_LOOP` through Nextion Global Settings variables (see the `Program.s` details below), without having to edit the code.  The `UPDATE_LOOP` is attached to a timer on each Nextion page to control all your fetching of data from Home Assistant in a controlled and efficient way.
 ```
 //~~~~~~boilerplate~~~~
 // UPDATE LOOP controls:
@@ -353,8 +362,8 @@ if(flag1==1)
   
 ---
 
-```SEND_ACTIONS``` is the code attached to a ```Touch Press Event``` for a hidden hotspot on each Nextion page (to serve as a 'subroutine').
-Each Nextion Event should first add the sequence of ACTION NHCmds to the ```HA_ACT.txt``` string on that page, followed by ```click SEND_ACTIONS,1``` (which then sends the Action commands to the nextion_handler on Home Assistant to be excecuted).
+`SEND_ACTIONS` is the code attached to a `Touch Press Event` for a hidden hotspot on each Nextion page (to serve as a 'subroutine').
+Each Nextion Event should first add the sequence of ACTION NHCmds to the `HA_ACT.txt` string on that page, followed by `click SEND_ACTIONS,1` (which then sends the Action commands to the nextion_handler on Home Assistant to be excecuted).
 (See the example Nextion Event above for how this done in the Nextion Editor.)
 
 ```
@@ -413,8 +422,8 @@ if(override_frpts==0)
   
 ---
   
-Nextion Global Settings are set in the ```Program.s``` tab in the Nextion Editor.
-Some of these settings can be used to fine tune the behaviour of the boilerplate ```UPDATE_LOOP``` code (including adjusting these 'live' while the Nextion is running, see comments in code), while other variables are only for internal use.
+Nextion Global Settings are set in the `Program.s` tab in the Nextion Editor.
+Some of these settings can be used to fine tune the behaviour of the boilerplate `UPDATE_LOOP` code (including adjusting these 'live' while the Nextion is running, see comments in code), while other variables are only for internal use.
   
 ```
 //~~~~~~boilerplate~~~~
