@@ -3,15 +3,15 @@
 
 Nextion Handler allows you to program a Nextion touch screen device (NSPanels in particular) to interact with Home Assistant (HA) **without having to do any coding in ESPHome YAML or Home Assistant automations**.  It uses a supporting Python script (to handle '**command_strings**' that you program into your HMI files) together with some boilerplate code (that does the routine parts of executing your programmed commands).
 
-* **ESPhome** acts as simple broker tranferring command_strings from the Nextion to HA and Nextion Instructions back from HA to the Nextion (standarised boilerplate YAML configuration).
+* **ESPhome** acts as simple broker tranferring command_strings from the Nextion to HA and Nextion Instructions back from HA to the Nextion (standarized boilerplate YAML configuration).
 
 * **Home Assistant** configuration is a single automation to confgure the `nextion_handler.py` service (and includes a dictionary of entity_id aliases to help manage which Home Assitant entity you associate with each Nextion variable).
 
-* All programming logic is kept together in one place, the **Nextion Editor** HMI files, supported by standardised boilerplate code to handle the HA interaction loop.
+* All programming logic is kept together in one place, the **Nextion Editor** HMI files, supported by standardized boilerplate code to handle the HA interaction loop.
 
 ------------------------------------------------------------------------------
 ## Nextion Handler Framework Overview
-There are only 3 places where you need to add customised code to your Nextion Editor HMI file to link it to HA: 2 types of Nextion Handler commands (**NHCmds**), and 1 'subroutine'.
+There are only 3 places where you need to add customized code to your Nextion Editor HMI file to link it to HA: 2 types of Nextion Handler commands (**NHCmds**), and 1 'subroutine'.
 
 >'**SET**' commands assign Nextion variables the values of data you request from Home Assistant.
 
@@ -30,7 +30,7 @@ Your Events in Nextion Editor need to assign a sequence of ACTION NHCmds to a co
 
 ![Nextion handler framework](https://user-images.githubusercontent.com/100061886/154831899-4fbf9ff9-cb42-4a55-88d7-86fd3c81443d.png "Nextion handler framework")
 
-See expandable details and examples for each **CUSTOMISABLE** and **BOILERPLATE** component below.
+See expandable details and examples for each **CUSTOMIZABLE** and **BOILERPLATE** component below.
 
 ------------------------------------------------------------------------------
 ## Template Files with Demo
@@ -73,10 +73,10 @@ You enter SET commands in the Nextion Editor text variables `HA_SET1` .. `HA_SET
 
 
 <details>
-  <summary>e.g. `sett IR.nRN_DL` (using shorthand notation).</summary>
+  <summary>e.g. `setn IR.nRN_DL 1 $` (using shorthand notation).</summary>
 
-(Equivalent to long form of `setn IR.nRN_DL.val sensor.rain_delay`.)
-Set the Nextion variable `IR.nRN_DL.val` to the state of the HA entity with the alias `IR.nRN_DL` (see the _alias example_ below for more detail).
+(Equivalent to long form of `setn IR.nRN_DL.val 1 sensor.rain_delay`.)
+Set the Nextion variable `IR.nRN_DL.val` to the integer value of the state of the HA entity with the alias `IR.nRN_DL` after multiplying by a scaling factor of 1 (see the _alias example_ below for more detail).
 
 --- 
   
@@ -110,9 +110,9 @@ Calls a script to increase the 'rain delay' for suspending automated irrigation 
 </details>
 
 ------------------------------------------------------------------------------
-## CUSTOMISABLE components (with shorthand notation)
+## CUSTOMIZABLE components (with shorthand notation)
 
-Click to expand sections below for an example of **how each of the 3 customised components were added to a Nextion page** to integrate it with HA.
+Click to expand sections below for an example of **how each of the 3 customized components were added to a Nextion page** to integrate it with HA.
 
 <details>
   <summary>Example NEXTION EVENT to SEND ACTION commands to Home Assistant (Nextion Editor - event tab, HA_ACT)</summary>
@@ -171,101 +171,110 @@ This example shows part of the `APPLY_VARS` subroutine for applying updates to t
 ------------------------------------------------------------------------------
 ## BOILERPLATE components
 
-Click to expand sections below for boilerplate code (this is standardised code that you can copy and paste, without editing. It performs the routine tasks that help your customised components do what you programmed them to do.)  
+Click to expand sections below for boilerplate code (this is standardized code that you can copy and paste, without editing. It performs the routine tasks to execute the NhCmds you programmed in you CUSTOMIZED components.)
+
+The easiest way to use this code is to start with a page from one of the example HMI files as a template.  The details below help explain what the code is doing and how the pieces fit together.
 
 <details>
   <summary>UPDATE_LOOP (Nextion Editor - timer)</summary>
   
 ---
+> The `UPDATE_LOOP` is attached to a timer on each Nextion page to control the timing and scheduling of most important tasks (polling, updates, queues, dimming, sleeping: as detailed in the comments at the top of the standardized boilerplat code below) including fetching your data from Home Assistant in an orderly and efficient way.
 
-You can modify the behaviour of the `UPDATE_LOOP` through Nextion Global Settings variables (see the `Program.s` details below), without having to edit the code.  The `UPDATE_LOOP` is attached to a timer on each Nextion page to control all your fetching of data from Home Assistant in a controlled and efficient way.
+You can modify the behaviour of the `UPDATE_LOOP` through Nextion Global Settings variables (see the **boilerplate `Program.s`** details below), without having to edit the code.  The example HMI files in this repository include a Nextion page that can adjust most of these settings from on the device (and you can use this as a template to adapt to your own HMI and UI style.)
+
+<img src="https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/current_version/images/Settings_CFG_example.png" alt="APPLY_VARS example">
+
 ```
-//~~~~~~boilerplate~~~~
+//~~~~~~boilerplate~~~~ v0.501
 // UPDATE LOOP controls:
-//  1) Slow passive polling for HA data updates.
-//  2) Sleep timer (when TRIGGER value falls below threshold).
-//  3) Temporary fast updates after user Actions (incl. page change).
-//  4) Manage fast repeated update queue (and stop overstacking).
-//  5) Temporary fast update on waking from sleep.
-//  6) Progressively dim the display with inaction.
-// by controlling values of TRIGGER, *.tim (rate), fast_updates, dim.
+//  1) Slow passive polling for data updates from Home Assistant.
+//  2) Temporary fast updates after user Actions (incl. page change).
+//  3) Manage fast repeated update queue (and stop overloading data exchange).
+//  4) Progressively dim the display with inaction (and brighten on interaction).
+//  5) Sleep (after loop countdown completes).
+//  6) Prepare state for waking from sleep (for controlled/predictable behaviour on waking).
+// by controlling values of TRIGGER,loop_cnt (count down), *.tim (loop rate), dim.
 // See Program.s* --GlobalSettings-- for variables that control default loop behaviour.
+// The CFG page has sliders for adjusting the loop control variables.
 //~~~~~~~~~~~~~~~~~~~~~
-// 'TRIGGER' is responded to by HA nextion_handler to send the updates
-// specified in the the list of HA_Set(1..5) command_strings that are sent
-// to HA in this Page's Preintialize Event.
+// 'TRIGGER' state changes are responded to by HA nextion_handler
+// to send the updates specified in the the list of
+// HA_Set(1..5) command_strings (text variables configured on each page).
+// (HA_SET cmds are sent to HA, via ESPHome, in each Page's Postintialize Event).
 //
-// Enforce a TRIGGER state change with Trigger < 0
-// (NEGATIVE TRIGGER vals ==> UPDATE requests; POSITIVE ==> ACTION request to nextion_handler)
-if(TRIGGER>-1)
+//
+// COUNT-DOWN loop_cnt and perform indicated UPDATE (using HA_Cmds in HA_SET1..5 strings)
+// Force a DATA UPDATE from HA (based on HA_SET cmds)
+// by Enforcing a TRIGGER state change (where TRIGGER also indicates loop status).
+// - FAST (additional) UPDATES: loop_cnt > sleep_cnt;
+//   TRIGGER toggles -3,-4
+// - STANDARD UPDATES: sleep_cnt > loop_cnt > 0
+//   TRIGGER toggles -1,-2
+// - SLEEP: loop_cnt == 0
+//   TRIGGER toggles 0
+//(- Positive TRIGGER vals signal ACTION requests (sent from UI Events via SEND_ACTIONS 'subroutine').
+loop_cnt-=1
+if(loop_cnt>=sleep_cnt)  //FAST UPDATES (after user interaction)
 {
-  dim=dim_default
-  if(fast_updates>0)
+  //Enforce TRIGGER state change (-3, -4)
+  if(TRIGGER!=-3)
   {
-    //Need to make sure that a fast_update repeat of 1 does NOT produce two -1 triggers in a row (not state change in HA)
-    TRIGGER=-2
+    TRIGGER=-3
   }else
   {
-    TRIGGER=-1
+    TRIGGER=-4
   }
+  //Restore Nextion screen brightness (after progressive dimming)
+  dim=dim_default
+  //Progressively Slow down rate of fast updates with each rpt
+  UPDATE_LOOP.tim=UPDATE_LOOP.tim+fastupdate_tim
+  //
 }else
 {
-  TRIGGER-=1
-  // Progressively dim display with inaction
-  if(fast_updates==0)
+  if(loop_cnt>0)  //STANDARD UPDATES
   {
-    if(dim>=dim_min)
+    //Enforce TRIGGER state change (-1,-2)
+    if(TRIGGER!=-1)
     {
-      dim-=1
+      TRIGGER=-1
+    }else
+    {
+      TRIGGER=-2
     }
+    //Restore default upate interval (in microsecs) after fast update repeats are complete
+    tmp=upate_secs*1000
+    UPDATE_LOOP.tim=tmp
+    //Progressive dimming (from dim_default to dim_min over interval until sleep)
+    tmp=dim_default-dim_min
+    tmp*=loop_cnt
+    tmp/=sleep_cnt
+    tmp+=dim_min
+    dim=tmp
+    //
+  }else
+  {
+    //SLEEP PREPARATION (sleep execution occurs AFTER writing TRIGGER)
+    TRIGGER=0
   }
 }
 //
-// INACTIVITY CHECK (flag1=1 will be used to sleep later, AFTER writing TRIGGER (=0 when sleeping))
-flag1=0
-// calculate the (negative) threshold for TRIGGER to cross before sleeping
-tmp=0
-tmp-=sleep_secs
-tmp/=upate_secs // -> (negative) number of inactive/polled update loops before sleep
-if(TRIGGER<=tmp)
-{
-  // only set sleep flag when fast_updates are not active
-  if(fast_updates<=0)
-  {
-    TRIGGER=0 //Indicator to HA that Nextion is sleeping
-    flag1=1   //Flag to sleep AFTER writing the 0 TRIGGER value
-  }
-}
 //
 // SEND TRIGGER Integer value (to HA via ESPhome)
 // Nextion Custom Sensor Protocol - see: https://www.esphome.io/components/sensor/nextion.html
-printh 91            //Tells the library this is a sensor (int) data
-prints "TRIGGER",0   // Sends the name that matches component_name or variable_name
+printh 91            //Tells the ESPHome library this is a sensor (int) data
+prints "TRIGGER",0   //Sends the name that matches ESPHome component_name or variable_name
 printh 00            //Sends a NULL
-prints TRIGGER,0     //The actual value to send. For a variable use the Nextion variable name temperature with out .val
-printh FF FF FF      //Nextion command ack
+prints TRIGGER,0     //The actual value to send. For a variable use the Nextion variable name temperature without .val
+printh FF FF FF      //Nextion command ack (termination string: HA nextion_handler needs to remove these)
 //
-// RESTORE POLLING RATE (slow updates) after fast_updates, incl. repeats (set by Page-Preint & SEND_ACTIONS)
-tmp=upate_secs
-tmp*=1000 // default slow update interval converted to ms
-if(fast_updates>1)
-{
-  // if there is only 1 (or last) repeat, then this loop was it, pass straight through to reset
-  fast_updates-=1
-}else if(UPDATE_LOOP.tim!=tmp)
-{
-  // reset after fast update repeats are complete
-  UPDATE_LOOP.tim=tmp
-  TRIGGER=0 // will be modified to a non-zero (non-sleep) value by the time of the next 'send trigger'
-  fast_updates=0
-}
 //
-//SLEEP flag
-if(flag1==1)
+//SLEEP EXCECUTION
+if(TRIGGER==0)
 {
-  //prepare for fast update on wake
-  UPDATE_LOOP.tim=300
-  fast_updates=1
+  //PREPARE WAKE STATE (fast update etc. on wake)
+  UPDATE_LOOP.tim=500
+  loop_cnt=sleep_cnt+2
   dim=dim_default
   sleep=1
 }
@@ -280,18 +289,20 @@ if(flag1==1)
   
 ---
 
-`SEND_ACTIONS` is the code attached to a `Touch Press Event` for a hidden hotspot on each Nextion page (to serve as a 'subroutine').
+> `SEND_ACTIONS` is a subroutine (the code attached to a `Touch Press Event` for a hidden hotspot on each Nextion page) that sends ACTION command_strings to Home Assistant and intiates rapid updates to return the resulting (delayed) sequence of changes in states of HA entities linked to the page.
+
+
 Each Nextion Event should first add the sequence of ACTION NHCmds to the `HA_ACT.txt` string on that page, followed by `click SEND_ACTIONS,1` (which then sends the Action commands to the nextion_handler on Home Assistant to be excecuted).
-(See the example Nextion Event above for how this done in the Nextion Editor.)
+(See the example Nextion Event above for how NhCmd ACTIONs are programmed the Nextion Editor.)
 
 ```
-//~~~~~~boilerplate~~~~
-// SEND ACTION NHCmds (CSV sequencence set in HA_Act string by calling Event)
+//~~~~~~boilerplate~~~~ v0.501
+// SEND ACTION HaCmds (CSV sequencence set in HA_Act string by calling Event)
 //~~~~~~~~~~~~~~~~~~~~~
-// This subroutine is called by each Event programmed for Nextion UI elements.
+// This subroutine is called by each Nextion UI Event programmed to interact with Home Assistant.
 // The HA_Act string_commands are sent to the HA nextion_handler, which performs the
-// actions and then conducts fast/repeated data updates (coded in list of HA_Set strings).
-// The default number and speed of fast repeat updates follow global settings (see below).
+// actions and then conducts fast/repeated data updates.
+// The default number and speed of fast repeat updates follow global settings (set in the [Program.s] tab).
 // (Events can override these defaults by setting override_frpts=1 before calling SEND_ACTIONS.)
 //
 //Send HA_Act command_string (to HA via ESPhome Custom Nextion Text)
@@ -302,15 +313,20 @@ prints HA_ACT.txt,0
 printh 00
 printh FF FF FF
 //
-// Enforce TRIGGER state change with TRIGGER > 0
-// (HA nextion_handler interprets POSITIVE TRIGGER vals as ACTION requests)
-if(TRIGGER<0)
+//
+// Force a DATA UPDATE from HA (based on HA_ACT cmds)
+// by Enforcing a TRIGGER state change with POSITIVE value.
+// - Positive TRIGGER vals signal ACTION requests to nextion_handler (sent below);
+// - Negative TRIGGER vals signal UPDATE requests (sent from UPDATE_LOOP timer).
+if(TRIGGER!=1)
 {
   TRIGGER=1
 }else
 {
-  TRIGGER+=1
+  TRIGGER=2
 }
+//
+//
 // Send TRIGGER Integer value (to HA via ESPhome using Nextion Custom Sensor Protocol)
 printh 91
 prints "TRIGGER",0
@@ -318,114 +334,21 @@ printh 00
 prints TRIGGER,0
 printh FF FF FF
 //
-// Set UPDATE_LOOP for fast repeated updates (for HA data changes after sending HA_ACT)
+//
+// Set UPDATE_LOOP for fast repeated updates from Home Assistant
+// (to retrieve data changes that result from the HA_ACT ACTIONs that HA performs.)
 if(override_frpts==0)
 {
-  // Use default global fast update settings, unless override flag is set
-  fast_updates=fastupdate_rpt
-  UPDATE_LOOP.tim=fastupdate_tim
+  // Initialize UPDATE_LOOP for DEFAULT fast updates (unless override flag is set by calling Event)
+  loop_cnt=sleep_cnt+fastupdate_rpt //sets how many time fast updates are repeated
+  UPDATE_LOOP.tim=faststart_tim  //UPDATE_LOOP will gradually slow down, then reset to slow polling when fast updates complete
 }else
 {
-  //Allow calling Events to set Action-specific follow-up updates (then revert to defaults)
+  //Allow OVERRIDES from calling Events to set Action-specific update behaviour (then revert to defaults)
   override_frpts=0
 }
 ```
-  
----
-  
-</details>
 
-
-
-<details>
-  <summary>Example Nextion Handler service configuration with ALIASES (Home Assistant - automation.yaml)</summary>
-  
----
-  
->**ALIAS in service automation**: linking `sensor.rain_delay` to Nextion `IR.nRN_DL.val`
-
-Aliases are convenient because _a)_ they save you having to switch back & forth between the Nextion Editor & HA, _b)_ the alias is typically based on the name of the Nextion (global) variable it is associated with, _c)_ they save you having to reflash the Nextion TFT each time you fix a typo in an entity_id, and _d)_ you enter the entity_ids in the HA YAML editor (where autocompletion helps avoid typos in the first place).  The YAML automation for the `nextion_handler` shows an example of how you add an alias to the 'dictionary'.
-```YAML
-#  Nextion Handler service automation (this handles everything coming from and going back a Nextion device)
-- alias: "NSPanel 1 Nextion Handler"
-  mode: queued
-  max: 10
-  trigger:
-    - platform: state
-      entity_id: sensor.nsp1_trigger
-  action:
-    - service: python_script.nextion_handler  # the one script can handle multiple Nextion devices
-      data:
-        trig_val: sensor.nsp1_trigger
-        nx_cmd_service: esphome.nsp1_send_command
-        action_cmds:
-          - sensor.nsp1_ha_act
-        update_cmds:
-          - sensor.nsp1_ha_set1
-        aliases: # << 'dictionary' paring Nextion aliases with HA entity_id
-          #...
-          #____ aliases for IR page example above ______________
-          IR.nIR_AL: input_number.irr_pct
-          IR.nIR_BG: input_number.irr_bg
-          IR.nIR_FG: input_number.irr_fg
-          IR.nIR_BL: input_number.irr_bl
-          IR.nIR_FL: input_number.irr_fl
-          IR.bIR_BG: switch.irrigate_back_garden
-          IR.bIR_FG: switch.irrigate_front_garden
-          IR.bIR_BL: switch.irrigate_back_lawn
-          IR.bIR_FL: switch.irrigate_front_lawn
-          IR.nRN_DL: sensor.rain_delay
-          IR.tIRR: input_select.irrigate_area
-          rain+7: script.rain_delay_incr
-          rain-7: script.rain_delay_decr
-          #...
-```
-
----
-  
-</details>
-
-
-<details>
-  <summary>Example Home Assistant UI card for monitoring nextion_handler</summary>
-  
----
-  
-> **Lovelace UI Markdown Card** for monitoring flow of nextion_handler command_strings & TRIGGERs.
-
-  Example Lovelace card after just having pushed a 'button' (which has executed a script and initiated fast updates to pass resulting state changes in HA back to the Nextion).
-```
-TRIGGER: >> -3 (FAST UPDATES)
-HA_Act (<- Last SEND_ACTIONS):
-  <scpt $rain+7>
-Update settings (<- Page PostInit):
-HA_Set1 ---------------
-  <setn IR.nIR_AL 1 $>
-  <setn IR.nIR_BG 1 $>
-  <setn IR.nIR_FG 1 $>
-  <setn IR.nIR_BL 1 $>
-  <setn IR.nIR_FL 1 $>
-  <setb ST.bIRR $>
-  <setb IR.bIR_BG $>
-  <setb IR.bIR_FG $>
-  <setb IR.bIR_BL $>
-  <setb IR.bIR_FL $>
-  <setn IR.nRN_DL 1 $>
-  <sett IR.tIRR 20 $>
-```
-
-
----
-  
-</details>
-
-
-<details>
-  <summary>Example next ...</summary>
-  
----
-  
-TO DO!
 
 ---
   
@@ -439,67 +362,62 @@ TO DO!
   
 ---
   
-Nextion Global Settings are set in the `Program.s` tab in the Nextion Editor.
-Some of these settings can be used to fine tune the behaviour of the boilerplate `UPDATE_LOOP` code (including adjusting these 'live' while the Nextion is running, see comments in code), while other variables are only for internal use.
-  
+> Nextion Global Settings are configured in the `Program.s` tab in the Nextion Editor.  These include settings can be used to fine tune the behaviour of the boilerplate `UPDATE_LOOP` code.
+
+A template Nextion card in the example HMI file shows how to control the main settings from on the device.
+
+
 ```
-//~~~~~~boilerplate~~~~
+//~~~~~~boilerplate~~~~ v0.5.003
 // DEVICE CONFIG & GLOBAL SETTINGS (directly controllable from HA)
 //~~~~~~~~~~~~~~~~~~~~~
 //
-// CHANGELOG for Nextion Handler framework:
-// v0.4 2022-02-22
-//   ....
-// ------------------------------------------------------------------------------------------
-// Nextion Progra.s* notes:
-// The following code is only run once when power on, and is generally used for global variable definition and power on initialization data
-// At present, the definition of global variable only supports 4-byte signed integer (int), and other types of global quantity declaration are not supported. If you want to use string type, you can use variable control in the page to implement
-// ------------------------------------------------------------------------------------------
-//
 // ----- Global Settings controlling UPDATE_LOOP behaviour ------
-// DESIGNED TO BE ADJUSTED/fined-tuned live from HA (by sending Nextion Intructions)
+int dim_default=100       //Default screen brightness when there is activity
+int dim_min=80            //Minimum screen brightness screen dims to without actvity
 int upate_secs=15         //Passive polling interval when inactive
-int sleep_secs=300        //Inactivity period before sleeping (also see thsp and ussp below)
+int sleep_cnt=20          //Inactivity refresh cycles before sleeping (also see thsp and ussp below)
 int fastupdate_rpt=3      //Default number of fast repeats after SEND_ACTIONS
-int fastupdate_tim=2000   //Default fast update interval after SEND_ACTIONS
-int dim_default=20        //Default screen brightness when there is activity
-int dim_min=5             //Minimum screen brightness screen dims to without actvity
+int faststart_tim=1000    //Default initial fast update delay (need to wait for state changes in HA to occur)
+int fastupdate_tim=2000   //Default amount fast update are slowed by for each repeat (after SEND_ACTIONS etc.)
+int wake_page=255         //Sets Power on start page (255 = last page)
+int page_max=3            //Last page for automatic cycling (put all main pages (0..page_max) at top of list)
 //
 // ----- Internal Working Variables ------
-// DO NOT modify these from HA
-//int sys0=0,sys1=0,sys2=0  << default scratch globals
-int TRIGGER=0,fast_updates=0,override_frpts=0
+int TRIGGER=0,loop_cnt=99,override_frpts=0
 int tmp=0,flag1=0,flag2=0
-int x=0,y=0,dx=0,dy=0,press_time=0
-//
+int prev_page=0
+int gest_dx=0,gest_dy=0,gest_dsq=0,gest_time=0,gest_type=0
 //
 // ----- Device Config ------
 //ESPHome Nextion config - as stated at https://esphome.io/components/display/nextion.html
 baud=115200   // Sets the baud rate to 115200
 bkcmd=0       // Tells the Nextion to not send responses on commands. This is the current default but can be set just in case
 //
-//Sleep settings, see: https://nextion.tech/2021/08/02/the-sunday-blog-energy-efficient-design-with-nextion-hmi-portable-and-wearable-designs/
-//Backstop sleep settings (if not set in UPDATE_LOOP)
-thsp=7200  //Sleep after this many secs without touch
+// ----- Sleep/Wake Settings ------
+// see: https://nextion.tech/2021/08/02/the-sunday-blog-energy-efficient-design-with-nextion-hmi-portable-and-wearable-designs/
+thsp=7200  //Sleep after this many secs without touch (!NX BUG: not currently functional)
 thup=1     //Enables(1) touch to wake device
 ussp=7200  //Sleep after this many secs without serial port activity
 usup=0     //Disable(0) wake on serial data - NB*** will still wake if command string "sleep=1ÿÿÿ" is sent over serial
-page 255   //Power on start page (255 = last page)
+page wake_page   //Power on start page (255 = last page)
 ```
 ---
   
 </details>
 
 <details>
-  <summary>Page PostInitialise Event (Nextion Editor - Page tab)</summary>
+  <summary>Page PostInitialize Event (Nextion Editor - Page tab)</summary>
   
 ---
 
+> The [PostIntialize Event] on each page sends the HA_ACT command_strings to Home Assistant and intializes the `UPDATE_LOOP`.
+
 ```
-//~~~~~~boilerplate~~~~
-// INITIALISE UPDATE settings by sending list of HA_Set command_strings to HA nextion_handler
+//~~~~~~boilerplate~~~~ v0.5
+// INITIALIZE UPDATE settings by sending list of HA_Set command_strings to HA nextion_handler
 //~~~~~~~~~~~~~~~~~~~~~
-// Enter the sequence of NHCmds required to update this page with data from HA
+// Enter the sequence of HaCmds required to update this page with data from HA
 // in the text field of the list of HA_Set (1..5) local text variables (for each page).
 // HA nextion_handler will then use the command_strings when triggered
 //   by state changes sent using the TRIGGER variable either by the
@@ -513,10 +431,10 @@ vis SEND_ACTIONS,0
 //Send 'Set' commands to HA (via ESP32 strings) with commands for retrieving HA data
 //ESPhome Nextion Custom Text Sensor Protocol, following: https://esphome.io/components/text_sensor/nextion.html
 //1
-printh 92            //Tells the library this is text sensor
-prints "HaSet1",0    //Sends the name that matches component_name or variable_name
+printh 92            //Tells the ESPHome library this is text sensor
+prints "HaSet1",0    //Sends the name that matches the ESPHome component_name or variable_name
 printh 00            //Sends a NULL
-prints HA_SET1.txt,0  //The actual text to send. For a variable use the Nextion variable name text0 with out .txt
+prints HA_SET1.txt,0 //The actual text to send. For a variable use the Nextion variable name text0 without .txt
 printh 00            //Sends a NULL
 printh FF FF FF      //Nextion command ack
 //2
@@ -548,12 +466,9 @@ prints HA_SET5.txt,0
 printh 00
 printh FF FF FF
 //
-// Initialise UPDATE_LOOP and force an initial FAST update (UPDATE_LOOP will reset to slow polling)
-dim=dim_default
-//TRIGGER=0  //MUST let fast updates take care of FORCING Trigger change
-//     simply setting TRIGGER=0 was causing MISSED updates 2+ quick page changes in a row
-fast_updates=2  // 2 guarantees at least one state change after rapid page changes
-UPDATE_LOOP.tim=100
+// Re-initialize UPDATE_LOOP
+loop_cnt=sleep_cnt+2 //forces 2 FAST updates
+UPDATE_LOOP.tim=faststart_tim  //UPDATE_LOOP will gradually slow down, then reset to slow polling when fast updates complete
 //
 // Call subroutine to Apply (stale) variables to UI elements while waiting for data update
 click APPLY_VARS,1
@@ -568,7 +483,75 @@ click APPLY_VARS,1
   
 ---
   
-TO DO! - copy required sections of YAML
+  > ESPHome has to be configured to transfer `TRIGGER`, `HA_ACT.txt`, and `HA_SET1.txt` .. `HA_SET5.txt` to Home Assistant.  It also needs to provide the `esphome.nsp1_send_command` service for HA to be able to send Nextion Instructions back to the Nextion device.
+
+A template ESPHome YAML configuration is provided in the repository (where you just have to fill in the variables in the `substitutions:` section at the top of the file, shown in the YAML extract below).  The main components that you need to add to your ESPHome YAML configuration are shown below (and are marked with `***nextion_handler requirement***` throughout the full version of the template).
+
+```YAML
+#----------------------------------------
+#* DEVICE/USER-SPECIFIC DETAILS (customize for each of your own Nextion Devices)
+#! BACKUP YOUR ORIGINAL ESPHome YAML config for your device
+#! GET THE PASSWORDS etc from that config & enter them in the 'substitutions:' below:
+substitutions:
+  short_name: nsp1   #from your initial  config    # prefixed to HA entity_ids
+  long_name: My NSPanel                            # descriptive name
+  tft_url: !secret nsp1_tft_url                    # path, including filename, where you put TFT files
+  wifi_ssid: !secret wifi_ssid                     # your home wifi
+  wifi_password: !secret wifi_password
+  fallback_ap_ssid: "Nsp1 Fallback Hotspot"        # fallback accesspoint on the ESP/Nextion
+  fallback_ap_password: "from flashing initial config"
+  ota_password: "from flashing initial config"
+#----------------------------------------
+
+# Enable Home Assistant API.
+api:
+  # Configure some useful NSP services to be able to control from HA.
+  services:
+    #***nextion_handler requirement***
+    # the 'send_command' allows nextion_handler to send Instructions back to the Nextion device.
+    - service: send_command
+      variables:
+        cmd: string
+      then:
+        - lambda: 'id(nx1).send_command_printf("%s", cmd.c_str());'
+    #* Service to upload cutom TFT files (created in the Nextion Editor)
+    - service: upload_tft
+      then:
+        - lambda: 'id(nx1).upload_tft();'
+
+#***nextion_handler requirement***
+# Text sensors for transferring 'HA command strings' (comma separated sequences of HaCmds).
+text_sensor:
+  # All strings are to sent by the Nextion to the ESP32 using 'Nextion Custom Text Sensor Protocol':
+  # https://esphome.io/components/text_sensor/nextion.html#nextion-custom-text-sensor-protocol
+  - platform: nextion
+    name: $short_name HA Act
+    component_name: HaAct
+  - platform: nextion
+    name: $short_name HA Set1
+    component_name: HaSet1
+  - platform: nextion
+    name: $short_name HA Set2
+    component_name: HaSet2
+  - platform: nextion
+    name: $short_name HA Set3
+    component_name: HaSet3
+  - platform: nextion
+    name: $short_name HA Set4
+    component_name: HaSet4
+  - platform: nextion
+    name: $short_name HA Set5
+    component_name: HaSet5
+
+sensor:
+  #***nextion_handler requirement***
+  # nextion_handler variables - written to ESP32 by Nx using 'Nextion Custom Sensor Protocol':
+  # https://esphome.io/components/sensor/nextion.html
+  - platform: nextion
+    name: $short_name Trigger
+    component_name: TRIGGER
+
+```
 
 ---
   
@@ -579,11 +562,122 @@ TO DO! - copy required sections of YAML
   
 ---
   
-TO DO! - link to script and brief description of how it works
+  > The **Nextion Handler** provides Home Assistant with the service that responds to TRIGGER state changes sent from the Nextion device and responds by executing the NhCmds that you program into your HMI code.  (You can download the Python script from this repository.)
+
+You enable Python scripts in your Home Assistant `configuration.yaml` by adding the line:
+
+`python_script:`
+
+You then create the folder `<config>/python_scripts/` and any Python scripts you place there will be available in HA.  (See [Home Assistant Docs](https://www.home-assistant.io/integrations/python_script/).)
+
+The `automation.yaml` required to configure the `nextion_handler.py` script is shown next.
 
 ---
   
 </details>
+
+
+<details>
+  <summary>Nextion Handler service configuration with alias 'dictionary' (Home Assistant - automation.yaml)</summary>
+  
+---
+  
+>**HA automation** to configure the `nextion_handler.py` service, including an example of an **alias 'dictionary'** (for managing how Nextion variables used in NhCmds are associated with HA entity_ids).  You need a separate `automation:` for each Nextion device (but they all use the same Python script.)
+
+The example dictionary matches the irrigation page used in the CUSTOMIZABLE examples above.
+
+Aliases are convenient because _a)_ they save you having to switch back & forth between the Nextion Editor & HA, _b)_ the alias is typically based on the name of the Nextion (global) variable it is associated with, _c)_ they save you having to reflash the Nextion TFT each time you fix a typo in an entity_id, _d)_ you enter the entity_ids in the HA YAML editor (where autocompletion helps avoid typos in the first place), and _e)_ they make the command_strings shorter for more efficient management with the resource contraints of Nextion devices.
+
+```YAML
+#  Nextion Handler service automation.
+#  - handles everything coming from and going back to a Nextion device.
+- alias: "NSPanel 1 Nextion Handler"
+  mode: queued
+  max: 10
+  trigger:
+    - platform: state
+      entity_id: sensor.nsp1_trigger
+  action:
+    - service: python_script.nextion_handler
+      data:
+        trig_val: sensor.nsp1_trigger
+        nx_cmd_service: esphome.nsp1_send_command
+        action_cmds:
+          - sensor.nsp1_ha_act  # << sends ACTIONs commands
+        update_cmds:
+          - sensor.nsp1_ha_set1 # << send SET commands to update Nextion data
+        aliases:
+          #...
+          #____ example aliases 'dictionary' for IR page example above ______________
+          IR.nIR_AL: input_number.irr_pct
+          IR.nIR_BG: input_number.irr_bg
+          IR.nIR_FG: input_number.irr_fg
+          IR.nIR_BL: input_number.irr_bl
+          IR.nIR_FL: input_number.irr_fl
+          IR.bIR_BG: switch.irrigate_back_garden
+          IR.bIR_FG: switch.irrigate_front_garden
+          IR.bIR_BL: switch.irrigate_back_lawn
+          IR.bIR_FL: switch.irrigate_front_lawn
+          IR.nRN_DL: sensor.rain_delay
+          IR.tIRR: input_select.irrigate_area
+          rain+7: script.rain_delay_incr
+          rain-7: script.rain_delay_decr
+          #...
+```
+
+---
+  
+</details>
+
+
+<details>
+  <summary>Home Assistant UI card for monitoring nextion_handler (Home Assistant UI MarkDown card)</summary>
+  
+---
+  
+> **Lovelace UI Markdown Card** for monitoring flow of nextion_handler command_strings & TRIGGERs (YAML for this card is included included in the repository.)
+
+Output from Lovelace card matching the irrigation page CUSTOMIZABLE examples above, 
+after just having pushed the [+7] 'button' (which has executed a script and initiated fast updates to pass resulting state changes in HA back to the Nextion).
+```
+TRIGGER: >> 1 (FAST UPDATES 20h37)
+HA_Act (<- Last SEND_ACTIONS 20h37):
+  <scpt $rain+7>
+Update settings (<- Page PostInit 20h34):
+HA_Set1 ---------------
+  <setn IR.nIR_AL 1 $>
+  <setn IR.nIR_BG 1 $>
+  <setn IR.nIR_FG 1 $>
+  <setn IR.nIR_BL 1 $>
+  <setn IR.nIR_FL 1 $>
+  <setb ST.bIRR $>
+  <setb IR.bIR_BG $>
+  <setb IR.bIR_FG $>
+  <setb IR.bIR_BL $>
+  <setb IR.bIR_FL $>
+  <setn IR.nRN_DL 1 $>
+  <sett IR.tIRR 20 $>
+```
+
+
+---
+  
+</details>
+
+<!---
+<details>
+  <summary>Example next ...</summary>
+  
+---
+  
+TO DO!
+
+---
+  
+</details>
+--->
+
+
 
   
 ------------------------------------------------------------------------------
@@ -616,8 +710,8 @@ TO DO! - link to script and brief description of how it works
 * v0.4 2022-02-18...
    * Return to a single automation in HA YAML
    * Nx UPDATE_LOOP now controls timing of: slow UPDATEs, ACTIONs, fast UPDATEs (with delays & repeats) after user interactions
-   * Fast update speed & repeat settings can now override the defaults in SEND_ACTIONS (to allow customised updates after actions involving high-lag devices, e.g., garage door, blinds, etc.)
-   * The 'sub APPLY_VARS' HaCmd (which should be at the end of HA_SET1...) gives the nextion_handler control
+   * Fast update speed & repeat settings can now override the defaults in SEND_ACTIONS (to allow customized updates after actions involving high-lag devices, e.g., garage door, blinds, etc.)
+   * The 'sub APPLY_VARS' NhCmd (which should be at the end of HA_SET1...) gives the nextion_handler control
      of timing of Nx UI updates (to immediately follow sending the update data requested in HA_SET1...)
    * Key default parameters controlling UPDATE_LOOP move to Global_Settings in Program.s* (so that they can be adjusted/tweaked live from HA by sending Nextion Instructions).
    * Started marking ~~~boilerplate ~~~ parts of HMI code more clearly & consistently.
