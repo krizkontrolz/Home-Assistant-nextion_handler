@@ -1,44 +1,36 @@
 # Home Assistant Nextion Handler
-(*Version 0.4; Last updated: 2022-03-31*)
+(*Version 0.4; Last updated: 2022-04-01*)
 
-Nextion Handler allows you to program a Nextion touch screen device (NSPanels in particular) to interact with Home Assistant (HA) **without having to do any coding in ESPHome YAML or Home Assistant automations**.  It uses a supporting Python script (to handle '**command_strings**' that you program into your HMI files) together with some boilerplate code (that does the routine parts of implementing your programmed commands).
+Nextion Handler allows you to program a Nextion touch screen device (NSPanels in particular) to interact with Home Assistant (HA) **without having to do any coding in ESPHome YAML or Home Assistant automations**.  It uses a supporting Python script (to handle '**command_strings**' that you program into your HMI files) together with some boilerplate code (that does the routine parts of executing your programmed commands).
 
-* **ESPhome** acts as simple broker tranferring command_strings from the Nextion to HA and Nextion Instructions back from HA to the Nextion (fixed boilerplate YAML configuration, after entering device details and passwords in a list of `substitutions:`).
+* **ESPhome** acts as simple broker tranferring command_strings from the Nextion to HA and Nextion Instructions back from HA to the Nextion (standarised boilerplate YAML configuration).
 
-* **Home Assistant** configuration is a single automation calling `nextion_handler.py` and includes a dictionary of entity_id aliases (which makes it easier to manage which Home Assitant entity you associate with each Nextion variable).
+* **Home Assistant** configuration is a single automation to confgure the `nextion_handler.py` service (and includes a dictionary of entity_id aliases to help manage which Home Assitant entity you associate with each Nextion variable).
 
 * All programming logic is kept together in one place, the **Nextion Editor** HMI files, supported by standardised boilerplate code to handle the HA interaction loop.
 
 ------------------------------------------------------------------------------
 ## Nextion Handler Framework Overview
-There are only 3 places in your Nextion Editor HMI file where you need to enter customised
-code: 2 types of Nextion Handler commands (**NHCmds**), and 1 'subroutine'.
+There are only 3 places where you need to add customised code to your Nextion Editor HMI file to link it to HA: 2 types of Nextion Handler commands (**NHCmds**), and 1 'subroutine'.
 
->'**SET**' commands assign Nextion variables the values of data you request from
-  Home Assistant.
-  
-  These are configured as 5 **command strings** (**HA_Set1..5**)
-  in each page of the Nextion Editor to define all the data you want for that
-  page from Home Assistant.
-  '**command_string**'s are lists of NHCmds, where commands are separated by commas or
-  linebreaks, and arguements are separated by spaces.
-  The boilerplate **Postinit** event of each page sends the HA_Set command_strings to HA.
-  
->'**ACTION**' commands perform actions you request in HA (lights, scenes, scripts,  etc.).
-  
-  Your Events in Nextion Editor need to assign a sequence of Action NHCmds to
-  the **HA_Act** string, then call the boilerplate **SEND_ACTIONS** subroutine. SEND_ACTIONS
-  will also temporarilly speeds up '**UPDATE_LOOP**' (a boilerplate timer on the Nextion that controls
-  the interaction-response loop between the user, the Nextion and HA: UPDATE_LOOP enforces state changes
-  to a **TRIGGER** value to signal how Home Assistant should respond).
+>'**SET**' commands assign Nextion variables the values of data you request from Home Assistant.
 
->'**APPLY_VARS**' (a subroutine on the Nextion) updates any 'conditional' UI elements you use
-  to visualise changes in your data to make it more informative and interactive.
+
+SET commands are entered into text variables as on each page as **command strings** (which are lists of NHCmds separated by commas or linebreaks, with arguements separated by spaces). The **boilerplate [Postinit]** event of each page sends the HA_Set command_strings to HA.
+
+
+>'**ACTION**' commands perform actions you request in HA (to control lights, scenes, scripts,  etc.).
+
+Your Events in Nextion Editor need to assign a sequence of ACTION NHCmds to a command_string string. You then send the commands with the **boilerplate** '**SEND_ACTIONS**' subroutine, which temporarilly speeds up the **boilerplate** '**UPDATE_LOOP**' (a Nextion timer that enforces state changes to a **TRIGGER** value to signal how Home Assistant should respond).
+
+
+>'**APPLY_VARS**' is a Nextion 'subroutine' where you place your code for visualising changes in data and refreshing the UI.
+
 ------------------------------------------------------------------------------
 
 ![Nextion handler framework](https://user-images.githubusercontent.com/100061886/154831899-4fbf9ff9-cb42-4a55-88d7-86fd3c81443d.png "Nextion handler framework")
 
-See expandable details and examples for each CUSTOMISABLE and BOILERPLATE component below.
+See expandable details and examples for each **CUSTOMISABLE** and **BOILERPLATE** component below.
 
 ------------------------------------------------------------------------------
 ## Template Files with Demo
@@ -48,13 +40,29 @@ Template files for getting a simple demo up and running are [here](https://githu
 ## Nextion Handler Instruction Set
 * `Nx` = Nextion variable name
  
-    as **shorthand** for `Nx` you can _exclude_ the '.val'/'.txt' suffix if you have include the page prefix with the variable name ;
-* `E` = $alias/HA entity_id;
+<details>
+  <summary>as a shorthand ...</summary>
 
-  as **shorthand** for `E`: _a)_ in Set commands `$` alone can be used for `E` to indicate the alias should be the same as the associated `Nx` (shorthand) variable name; _b)_ in Action commands the entity class can be ommited where it is implicit, e.g. you can drop `script.` from `E` when calling the `scpt E` command).
+... for `Nx` you can _exclude_ the '.val'/'.txt' suffix if you have included the page prefix with the variable name;
+
+--- 
+  
+</details>
+
+* `E` = $alias or HA entity_id;
+
+<details>
+  <summary>as a shorthand ...</summary>
+
+... for `E`: _a)_ in Set commands `$` alone can be used for `E` to indicate the alias should be the same as the associated `Nx` (shorthand) variable name; _b)_ in Action commands the entity class can be ommited where it is implicit, e.g. you can drop `script.` from `E` when calling the `scpt E` command).
+
+--- 
+  
+</details>
+
 
 ### SET COMMAND LIST
-You enter SET commands in the Nextion Editor strings `HA_SET1` .. `HA_SET5` on each page.  You use them to configure how you want to pull data from Home Assistant each time that the Nextion page is updated and what HA data you want assigned to each Nextion variable.
+You enter SET commands in the Nextion Editor text variables `HA_SET1` .. `HA_SET5` on each page.  You use them to configure how you want to pull data from Home Assistant each time that the Nextion page is updated and what HA data you want assigned to each Nextion variable.
 
 *  `sett Nx len E`  (assign `len` chars of state of `E`, as string/text, to `Nx`).
 *  `setn Nx scale E` (assign `Nx` the integer value of `scale` * state of `E`).
@@ -63,16 +71,12 @@ You enter SET commands in the Nextion Editor strings `HA_SET1` .. `HA_SET5` on e
 *  `setb Nx E cp x` (assign `Nx` the value of the binary expression from
         comparing the state of `E` to `x` where `cp` in `[eq, ne, lt, le, gt, ge, =, !=, <, <=, >, >=]`)
 
+
 <details>
-  <summary>Example SET HaCmd (Click to expand)</summary>
+  <summary>e.g. `sett IR.nRN_DL` (using shorthand notation).</summary>
 
----
-
->`setb ST.bDSH $` (using shorthand notation).  
-(Equivalent to long form of `setb ST.bDSH.val binary_sensor.dishes_washed`.)
-
-  Set the Nextion variable `ST.bDSH.val` to the state of the HA entity with
-  the alias `ST.bDSH` (see the _ALIAS example_ below for more detail).
+(Equivalent to long form of `setn IR.nRN_DL.val sensor.rain_delay`.)
+Set the Nextion variable `IR.nRN_DL.val` to the state of the HA entity with the alias `IR.nRN_DL` (see the _alias example_ below for more detail).
 
 --- 
   
@@ -96,33 +100,28 @@ You assign ACTION commands to the `HA_ACT` string in your Nextion Editor 'events
 *  TODO: RGBWW light controls (code working, documentation to come).
 
 <details>
-  <summary>Example ACTION HaCmd (Click to expand)</summary>
-  
----
-  
->`tgl $ST.bDSH` (using shorthand notation).  
-(Equivalent to long form of `tgl binary_sensor.dishes_washed`.)
+  <summary>e.g. `scpt $rain+7` (using shorthand notation).</summary>
 
-  Toggles the binary sensor (on/off) that we set up to fetch HA data updates for above.
-  
+(Equivalent to long form of `scpt script.rain_delay_incr`.)
+Calls a script to increase the 'rain delay' for suspending automated irrigation by 7 days.
+
 ---
-  
+
 </details>
 
 ------------------------------------------------------------------------------
 ## CUSTOMISABLE components (with shorthand notation)
 
-Click to expand sections below for examples of each of the components of the framework that can be customised.
+Click to expand sections below for an example of **how each of the 3 customised components were added to a Nextion page** to integrate it with HA.
 
 <details>
-  <summary>Example NEXTION EVENT to SEND a ACTION commands to Home Assistant (Nextion Editor - event tab, HA_ACT)</summary>
+  <summary>Example NEXTION EVENT to SEND ACTION commands to Home Assistant (Nextion Editor - event tab, HA_ACT)</summary>
   
 ---
 
->You assign ACTION NHCmds to  `HA_Act.txt` in Nextion events, then send the commands with  `SEND_ACTIONS` (see **boilerplate SEND_ACTIONS** 'subroutine', see code & details below).
+>You assign ACTION NHCmds to  `HA_Act.txt` in Nextion events, then send the commands with  `SEND_ACTIONS` (see **boilerplate SEND_ACTIONS** 'subroutine' code & details below).
 
-This example shows how to program calling Home Assistant actions from within Nextion Editor Events.
-The code is for the orange [+7] button at the bottom of a page for controlling irrigation automations.  The [Touch Release Event] has been programmed so that when this button is given a short press, a script will be called in Home Assistant to add 7 days to the 'rain delay' until automatic scheduling resumes.  Long-pressing the button is programmed instead to call a script that reduces this delay by 7 days.
+This example shows how to program calling Home Assistant actions from within Nextion Editor Events.  The code is for the orange [+7] button at the bottom of a page for controlling irrigation automations.  The [Touch Release Event] has been programmed so that when this button is given a short press, a script will be called in Home Assistant to add 7 days to the 'rain delay' until automatic scheduling resumes.  Long-pressing the button is programmed instead to call a script that reduces this delay by 7 days.  (See **boilerplate GESTURE**s code & details below if you want to use `gest_type` swipe & press UI gestures.)
 
 <img src="https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/current_version/images/HA_ACT_example.png" alt="HA_ACT example">
 
@@ -139,9 +138,9 @@ The code is for the orange [+7] button at the bottom of a page for controlling i
   
 ---
 
->You assign SET NHCmds directly to `HA_SET1.txt` (and up to 4 more) local strings on each page.  The Page [Post Initialization Event] will then send the strings to HA to store for use in future page updates (see **boilerplate Page PostInit** code & details below).
+>You assign SET NHCmds directly to `HA_SET1.txt` (and up to 4 more) local text variables on each page.  The Page [Post Initialization Event] will then send the strings to HA to store for use in future page updates. (See **boilerplate Page PostInit** code & details below).
 
-This example shows the `HA_SET1.txt` string to bring in the data required a page that controls irrigation automations.  It fetches 6 numeric values (`setn`: for irrigation duration sliders and the rain delay), 5 binary values (`setb`: for the 5 toggle switches), and one text value (`sett`: for the `input_select` in HA that indicates the current status of the irrigation system.)  For all SET commands the enitity_id is specified with `$` which means that aliases will be used in HA, based on the name of the Nextion variable in each command (see the aliases example below, matching this `HA_SET1` string.)
+This example shows the `HA_SET1.txt` string to bring in the data required for a page that controls irrigation automations.  It fetches 6 numeric values (`setn`: for irrigation duration sliders and the rain delay), 5 binary values (`setb`: for the 5 toggle switches), and one text value (`sett`: for the `input_select` in HA that indicates the current status of the irrigation system.)  For all SET commands the enitity_id is specified with `$` which means they use a dictionary to look up the HA entity_id based on the Nextion variable name. (See the _aliases & automation example_ below, matching this `HA_SET1` string.)
 
 <img src="https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/current_version/images/HA_SET_example.png" alt="HA_SET example">
 
@@ -156,9 +155,9 @@ This example shows the `HA_SET1.txt` string to bring in the data required a page
 
 ---
 
->You put your Nextion code for modifying any UI components that use HA data in a 'subrountine' (a hidden `Hotspot`).  This allows HA to apply the UI changes immediately after sending updated data by sending a Nextion Instruction to `click` on the `APPLY_VARS` hotspot.
+>You put your Nextion code for modifying any UI components that use HA data in a 'subrountine' (a hidden `Hotspot`).  You will likely have this code already in your HMI file, you just have to place the UI refresh code in a subroutine.  Doing this allows HA to apply the UI changes immediately after sending updated data by sending the Nextion Instruction "`click APPLY_VARS,1`".
 
-This example shows part of the `APPLY_VARS` subroutine for apply updates to the display of 'rain delay' information on a Nextion page for controlling irrigation automations.  The code updates the numeric value displayed then also: _a)_ changes a `Crop` image to show the cloud icon and label in a highlighted color if the rain delay is greater than 0; _b_ changes the background image for the displayed number to match (so the number seems transparent as the background changes); and _c_ changes the font color for displaying the number.  (The complete subroutine applies updates to all the other UI components too.)
+This example shows part of the `APPLY_VARS` subroutine for applying updates to the display of 'rain delay' information on a Nextion page for controlling irrigation automations.  The code updates the numeric value displayed then also: _a)_ changes a `Crop` image to show the cloud icon and label in a highlighted color if the rain delay is greater than 0; _b)_ changes the background image for the displayed number to match (so the number seems transparent as the background changes); and _c)_ changes the font color for displaying the number.  (The complete subroutine applies updates to all the other UI components too.  This code is typical of any HMI project - the only additional step is putting it in a subroutine.)
   
 <img src="https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/current_version/images/APPLY_VARS_example.png" alt="APPLY_VARS example">
 
@@ -166,87 +165,6 @@ This example shows part of the `APPLY_VARS` subroutine for apply updates to the 
   
 </details>
 
-
-
-<details>
-  <summary>Example Nextion Handler service configuration with ALIASES (Home Assistant - automation.yaml)</summary>
-  
----
-  
->**ALIAS in service automation**: linking `sensor.rain_delay` to Nextion `IR.nRN_DL.val`
-
-Aliases are convenient because _a)_ they save you having to switch back & forth between the Nextion Editor & HA, _b)_ the alias is typically based on the name of the Nextion (global) variable it is associated with, _c)_ they save you having to reflash the Nextion TFT each time you fix a typo in an entity_id, and _d)_ you enter the entity_ids in the HA YAML editor (where autocompletion helps avoid typos in the first place).  The YAML automation for the `nextion_handler` shows an example of how you add an alias to the 'dictionary'.
-```YAML
-#  Nextion Handler service automation (this handles everything coming from and going back a Nextion device)
-- alias: "NSPanel 1 Nextion Handler"
-  mode: queued
-  max: 10
-  trigger:
-    - platform: state
-      entity_id: sensor.nsp1_trigger
-  action:
-    - service: python_script.nextion_handler  # the one script can handle multiple Nextion devices
-      data:
-        trig_val: sensor.nsp1_trigger
-        nx_cmd_service: esphome.nsp1_send_command
-        action_cmds:
-          - sensor.nsp1_ha_act
-        update_cmds:
-          - sensor.nsp1_ha_set1
-        aliases: # << Nextion alias (excl. '$' prefix and '.val'/'.txt' suffix) paired with HA entity_id
-          IR.nRN_DL: sensor.rain_delay
-          PAGE.Variable: sensor.another # ... etc.
-```
-
----
-  
-</details>
-
-
-<details>
-  <summary>Example Home Assistant UI card for monitoring nextion_handler</summary>
-  
----
-  
-> **Lovelace UI Markdown Card** for monitoring flow of nextion_handler command_strings & TRIGGERs.
-
-  Example Lovelace card after just having pushed a 'button' (which has executed a script and initiated fast updates to pass resulting state changes in HA back to the Nextion).
-```
-TRIGGER: >> -3 (FAST UPDATES)
-HA_Act (<- Last SEND_ACTIONS):
-  <scpt $rain+7>
-Update settings (<- Page PostInit):
-HA_Set1 ---------------
-  <setn IR.nIR_AL 1 $>
-  <setn IR.nIR_BG 1 $>
-  <setn IR.nIR_FG 1 $>
-  <setn IR.nIR_BL 1 $>
-  <setn IR.nIR_FL 1 $>
-  <setb ST.bIRR $>
-  <setb IR.bIR_BG $>
-  <setb IR.bIR_FG $>
-  <setb IR.bIR_BL $>
-  <setb IR.bIR_FL $>
-  <setn IR.nRN_DL 1 $>
-  <sett IR.tIRR 20 $>
-```
-
-
----
-  
-</details>
-
-
-<details>
-  <summary>Example next ...</summary>
-  
----
-  
-TO DO!
-
----
-  
-</details>
 
 
 
@@ -416,6 +334,105 @@ if(override_frpts==0)
 ---
   
 </details>
+
+
+
+<details>
+  <summary>Example Nextion Handler service configuration with ALIASES (Home Assistant - automation.yaml)</summary>
+  
+---
+  
+>**ALIAS in service automation**: linking `sensor.rain_delay` to Nextion `IR.nRN_DL.val`
+
+Aliases are convenient because _a)_ they save you having to switch back & forth between the Nextion Editor & HA, _b)_ the alias is typically based on the name of the Nextion (global) variable it is associated with, _c)_ they save you having to reflash the Nextion TFT each time you fix a typo in an entity_id, and _d)_ you enter the entity_ids in the HA YAML editor (where autocompletion helps avoid typos in the first place).  The YAML automation for the `nextion_handler` shows an example of how you add an alias to the 'dictionary'.
+```YAML
+#  Nextion Handler service automation (this handles everything coming from and going back a Nextion device)
+- alias: "NSPanel 1 Nextion Handler"
+  mode: queued
+  max: 10
+  trigger:
+    - platform: state
+      entity_id: sensor.nsp1_trigger
+  action:
+    - service: python_script.nextion_handler  # the one script can handle multiple Nextion devices
+      data:
+        trig_val: sensor.nsp1_trigger
+        nx_cmd_service: esphome.nsp1_send_command
+        action_cmds:
+          - sensor.nsp1_ha_act
+        update_cmds:
+          - sensor.nsp1_ha_set1
+        aliases: # << 'dictionary' paring Nextion aliases with HA entity_id
+          #...
+          #____ aliases for IR page example above ______________
+          IR.nIR_AL: input_number.irr_pct
+          IR.nIR_BG: input_number.irr_bg
+          IR.nIR_FG: input_number.irr_fg
+          IR.nIR_BL: input_number.irr_bl
+          IR.nIR_FL: input_number.irr_fl
+          IR.bIR_BG: switch.irrigate_back_garden
+          IR.bIR_FG: switch.irrigate_front_garden
+          IR.bIR_BL: switch.irrigate_back_lawn
+          IR.bIR_FL: switch.irrigate_front_lawn
+          IR.nRN_DL: sensor.rain_delay
+          IR.tIRR: input_select.irrigate_area
+          rain+7: script.rain_delay_incr
+          rain-7: script.rain_delay_decr
+          #...
+```
+
+---
+  
+</details>
+
+
+<details>
+  <summary>Example Home Assistant UI card for monitoring nextion_handler</summary>
+  
+---
+  
+> **Lovelace UI Markdown Card** for monitoring flow of nextion_handler command_strings & TRIGGERs.
+
+  Example Lovelace card after just having pushed a 'button' (which has executed a script and initiated fast updates to pass resulting state changes in HA back to the Nextion).
+```
+TRIGGER: >> -3 (FAST UPDATES)
+HA_Act (<- Last SEND_ACTIONS):
+  <scpt $rain+7>
+Update settings (<- Page PostInit):
+HA_Set1 ---------------
+  <setn IR.nIR_AL 1 $>
+  <setn IR.nIR_BG 1 $>
+  <setn IR.nIR_FG 1 $>
+  <setn IR.nIR_BL 1 $>
+  <setn IR.nIR_FL 1 $>
+  <setb ST.bIRR $>
+  <setb IR.bIR_BG $>
+  <setb IR.bIR_FG $>
+  <setb IR.bIR_BL $>
+  <setb IR.bIR_FL $>
+  <setn IR.nRN_DL 1 $>
+  <sett IR.tIRR 20 $>
+```
+
+
+---
+  
+</details>
+
+
+<details>
+  <summary>Example next ...</summary>
+  
+---
+  
+TO DO!
+
+---
+  
+</details>
+
+
+
 
 <details>
   <summary>Global settings (Nextion Editor - Program.s tab)</summary>
