@@ -706,26 +706,3 @@ TO DO!
 * Unofficial Nextion [user forum](https://unofficialnextion.com/)
 ------------------------------------------------------------------------------
 
-## CHANGELOG:
-* v0.4 2022-02-18...
-   * Return to a single automation in HA YAML
-   * Nx UPDATE_LOOP now controls timing of: slow UPDATEs, ACTIONs, fast UPDATEs (with delays & repeats) after user interactions
-   * Fast update speed & repeat settings can now override the defaults in SEND_ACTIONS (to allow customized updates after actions involving high-lag devices, e.g., garage door, blinds, etc.)
-   * The 'sub APPLY_VARS' NhCmd (which should be at the end of HA_SET1...) gives the nextion_handler control
-     of timing of Nx UI updates (to immediately follow sending the update data requested in HA_SET1...)
-   * Key default parameters controlling UPDATE_LOOP move to Global_Settings in Program.s* (so that they can be adjusted/tweaked live from HA by sending Nextion Instructions).
-   * Started marking ~~~boilerplate ~~~ parts of HMI code more clearly & consistently.
-* v0.3 2022-02-14 ...
-  * Separated lists of ACTION & UPDATE command strings (for easier separation in triggering, processing and delay between them)
-  * Simplified main program loop to only Actions OR Update (based on trigger)
-  * Removed delays & repeats from this script (processing them in a Py script is not a good fit with HA multithreaded Py environment)
-  * Use THREE separate HA YAML components (call this script from separate places):
-    * ACTION automation (... -> delayed update script)
-    * UPDATE automation
-    * DELAYED update script (with repeats) - called at the end of this Py script IF it was an ACTION
-* v0.2 2022-02-10 ...
-  * Transferred  control of  looping and sequencing from Nx to this script (with new sub, rpt and noupdt NHCmds)
-* v0.1 2022-01 ...
-  * First version where all loop/sequencing control was attempted on the Nextion (double inter-linked timer loops)
-------------------------------------------------------------------------------
-
