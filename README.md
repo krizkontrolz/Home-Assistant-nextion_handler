@@ -197,6 +197,9 @@ Calls a script to increase the 'rain delay' for suspending automated irrigation 
 
 Click to expand sections below for an example of **how each of the 3 customized components were added to a Nextion page** to integrate it with HA.
 
+!["Nextion Handler usage example"](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/current_version/images/NextionHandler_Usage_Example.gif "Nextion Handler usage example")
+
+
 <details>
   <summary>Example NEXTION EVENT to SEND ACTION commands to Home Assistant (Nextion Editor - event tab, HA_ACT)</summary>
   
