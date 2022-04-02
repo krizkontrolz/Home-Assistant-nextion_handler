@@ -143,18 +143,44 @@ Set the Nextion variable `IR.nRN_DL.val` to the integer value of the state of th
 You assign ACTION commands to the `HA_ACT` string in your Nextion Editor 'events'.  You use them to configure what commands are sent to Home Assistant when events, such as button clicks, are triggered on the Nextion.
 
 
--  `tgl E` (toggle `E`)
--  `ton E` (turn on `E`)
--  `tof E` (turn off `E`)
--  `inps E string` (set value of input_select `E` to `string`)
--  `inpb E 0/1` (set value of input_binary to (state of `E` != 0))
--  `inpn E x` (set value of input_number `E` to `x`)
--  `scpt E` (call script `E`)
--  `scn E` (turn on scene `E`)
--  `say E string` (Play TTS of message `string` to media player `E`)
--  `ntf string` (Display a persistent notification with message `string` to HA)
--  `sub Nx` ('click' the Nextionx (hidden) hotspot `Nx` to execute a 'subroutine')
-*  TODO: RGBWW light controls (code working, documentation to come).
+- `tgl E` (toggle `E`).
+- `ton E` (turn on `E`).
+- `tof E` (turn off `E`).
+- `inps E string` (set value of input_select `E` to `string`).
+- `inpb E b` (turn input_binary `E` `on` if b!=0 otherwise turn `off`).
+- `inpn E x` (set value of input_number `E` to `x`).
+- `lt_brt E x` (set brightness percent of light `E` to `x` (0..100)).
+- `lt_brtv E x` (set brightness value of light `E` to `x` (0..255)).
+- `lt_ct E x` (set colour temperature of light `E` to `x` mireds).
+- `lt_rgb E r g b` (set colour of light `E` to RGB = `r`, `g`, `b`).
+- `lt_hs E h s` (set colour of light `E` to Hue = `h`, Saturation = `s`).
+- `lt_cw E dx dy r` (set color of light `E` to Color-Wheel location `dx`, `dy` from centre of wheel radius `r`).
+    <details>
+      <summary>more ...</summary>
+
+    Assumes a Home-Assistant-style color-wheel with red (hue 0) at 3 o'clock, increasing CLOCKWISE to 360.
+ 
+    (CLOCKWISE accounts for screen y increasing downwards, which reverses angle of Cartesian ArcTan.)
+
+    The Nexion Editor example below shows a template generic 'pop-up' light control page (that can be called for an abritrary light entity) together with the event for tapping on the color wheel to build the `HA_ACT.txt` command_string to call the `lt_cw` NH command.
+ 
+    <img src="https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/current_version/images/LT_colorwheel_event.png" alt="Color wheel HMI event code">
+
+    --- 
+  
+    </details>
+
+
+- `lt_wt E` (set light `E` to a supported white/color_temp mode).
+
+
+- `scn E` (turn on scene `E`).
+- `scpt E` (call script `E`).
+- `say E string` (Play TTS of message `string` to media player `E`).
+- `ntf string` (Display a persistent notification with message `string` to HA).
+- `ntfx n` (Dismiss the `n`th Persistent Notification in HA).
+- `sub Nx` (`click Nx,1` the Nextion (hidden) hotspot `Nx` to execute a 'subroutine').
+
 
 <details>
   <summary>e.g. `scpt $rain+7` (using shorthand notation).</summary>
@@ -716,18 +742,45 @@ HA_Set1 ---------------
   <sett IR.tIRR 20 $>
 ```
 
-
+      
 ---
   
 </details>
 
-<!---
+   
+   
 <details>
-  <summary>Example next ...</summary>
+  <summary>'Swipe' and 'Press' GESTUREs (Nextion Editor - timer)</summary>
   
 ---
+
+> Gestures are not a _requirement_ for Nextion Handler.  But they are helpful for many projects and the one included in the HMI templates is a very robust and generalizable implementation.  It uses a `GESTURES` timer (called by `tc0`) to interpret 'swipe' gestures in real time (to be able to respond to before a release Event is generated), and returns the final gesture as a `gest_type` code (a Global* variable) for 'Touch Release Events' of other UI components to use in their code.
+ 
+The HMI example files have complete implementations with all code, and a Debug template to test out how they work (including components to demonstrate common traps in designing these gestures into your own HMI files.)
+ 
+The swipe gestures work even on a page that is entirely covered in active 'dual state' buttons (triggering those components only on 'press' gestures, not 'swipes'), and the gestures are automatically disabled when a stroke starts on a 'slider' (to avoid UI conflicts).
+
+More details on Nextion gesture approaches are being prepared in a separate document.
   
-TO DO!
+<img src="https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/current_version/images/DBG_GESTURE_timer.png" alt="GESTURE timer code">
+ 
+
+---
+  
+</details>
+   
+   
+
+
+<!---  Template for 
+<details>
+  <summary>Main line ...</summary>
+  
+---
+
+> Highlight point ...
+  
+Details ...
 
 ---
   
