@@ -1,5 +1,5 @@
 # Home Assistant Nextion Handler
-(*Version 0.4; Last updated: 2022-04-01*)
+(*Version 0.5; Last updated: 2022-04-01*)
 
 Nextion Handler allows you to program a Nextion touch screen device (NSPanels in particular) to interact with Home Assistant (HA) **without having to do any coding in ESPHome YAML or Home Assistant automations**.  It uses a supporting Python script (to handle '**command_strings**' that you program into your HMI files) together with some boilerplate code (that does the routine parts of executing your programmed commands).
 
@@ -64,12 +64,69 @@ Template files for getting a simple demo up and running are [here](https://githu
 ### SET COMMAND LIST
 You enter SET commands in the Nextion Editor text variables `HA_SET1` .. `HA_SET5` on each page.  You use them to configure how you want to pull data from Home Assistant each time that the Nextion page is updated and what HA data you want assigned to each Nextion variable.
 
-*  `sett Nx len E`  (assign `len` chars of state of `E`, as string/text, to `Nx`).
-*  `setn Nx scale E` (assign `Nx` the integer value of `scale` * state of `E`).
-*  `setb Nx E` (assign `Nx` a value of 0 or 1 based the binary interpretation of
-        the state of `E` (given by str(state of E) in FALSE_STATES)).
-*  `setb Nx E cp x` (assign `Nx` the value of the binary expression from
-        comparing the state of `E` to `x` where `cp` in `[eq, ne, lt, le, gt, ge, =, !=, <, <=, >, >=]`)
+-  `sett Nx len E`  (assign `len` chars of state of `E`, as string/text, to `Nx`).
+- `setn Nx scale E (d)` (assign `Nx` the integer value of `scale` * state of `E`)
+    <details>
+      <summary>more ...</summary>
+
+  The scaling factor (`scale`) can cater for the way `Nx` uses ints to represent floats (stored as int(val * num_dps) and for changing of units, e.g. for energy, 1dp kW fits better on small display than Watts, so HA state in Watts * scalefactor of 0.01 gives `Nx` 1 dp float in kW (divide by 1000 to convert Watts to kW, then multiply by 10 to store as Nextion 1dp float): `setn EN.sol 0.1 $ 0`.
+ 
+  Optionally specify a value, `d`, to return if state of E is not numeric, otherwise the setn commands will be skipped on errors.
+
+    --- 
+  
+    </details>
+
+
+-  `setb Nx E` (assign `Nx` 0 or 1 based whether the state of `E` is in FALSE_STATES)).
+-  `setb Nx E cp x` (assign `Nx` 0 or 1 based on comparing (`cp`) the state of `E` to `x`)
+    <details>
+      <summary>more ...</summary>
+    
+   The comparitor, `cp`, must be  in   `[eq, ne, lt, le, gt, ge, =, !=, <, <=, >, >=]`.
+ 
+   Optionally specify a value, `d`, to return if state of E is not numeric, otherwise the setb command will be skipped on errors.
+
+    --- 
+  
+    </details>
+
+
+-  `setlt Nx_state Nx_tp Nx_brt Nx_ct Nx_rgb565 E` (assign `Nx` variables the state,
+    'type', brightness, color temperature and color of light `E`).
+    
+    <details>
+      <summary>more ...</summary>
+
+   'type' is a bit-encoded value of the supported modes of light `E`: bits are 1:brightness, 2:color_temp, 3:rgb.
+
+    The light color is converted to Nextion 16-bit RGB565 format (to assign directly to color attributes of Nextion UI components).
+
+    Use '_' in place of `Nx` variable names to skip assignments for those attributes.
+
+    --- 
+  
+    </details>
+
+-  `setntf Nx_count (Nx_title) (Nx_msg) (n) (chars_title) (chars_msg)` (assign 3 `Nx` variables the Count, Title and Message of the `n`th Persistent Notification.)
+    <details>
+      <summary>more ...</summary>
+
+   Use '_' in place of `Nx` variable names, or omit them, to skip assignments for those attributes.
+ 
+   Default numeric arguments (if unassigned) are 1, for message num, and 255 for string len.)
+
+
+    --- 
+  
+    </details>
+
+
+
+
+
+
+- `setdt Nx` (assign `Nx` current data-time as "dd/mm HHhMM").
 
 
 <details>
@@ -86,17 +143,17 @@ Set the Nextion variable `IR.nRN_DL.val` to the integer value of the state of th
 You assign ACTION commands to the `HA_ACT` string in your Nextion Editor 'events'.  You use them to configure what commands are sent to Home Assistant when events, such as button clicks, are triggered on the Nextion.
 
 
-*  `tgl E` (toggle `E`)
-*  `ton E` (turn on `E`)
-*  `tof E` (turn off `E`)
-*  `inps E string` (set value of input_select `E` to `string`)
-*  `inpb E 0/1` (set value of input_binary to (state of `E` != 0))
-*  `inpn E x` (set value of input_number `E` to `x`)
-*  `scpt E` (call script `E`)
-*  `scn E` (turn on scene `E`)
-*  `say E string` (Play TTS of message `string` to media player `E`)
-*  `ntf string` (Display a persistent notification with message `string` to HA)
-*  `sub Nx` ('click' the Nextionx (hidden) hotspot `Nx` to execute a 'subroutine')
+-  `tgl E` (toggle `E`)
+-  `ton E` (turn on `E`)
+-  `tof E` (turn off `E`)
+-  `inps E string` (set value of input_select `E` to `string`)
+-  `inpb E 0/1` (set value of input_binary to (state of `E` != 0))
+-  `inpn E x` (set value of input_number `E` to `x`)
+-  `scpt E` (call script `E`)
+-  `scn E` (turn on scene `E`)
+-  `say E string` (Play TTS of message `string` to media player `E`)
+-  `ntf string` (Display a persistent notification with message `string` to HA)
+-  `sub Nx` ('click' the Nextionx (hidden) hotspot `Nx` to execute a 'subroutine')
 *  TODO: RGBWW light controls (code working, documentation to come).
 
 <details>
