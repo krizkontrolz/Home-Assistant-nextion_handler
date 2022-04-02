@@ -33,8 +33,10 @@ Your Events in Nextion Editor need to assign a sequence of ACTION NHCmds to a co
 See expandable details and examples for each **CUSTOMIZABLE** and **BOILERPLATE** component below.
 
 ------------------------------------------------------------------------------
-## Template Files with Demo
-Template files for getting a simple demo up and running are [here](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/tree/main/v0-4), including [instructions on how to use them](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/v0-4/Installation.md).
+## Getting Started: Template and Demo Files
+The easiest way to get started is to use some of the example files (included in this repository) as templates, try out the debug page in the Nextion Editor, then play with customizing the UI components to create a test page that fits your own project to try out on your own device.
+
+The documentation below should help in exploring the example HMI files and creating/adapting your own.
 
 ------------------------------------------------------------------------------
 ## Nextion Handler Instruction Set
