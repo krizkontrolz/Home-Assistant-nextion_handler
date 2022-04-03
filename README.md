@@ -16,7 +16,7 @@ There are only 3 places where you need to add customized code to your Nextion Ed
 >'**SET**' commands assign Nextion variables the values of data you request from Home Assistant.
 
 
-SET commands are entered into text variables as on each page as **command strings** (which are lists of NHCmds separated by commas or linebreaks, with arguements separated by spaces). The **boilerplate [Postinit]** event of each page sends the HA_Set command_strings to HA.
+SET commands are entered into text variables on each page as **command strings** (which are lists of NHCmds separated by commas or linebreaks, with arguements separated by spaces). The **boilerplate [Postinit]** event of each page sends the HA_Set command_strings to HA.
 
 
 >'**ACTION**' commands perform actions you request in HA (to control lights, scenes, scripts,  etc.).
@@ -670,14 +670,15 @@ The `automation.yaml` required to configure the `nextion_handler.py` script is s
   
 ---
   
->**HA automation** to configure the `nextion_handler.py` service, including an example of an **alias 'dictionary'** (for managing how Nextion variables used in NhCmds are associated with HA entity_ids).  You need a separate `automation:` for each Nextion device (but they all use the same Python script.)
+>**HA automation** template to configure the `nextion_handler.py` service, including an example of an **alias 'dictionary'** (for managing how Nextion variables used in NhCmds are associated with HA entity_ids).  You need a separate `automation:` for each Nextion device (but they all use the same Python script.)
 
 The example dictionary matches the irrigation page used in the CUSTOMIZABLE examples above.
 
 Aliases are convenient because _a)_ they save you having to switch back & forth between the Nextion Editor & HA, _b)_ the alias is typically based on the name of the Nextion (global) variable it is associated with, _c)_ they save you having to reflash the Nextion TFT each time you fix a typo in an entity_id, _d)_ you enter the entity_ids in the HA YAML editor (where autocompletion helps avoid typos in the first place), and _e)_ they make the command_strings shorter for more efficient management with the resource contraints of Nextion devices.
 
 ```YAML
-#  Nextion Handler service automation.
+#  Nextion Handler service automation template
+# (Replace NSP entity_ids with your own; Build the 'alias:' dictionary to match your own HMI project)
 #  - handles everything coming from and going back to a Nextion device.
 - alias: "NSPanel 1 Nextion Handler"
   mode: queued
@@ -694,6 +695,7 @@ Aliases are convenient because _a)_ they save you having to switch back & forth 
           - sensor.nsp1_ha_act  # << sends ACTIONs commands
         update_cmds:
           - sensor.nsp1_ha_set1 # << send SET commands to update Nextion data
+          - sensor.nsp1_ha_set2 # ..ha_set5, as needed
         aliases:
           #...
           #____ example aliases 'dictionary' for IR page example above ______________
@@ -727,26 +729,67 @@ Aliases are convenient because _a)_ they save you having to switch back & forth 
 
 Output from Lovelace card matching the irrigation page CUSTOMIZABLE examples above, 
 after just having pushed the [+7] 'button' (which has executed a script and initiated fast updates to pass resulting state changes in HA back to the Nextion).
-```
-TRIGGER: >> 1 (FAST UPDATES 20h37)
-HA_Act (<- Last SEND_ACTIONS 20h37):
-  <scpt $rain+7>
-Update settings (<- Page PostInit 20h34):
-HA_Set1 ---------------
-  <setn IR.nIR_AL 1 $>
-  <setn IR.nIR_BG 1 $>
-  <setn IR.nIR_FG 1 $>
-  <setn IR.nIR_BL 1 $>
-  <setn IR.nIR_FL 1 $>
-  <setb ST.bIRR $>
-  <setb IR.bIR_BG $>
-  <setb IR.bIR_FG $>
-  <setb IR.bIR_BL $>
-  <setb IR.bIR_FL $>
-  <setn IR.nRN_DL 1 $>
-  <sett IR.tIRR 20 $>
-```
 
+<img src="https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/current_version/images/Lovelace_MarkDown_Card.png" alt="Lovelace MarkDown Card example output">
+ 
+   
+MarkDown card template to generate above NSP monitoring card (for Home Assistant Lovelace).
+(Replace `nsp1` in the YAML with the prefix/entity_id of your own Nextion device.)
+   
+```YAML
+cards:
+  # Monitor Nextion Handler commands (set DEVICE below)
+  - type: markdown
+    title: Nextion command_strings
+    content: |
+      ``` {# Display as code/monospaced font #}
+      {%- set DEVICE = 'nsp1' %} {#-<< Set your device short name (prefix part of each entity_id) #}
+      TRIGGER: >> {% set n = states('sensor.'+DEVICE+'_trigger')|int -%}
+      {%- set ts = (states.sensor.nsp1_trigger.last_updated).timestamp() | timestamp_custom('%Hh%M') %}
+      {%- if n > 0 -%}
+        {{n}} (ACTION {{ts}})
+      {%- elif n == 0 -%}
+        {{n}} (SLEEPING {{ts}})
+      {%- elif n > -3 -%}
+        {{n}} (SLOW UPDATES {{ts}})
+      {%- else -%}
+        {{n}} (FAST UPDATES {{ts}})
+      {%- endif %}
+      {%- set ts = (states.sensor.nsp1_ha_act.last_updated).timestamp() | timestamp_custom('%Hh%M') %}
+      HA_Act (<- SEND_ACTIONS {{ts}}):
+      {%- set s = states('sensor.'+DEVICE+'_ha_act').replace('\r','').replace(',','\n') %}
+      {%- for i in s.split('\n') %}
+        <{{i}}>
+      {%- endfor %}
+      {%- set ts = (states.sensor.nsp1_ha_set1.last_updated).timestamp() | timestamp_custom('%Hh%M') %}
+      Update settings (<- Page PostInit {{ts}}):
+      HA_Set1 ---------------
+      {%- set s = states('sensor.'+DEVICE+'_ha_set1').replace('\r','').replace(',','\n') %}
+      {%- for i in s.split('\n') %}
+        <{{i}}>
+      {%- endfor %}
+      HA_Set2 ---------------
+      {%- set s = states('sensor.'+DEVICE+'_ha_set2').replace('\r','').replace(',','\n') %}
+      {%- for i in s.split('\n') %}
+        <{{i}}>
+      {%- endfor %}
+      HA_Set3 ---------------
+      {%- set s = states('sensor.'+DEVICE+'_ha_set3').replace('\r','').replace(',','\n') %}
+      {%- for i in s.split('\n') %}
+        <{{i}}>
+      {%- endfor %}
+      HA_Set4 ---------------
+      {%- set s = states('sensor.'+DEVICE+'_ha_set4').replace('\r','').replace(',','\n') %}
+      {%- for i in s.split('\n') %}
+        <{{i}}>
+      {%- endfor %}
+      HA_Set5 ---------------
+      {%- set s = states('sensor.'+DEVICE+'_ha_set5').replace('\r','').replace(',','\n') %}
+      {%- for i in s.split('\n') %}
+        <{{i}}>
+      {%- endfor %}
+      ```   
+```
       
 ---
   
