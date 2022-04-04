@@ -246,6 +246,9 @@ This example shows the `HA_SET1.txt` string to bring in the data required for a 
 >You put your Nextion code for modifying any UI components that use HA data in a 'subrountine' (a hidden `Hotspot`).  You will likely have this code already in your HMI file, you just have to place the UI refresh code in a subroutine.  Doing this allows HA to apply the UI changes immediately after sending updated data by sending the Nextion Instruction "`click APPLY_VARS,1`".
 
 This example shows part of the `APPLY_VARS` subroutine for applying updates to the display of 'rain delay' information on a Nextion page for controlling irrigation automations.  The code updates the numeric value displayed then also: _a)_ changes a `Crop` image to show the cloud icon and label in a highlighted color if the rain delay is greater than 0; _b)_ changes the background image for the displayed number to match (so the number seems transparent as the background changes); and _c)_ changes the font color for displaying the number.  (The complete subroutine applies updates to all the other UI components too.  This code is typical of any HMI project - the only additional step is putting it in a subroutine.)
+ 
+**Note on global scope, variables, persistence, and memory use:**  For changes in data to persist after switching pages in the Nextion, the data scope has to be made `global`.  For simple small projects it may be easier to make the whole button (or other UI component) `global` to be able to write updates directly to the UI component attributes (which could avoid the need for `APPLY_VARS` in a basic UI, but at the expense of being [very wasteful of the extremely restricted (3584 bytes) global SRAM memory on your Nextion](https://unofficialnextion.com/t/updating-fields-before-page-is-displayed/791/5)).  It is _much_ more efficient to write data updates to Nextion `variables` (which only use the `global` SRAM memory to store their value, without the overhead of storing multiple other UI component attributes too).  This however requires an `APPLY_VARS` step to apply the upated data in the `variables` to the appropriate UI attributes for the changes to become visible on the display.
+ 
   
 <img src="https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/current_version/images/APPLY_VARS_example.png" alt="APPLY_VARS example">
 
@@ -259,9 +262,9 @@ This example shows part of the `APPLY_VARS` subroutine for applying updates to t
 ------------------------------------------------------------------------------
 ## BOILERPLATE components
 
-Click to expand sections below for boilerplate code (this is standardized code that you can copy and paste, without editing. It performs the routine tasks to execute the NhCmds you programmed in you CUSTOMIZED components.)
+Click to expand sections below for boilerplate code (this is standardized code that you can copy and paste, without editing. It performs the routine tasks required to execute the NH commands you program in your CUSTOMIZED components.)
 
-The easiest way to use this code is to start with a page from one of the example HMI files as a template.  The details below help explain what the code is doing and how the pieces fit together.
+The details below help explain what the code is doing and how the pieces fit together.  But the easiest way to include the boilerplate components into your own projects is to use a page from one of the example HMI files as a template (and copy the set of components from there rather than trying to recreate them from the code below).
 
 <details>
   <summary>UPDATE_LOOP (Nextion Editor - timer)</summary>
@@ -380,8 +383,8 @@ if(TRIGGER==0)
 > `SEND_ACTIONS` is a subroutine (the code attached to a `Touch Press Event` for a hidden hotspot on each Nextion page) that sends ACTION command_strings to Home Assistant and intiates rapid updates to return the resulting (delayed) sequence of changes in states of HA entities linked to the page.
 
 
-Each Nextion Event should first add the sequence of ACTION NHCmds to the `HA_ACT.txt` string on that page, followed by `click SEND_ACTIONS,1` (which then sends the Action commands to the nextion_handler on Home Assistant to be excecuted).
-(See the example Nextion Event above for how NhCmd ACTIONs are programmed the Nextion Editor.)
+Each Nextion Event should first add the sequence of ACTION NH commands to the `HA_ACT.txt` string on that page, followed by `click SEND_ACTIONS,1` (which then sends the Action commands to the nextion_handler on Home Assistant to be excecuted).
+(See the example Nextion Event above for how ACTION command_strings are programmed the Nextion Editor.)
 
 ```
 //~~~~~~boilerplate~~~~ v0.501
@@ -450,7 +453,7 @@ if(override_frpts==0)
   
 ---
   
-> Nextion Global Settings are configured in the `Program.s` tab in the Nextion Editor.  These include settings can be used to fine tune the behaviour of the boilerplate `UPDATE_LOOP` code.
+> Nextion Global Settings are configured in the `Program.s` tab in the Nextion Editor.  These include settings that can be used to fine tune the behaviour of the boilerplate `UPDATE_LOOP` code.
 
 A template Nextion card in the example HMI file shows how to control the main settings from on the device.
 
@@ -581,14 +584,13 @@ A template ESPHome YAML configuration is provided in the repository (where you j
 #! BACKUP YOUR ORIGINAL ESPHome YAML config for your device
 #! GET THE PASSWORDS etc from that config & enter them in the 'substitutions:' below:
 substitutions:
-  short_name: nsp1   #from your initial  config    # prefixed to HA entity_ids
+  ota_password: "from flashing initial config"
+  fallback_ap_password: "from flashing initial config"
+  short_name: nsp1   #from your initial  config    # prefixed to HA entity_ids (to make them unique for each device)
   long_name: My NSPanel                            # descriptive name
   tft_url: !secret nsp1_tft_url                    # path, including filename, where you put TFT files
   wifi_ssid: !secret wifi_ssid                     # your home wifi
   wifi_password: !secret wifi_password
-  fallback_ap_ssid: "Nsp1 Fallback Hotspot"        # fallback accesspoint on the ESP/Nextion
-  fallback_ap_password: "from flashing initial config"
-  ota_password: "from flashing initial config"
 #----------------------------------------
 
 # Enable Home Assistant API.
@@ -646,17 +648,13 @@ sensor:
 </details>
 
 <details>
-  <summary>nextion_handler.py (Home Assistant Python script)</summary>
+  <summary>Nextion Handler (Home Assistant - Python script)</summary>
   
 ---
   
   > The **Nextion Handler** provides Home Assistant with the service that responds to TRIGGER state changes sent from the Nextion device and responds by executing the NhCmds that you program into your HMI code.  (You can download the Python script from this repository.)
 
-You enable Python scripts in your Home Assistant `configuration.yaml` by adding the line:
-
-`python_script:`
-
-You then create the folder `<config>/python_scripts/` and any Python scripts you place there will be available in HA.  (See [Home Assistant Docs](https://www.home-assistant.io/integrations/python_script/).)
+To enable Python scripts in your Home Assistant add the line: `python_script:` to your `configuration.yaml` file. Then create the folder `<config>/python_scripts/` and and place the Python scripts you want to run there.  (You may need to restart for them to become available.) (See [Home Assistant Python Script documentation](https://www.home-assistant.io/integrations/python_script/).)
 
 The `automation.yaml` required to configure the `nextion_handler.py` script is shown next.
 
@@ -666,11 +664,11 @@ The `automation.yaml` required to configure the `nextion_handler.py` script is s
 
 
 <details>
-  <summary>Nextion Handler service configuration with alias 'dictionary' (Home Assistant - automation.yaml)</summary>
+  <summary>Nextion Handler service configuration and alias 'dictionary' (Home Assistant - automation.yaml)</summary>
   
 ---
   
->**HA automation** template to configure the `nextion_handler.py` service, including an example of an **alias 'dictionary'** (for managing how Nextion variables used in NhCmds are associated with HA entity_ids).  You need a separate `automation:` for each Nextion device (but they all use the same Python script.)
+>Below is a **Home Assistant automation** template to configure the `nextion_handler.py` service, including an example of an **alias 'dictionary'** (for managing how Nextion variables used in NH commands are associated with HA entity_ids).  You need a separate `automation:` for each Nextion device (but they all use the same Python script.)
 
 The example dictionary matches the irrigation page used in the CUSTOMIZABLE examples above.
 
@@ -721,7 +719,7 @@ Aliases are convenient because _a)_ they save you having to switch back & forth 
 
 
 <details>
-  <summary>Home Assistant UI card for monitoring nextion_handler (Home Assistant UI MarkDown card)</summary>
+  <summary>(OPTIONAL) Home Assistant UI card for monitoring nextion_handler (Home Assistant UI MarkDown card)</summary>
   
 ---
   
@@ -798,7 +796,7 @@ cards:
    
    
 <details>
-  <summary>'Swipe' and 'Press' GESTUREs (Nextion Editor - timer)</summary>
+  <summary>(OPTIONAL) 'Swipe' and 'Press' GESTUREs (Nextion Editor - timer)</summary>
   
 ---
 
