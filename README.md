@@ -3,7 +3,7 @@
 
 Nextion Handler allows you to program a Nextion touch screen device (NSPanels in particular) to interact with Home Assistant (HA) **without having to do any coding in ESPHome YAML or Home Assistant automations**.  It uses a supporting Python script (to handle '**command_strings**' that you program into your HMI files) together with some boilerplate code (that does the routine parts of executing your programmed commands).
 
-* **ESPhome** acts as simple broker tranferring command_strings from the Nextion to HA and Nextion Instructions back from HA to the Nextion (standarized boilerplate YAML configuration).
+* **ESPhome** acts as a passive conduit tranferring command_strings from the Nextion to HA and Nextion Instructions back from HA to the Nextion (standarized boilerplate YAML configuration).
 
 * **Home Assistant** configuration is a single automation to confgure the `nextion_handler.py` service (and includes a dictionary of entity_id aliases to help manage which Home Assitant entity you associate with each Nextion variable).
 
