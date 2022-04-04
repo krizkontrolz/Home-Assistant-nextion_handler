@@ -54,11 +54,11 @@ wifi:
 captive_portal:
 
 #! Fix for Sonoff NSPanel display to escape Protocol Reparse Mode so standard communication protocol will work: see https://github.com/esphome/esphome/pull/2956
-# Only needed once - comment out after that
-# external_components:
-#   - source: github://pr#2956
-#     components: [nextion]
-#     refresh: 1h
+# ONLY NEEDED ONCE - COMMENT OUT FOR SUBSEQUENT FLASHES ***
+external_components:
+  - source: github://pr#2956
+    components: [nextion]
+    refresh: 1h
 
 # Enable Home Assistant API.
 api:
