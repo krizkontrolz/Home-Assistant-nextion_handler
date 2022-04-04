@@ -210,6 +210,9 @@ Click to expand sections below for an example of **how each of the 3 customized 
 >You assign ACTION NHCmds to  `HA_Act.txt` in Nextion events, then send the commands with  `SEND_ACTIONS` (see **boilerplate SEND_ACTIONS** 'subroutine' code & details below).
 
 This example shows how to program calling Home Assistant actions from within Nextion Editor Events.  The code is for the orange [+7] button at the bottom of a page for controlling irrigation automations.  The [Touch Release Event] has been programmed so that when this button is given a short press, a script will be called in Home Assistant to add 7 days to the 'rain delay' until automatic scheduling resumes.  Long-pressing the button is programmed instead to call a script that reduces this delay by 7 days.  (See **boilerplate GESTURE**s code & details below if you want to use `gest_type` swipe & press UI gestures.)
+ 
+**TIP:** Change the font in the Nextion Editor to [a proper programming mono-spaced font](https://hadrysmateusz.medium.com/best-free-programming-fonts-2020-f243a6b4749a) (as below) - it makes reading and editing your code _much_ easier.
+ 
 
 <img src="https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/current_version/images/HA_ACT_example.png" alt="HA_ACT example">
 
@@ -849,7 +852,7 @@ Details ...
   [reference](https://material.io/design),
   [icons](https://materialdesignicons.com/),
   [fonts](https://fonts.google.com/specimen/Roboto+Condensed)
-* Inkscape
+* Inkscape (vector graphics editor - for UI graphics in repository)
   [software](https://inkscape.org/release/) and 
   [tutorials](https://inkscape.org/learn/tutorials/)
 
