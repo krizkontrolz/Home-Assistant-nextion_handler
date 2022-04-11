@@ -280,13 +280,13 @@ You can modify the behaviour of the `UPDATE_LOOP` through Nextion Global Setting
 <img src="https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/current_version/images/Settings_CFG_example.png" alt="APPLY_VARS example">
 
 ```
-//~~~~~~boilerplate~~~~ v0.501
+//~~~~~~boilerplate~~~~ v0.502
 // UPDATE LOOP controls:
 //  1) Slow passive polling for data updates from Home Assistant.
 //  2) Temporary fast updates after user Actions (incl. page change).
 //  3) Manage fast repeated update queue (and stop overloading data exchange).
 //  4) Progressively dim the display with inaction (and brighten on interaction).
-//  5) Sleep (after loop countdown completes).
+//  5) Sleep (after loop count down completes).
 //  6) Prepare state for waking from sleep (for controlled/predictable behaviour on waking).
 // by controlling values of TRIGGER,loop_cnt (count down), *.tim (loop rate), dim.
 // See Program.s* --GlobalSettings-- for variables that control default loop behaviour.
@@ -298,14 +298,14 @@ You can modify the behaviour of the `UPDATE_LOOP` through Nextion Global Setting
 // (HA_SET cmds are sent to HA, via ESPHome, in each Page's Postintialize Event).
 //
 //
-// COUNT-DOWN loop_cnt and perform indicated UPDATE (using HA_Cmds in HA_SET1..5 strings)
+// COUNT-DOWN loop_cnt and perform indicated UPDATE (using NH_Cmds in HA_SET1..5 strings):
 // Force a DATA UPDATE from HA (based on HA_SET cmds)
-// by Enforcing a TRIGGER state change (where TRIGGER also indicates loop status).
+// by Enforcing a TRIGGER state change (where TRIGGER also indicates loop status):
 // - FAST (additional) UPDATES: loop_cnt > sleep_cnt;
 //   TRIGGER toggles -3,-4
-// - STANDARD UPDATES: sleep_cnt > loop_cnt > 0
+// - STANDARD UPDATES: 0 < loop_cnt <= sleep_cnt;
 //   TRIGGER toggles -1,-2
-// - SLEEP: loop_cnt == 0
+// - SLEEP: loop_cnt == 0  (countdown completed sleep_cnt update loops without interaction);
 //   TRIGGER toggles 0
 //(- Positive TRIGGER vals signal ACTION requests (sent from UI Events via SEND_ACTIONS 'subroutine').
 loop_cnt-=1
