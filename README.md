@@ -66,6 +66,20 @@ The documentation below should help in exploring the example HMI files and creat
 ### SET COMMAND LIST
 You enter SET commands in the Nextion Editor text variables `HA_SET1` .. `HA_SET5` on each page.  You use them to configure how you want to pull data from Home Assistant each time that the Nextion page is updated and what HA data you want assigned to each Nextion variable.
 
+<details>
+  <summary>more ...</summary>
+
+SET commands typically perform the following steps:
+ 
+- Expand the shorthand Nextion variable (`Nx`) to the full variable name.
+- Look up the entity $alias  (`E`) in the alias dictionary to retrieve the full HA entity_id.
+- Get the required state and/or attributes of the HA entity and post-process these as required to return the value(s) in a form that is directly useable in the Nextion code.
+- Assign the value to the Nextion variable by sending a Nextion Instruction to make the assignement (using the ESPHome `send_command_printf()` command configured in ESPHome to be available as a service to HA) - so the ultimate assignent is executed as an instruction on the Nextion device itself, while the `nextion_handler` determines exactly what instruction needs to be sent.
+
+--- 
+  
+</details>
+
 -  `sett Nx len E`  (assign `len` chars of state of `E`, as string/text, to `Nx`).
 - `setn Nx scale E (d)` (assign `Nx` the integer value of `scale` * state of `E`)
     <details>
@@ -132,14 +146,22 @@ You enter SET commands in the Nextion Editor text variables `HA_SET1` .. `HA_SET
 
 
 <details>
-  <summary>e.g. `setn IR.nRN_DL 1 $` (using shorthand notation).</summary>
+  <summary>EXAMPLE: `setn IR.nRN_DL 1 $` (using shorthand notation).</summary>
 
 (Equivalent to long form of `setn IR.nRN_DL.val 1 sensor.rain_delay`.)
-Set the Nextion variable `IR.nRN_DL.val` to the integer value of the state of the HA entity with the alias `IR.nRN_DL` after multiplying by a scaling factor of 1 (see the _alias example_ below for more detail).
+Set the Nextion variable `IR.nRN_DL.val` to the integer value of the state of the HA entity with the alias `IR.nRN_DL` after multiplying by a scaling factor of 1.
+ 
+In this example, assuming `sensor.rain_delay` was the entity_id associated with the alias `IR.nRN_DL` and had a value of "3" at the time the command was called, the `setn` commands would perform the following steps:
+
+- Expand the shorthand Nextion variable (`Nx`) from `IR.nRN_DL` to `IR.nRN_DL.val`.
+- Look up the HA entity_id  by translating the shorthand alias (`E`) from `$` (short for `$IR.nRN_DL`, from prepending `$` to the shorthand `Nx` argument) to the alias dictionary key `IR.nRN_DL`, and then retrieving the value of the entity_id associated with that key, `sensor.rain_delay` (configured in the alias dictionary section of the `nextion_handler` automation YAML - see the _alias example_ below for more detail).
+- Get the state of `sensor.rain_delay` (assumed to be "3" in this example) and return the integer value of multiplying this by a scaling factor of 1.
+- Assign the final value (3) to `IR.nRN_DL.val` by sending the Nextion Instruction `IR.nRN_DL.val=3` to make the assignement (via the service that uses the ESPHome `send_command_printf()`).
 
 --- 
   
 </details>
+
 
 ### ACTION COMMAND LIST
 You assign ACTION commands to the `HA_ACT` string in your Nextion Editor 'events'.  You use them to configure what commands are sent to Home Assistant when events, such as button clicks, are triggered on the Nextion.
@@ -185,7 +207,7 @@ You assign ACTION commands to the `HA_ACT` string in your Nextion Editor 'events
 
 
 <details>
-  <summary>e.g. `scpt $rain+7` (using shorthand notation).</summary>
+  <summary>EXAMPLE: `scpt $rain+7` (using shorthand notation).</summary>
 
 (Equivalent to long form of `scpt script.rain_delay_incr`.)
 Calls a script to increase the 'rain delay' for suspending automated irrigation by 7 days.
