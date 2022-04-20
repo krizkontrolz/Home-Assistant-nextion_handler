@@ -171,7 +171,7 @@ You assign ACTION commands to the `HA_ACT` string in your Nextion Editor 'events
 - `ton E` (turn on `E`).
 - `tof E` (turn off `E`).
 - `inps E string` (set value of input_select `E` to `string`).
-- `inpb E b` (turn input_binary `E` `on` if b!=0 otherwise turn `off`).
+- `inpb E b` (turn input_binary `E` `on` if `b`!=0 otherwise turn `off`).
 - `inpn E x` (set value of input_number `E` to `x`).
 - `lt_brt E x` (set brightness percent of light `E` to `x` (0..100)).
 - `lt_brtv E x` (set brightness value of light `E` to `x` (0..255)).
@@ -203,7 +203,7 @@ You assign ACTION commands to the `HA_ACT` string in your Nextion Editor 'events
 - `say E string` (Play TTS of message `string` to media player `E`).
 - `ntf string` (Display a persistent notification with message `string` to HA).
 - `ntfx n` (Dismiss the `n`th Persistent Notification in HA).
-- `sub Nx` (`click Nx,1` the Nextion (hidden) hotspot `Nx` to execute a 'subroutine').
+- `sub Nx` ('click' the Nextion (hidden) hotspot `Nx` to execute a 'subroutine': sends `click Nx,1` instruction to Nextion).
 
 
 <details>
@@ -480,7 +480,9 @@ if(override_frpts==0)
   
 > Nextion Global Settings are configured in the `Program.s` tab in the Nextion Editor.  These include settings that can be used to fine tune the behaviour of the boilerplate `UPDATE_LOOP` code.
 
-A template Nextion card in the example HMI file shows how to control the main settings from on the device.
+A template Nextion configuration page (CFG) in the working example HMI file shows how to adjust the main settings from on the device using sliders.
+
+(Alternatively, the variables can be changed by assigning new values with Nextion Instructions sent from Home Assistant using the `send_command` service (configured in ESPHome for the device).)
 
 
 ```
@@ -604,9 +606,10 @@ click APPLY_VARS,1
 A template ESPHome YAML configuration is provided in the repository (where you just have to fill in the variables in the `substitutions:` section at the top of the file, shown in the YAML extract below).  The main components that you need to add to your ESPHome YAML configuration are shown below (and are marked with `***nextion_handler requirement***` throughout the full version of the template).
 
 ```YAML
+# Nextion Handler template for ESPHome (v0.5.002)
 #----------------------------------------
-#* DEVICE/USER-SPECIFIC DETAILS (customize for each of your own Nextion Devices)
-#! BACKUP YOUR ORIGINAL ESPHome YAML config for your device
+#* DEVICE/USER-SPECIFIC DETAILS (customize for each of your own Nextion Devices).
+#! BACKUP YOUR ORIGINAL ESPHome YAML config for your device.
 #! GET THE PASSWORDS etc from that config & enter them in the 'substitutions:' below:
 substitutions:
   ota_password: "from flashing initial config"
@@ -700,7 +703,7 @@ The example dictionary matches the irrigation page used in the CUSTOMIZABLE exam
 Aliases are convenient because _a)_ they save you having to switch back & forth between the Nextion Editor & HA, _b)_ the alias is typically based on the name of the Nextion (global) variable it is associated with, _c)_ they save you having to reflash the Nextion TFT each time you fix a typo in an entity_id, _d)_ you enter the entity_ids in the HA YAML editor (where autocompletion helps avoid typos in the first place), and _e)_ they make the command_strings shorter for more efficient management with the resource contraints of Nextion devices.
 
 ```YAML
-#  Nextion Handler service automation template
+#  Nextion Handler service automation template (v0.5.002)
 # (Replace NSP entity_ids with your own; Build the 'alias:' dictionary to match your own HMI project)
 #  - handles everything coming from and going back to a Nextion device.
 - alias: "NSPanel 1 Nextion Handler"
@@ -713,11 +716,11 @@ Aliases are convenient because _a)_ they save you having to switch back & forth 
     - service: python_script.nextion_handler
       data:
         trig_val: sensor.nsp1_trigger
-        nx_cmd_service: esphome.nsp1_send_command
+        nx_cmd_service: esphome.nsp1_send_command  # << for sending Nextion Instructions back to the NSPanel
         action_cmds:
-          - sensor.nsp1_ha_act  # << sends ACTIONs commands
+          - sensor.nsp1_ha_act  # << receives ACTION commands from Nextion (for making HA service calls)
         update_cmds:
-          - sensor.nsp1_ha_set1 # << send SET commands to update Nextion data
+          - sensor.nsp1_ha_set1 # << receives SET commands (for updating Nextion variables using nx_cmd_service)
           - sensor.nsp1_ha_set2 # ..ha_set5, as needed
         aliases:
           #...
