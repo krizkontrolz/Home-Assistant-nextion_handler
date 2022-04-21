@@ -1,9 +1,9 @@
 # Gesture Approaches for Nextion Devices (work in progress, incomplete ...)
 
-Gestures are a useful way of adding functionality to UI while saving space, particularly on small screens like [NSPanels](https://community.home-assistant.io/t/sonoff-nspanel-smart-scene-wall-switch-by-itead-coming-soon-on-kickstarter/332962) and other Nextion devices.   Implementing gestures allows you to reduce the number of graphical UI elements by being able to trigger events such as page changes with **'swipes'** or attaching multiple functions to a single button with different types of **'presses'**.  The **demo HMI file in this folder** has examples of 2 ways of implementing gestures in the Nextion Editor.  The demo pages are designed so that you can test and experiment with gestures, inspect realtime information to see how touch data is being generated and used during a gesture, and to illustrate some the 'traps' (unintended Nextion code behaviour) that you need to be aware of when incorporating robust and reliable gestures into your own HMI projects. 
+Gestures are a useful way of adding functionality to your UI while saving space, particularly on small screens like [NSPanels](https://community.home-assistant.io/t/sonoff-nspanel-smart-scene-wall-switch-by-itead-coming-soon-on-kickstarter/332962) and other Nextion devices.   Implementing gestures allows you to reduce the number of graphical UI components by being able to trigger events such as page changes with **'swipes'** or attaching multiple functions to a single button with different types of **'presses'**.  The **demo HMI file in this folder** has examples of 2 ways of implementing gestures in the Nextion Editor.  The demo pages are designed so that you can test and experiment with gestures, inspect and debug realtime information to see how touch data is being generated and used during a gesture, and to illustrate some of the 'traps' (unintended Nextion code behaviour) that you need to be aware of when incorporating robust and reliable gestures into your own HMI projects. 
 
 ## Edge-Swipe Gestures
-The simplest approach for swipe gestures on Nextion devices like NSPanels that have a large surrounding bezel is to use 'edge swipes'.  These are where you swipe from the bezel into the screen to trigger events such as cycling between pages.
+The simplest approach for adding swipe gestures to Nextion devices like NSPanels that have a large surrounding bezel is to use 'edge swipes'.  These are where you swipe from the bezel into the screen to trigger events such as cycling between pages.
 
 Edge swipes are implemented in the Nextion Editor by 'fencing' each edge of the screen with a narrow `hotspot` (raised to the highest surface level) so that they are the first UI component that will be triggered whenever a user swipes from outside the touch-sensitive part of the screen.  You then attach your `swipe` actions to the event code of the hotspots on each edge.
 
@@ -18,7 +18,7 @@ The **downside** is that it provides a limited set of features, it may not be in
 
 
 ## Realtime Swipe and Press Gestures
-A more advanced approach is to monitor touch events throughout their duration to process touch movements in realtime and interpret them to decode different types of gestures and trigger actions.  This is done by continually processing screen touch co-ordinates (`tch0` for x and `tch1` for y) in a rapidly looping (50 ms) timer component.  The timer loop for processing the gestures can either be triggered when a specific UI component is touched, or using the `touch component` (`tc0`) to handle _all_ touch events for the entire page.
+A more advanced approach is to monitor touch events throughout their duration to process touch movements in realtime and interpret them to decode different types of gestures and trigger actions.  This is done by continually processing screen touch co-ordinates (`tch0` for x and `tch1` for y) in a rapidly looping (50 ms) timer component.  The timer loop for processing the gestures can either be triggered from the [on touch] event code specific UI components, or using the `Touch Component` (`tc0`) to trigger gesture processing for _all_ touch events on a page.
 
 Some potential traps to be aware of:
 
@@ -29,12 +29,14 @@ Some potential traps to be aware of:
 
 The page for realtime swipe & press gestures in the demo HMI file show a roubust approach that deals with all these issues and has been set up with UI components that illustrate some of the traps illustrated above.  You can try out the interactions in the simulator, then read the comments in the code of the buttons that are giving the problems.  The template gesture code in the demo page includes the following:
 * `tc0`: test for touches starting on horizontal sliders and skips gesture processing in such cases (and allows for exclusions/alternate gesture processing on other UI components).
-* `GESTURE.tim`: pre-release actions; `gest_type`
-* [on release] events for all other UI elements:
+* `GESTURE.tim`: pre-release actions (swipes and vlong press); `gest_type` for [on release] events in other UI components; coding includes tests for distinguish button presses from ambiguous gestures (such finger bounces or short movements) to help reduce unintentionally triggering touch events.  (`gest_type` list with encoding - commented in notes at top of template code below) ...
+* [on release] events for all other UI elements:  All tests that `gest_type` is a legitamate 'press' event (and can trigger different actions for the different types of presses).
 
 >> add expandable sections with template code for each of above components
 
 >> add screen shot
+
+Add advantages & disadvantages paras...
 
 ## More Creative Gestures
 To add:
