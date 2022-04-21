@@ -201,7 +201,7 @@ You assign ACTION commands to the `HA_ACT` string in your Nextion Editor 'events
 - `scn E` (turn on scene `E`).
 - `scpt E` (call script `E`).
 - `say E string` (Play TTS of message `string` to media player `E`).
-- `ntf string` (Display a persistent notification with message `string` to HA).
+- `ntf title|message` (Create a Persistent Notification in HA with strings `title` & `message` (separated by '|')).
 - `ntfx n` (Dismiss the `n`th Persistent Notification in HA).
 - `sub Nx` ('click' the Nextion (hidden) hotspot `Nx` to execute a 'subroutine': sends `click Nx,1` instruction to Nextion).
 
