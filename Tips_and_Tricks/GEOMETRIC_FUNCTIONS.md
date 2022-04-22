@@ -1,4 +1,4 @@
-# Subrountines for Fast Approximations of Geometric Functions on Nextion Devices
+# 3) Subrountines for Fast Approximations of Geometric Functions on Nextion Devices (documentation in progress ...)
 
 Often in designing our Nextion UIs we run into situations where we need a common geometric fuction but it is not part of the Nextion Instruction set.  Two of the most common ones are arctans and square roots, that are helpful for processing interactions with colour wheels, round sliders or determining pixel distances for touch events.  Below are some handy fast integer approximation functions (sub routines) used in the demo HMI file in this folder.  (Nextion 'subroutines' are hidden `Hotspot` components that are called from other event code with the `click` instruction.)
 
@@ -18,3 +18,7 @@ Description of approach
 
 >> expandable code example
 
+## COS (based on Bhaskara I)
+Description of [approach](https://en.wikipedia.org/wiki/Bhaskara_I%27s_sine_approximation_formula)
+
+>> expandable code example
