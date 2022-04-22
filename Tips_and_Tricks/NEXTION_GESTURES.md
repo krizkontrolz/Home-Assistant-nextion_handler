@@ -1,4 +1,4 @@
-# Gesture Approaches for Nextion Devices
+# 1) Gesture Approaches for Nextion Devices
 
 Gestures are a useful way of adding functionality to your UI while saving space, particularly on small screens like [NSPanels](https://community.home-assistant.io/t/sonoff-nspanel-smart-scene-wall-switch-by-itead-coming-soon-on-kickstarter/332962) and other Nextion devices.   Implementing gestures allows you to reduce the number of graphical UI components by being able to trigger events such as page changes with **'swipes'** or attaching multiple functions to a single button with different types of **'presses'** (adding extra user functionality without adding more buttons).  The **demo HMI file in this folder** has examples of 2 ways of implementing gestures in the Nextion Editor.  The demo pages are designed so that you can test and experiment with gestures, inspect and debug realtime information to see how touch data is being generated and used _during_ a gesture, and to illustrate some of the 'traps' (unintended Nextion code behaviour) that you need to be aware of when incorporating robust and reliable gestures into your own HMI projects. 
 
