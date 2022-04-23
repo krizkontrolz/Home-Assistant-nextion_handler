@@ -1,6 +1,6 @@
 ## Tips, Tricks, and Traps for Nextion Devices
 
-This folder has an Nextion Editor HMI file for demonstrating several ways to expand the possibilities for designing Nextion user interfaces.
+This folder has a Nextion Editor HMI file for demonstrating several ways to expand the possibilities for designing Nextion user interfaces (beyond the features that are directly supported in your device class).
 
 A series of documents explain the various tips, tricks, and traps illustrated on the pages of the HMI file.
 
