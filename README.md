@@ -873,13 +873,7 @@ Details ...
 * [Fix for Sonoff NSPanel display to escape Protocol Reparse Mode so standard communication protocol will work](https://github.com/esphome/esphome/pull/2956)
 
 ### UI Design
-* Material Design
-  [reference](https://material.io/design),
-  [icons](https://materialdesignicons.com/),
-  [fonts](https://fonts.google.com/specimen/Roboto+Condensed)
-* Inkscape (vector graphics editor - for UI graphics in repository)
-  [software](https://inkscape.org/release/) and 
-  [tutorials](https://inkscape.org/learn/tutorials/)
+* Resources, with graphics examples and templates, are on [this page](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/tree/main/UI_Design).
 
 ### Nextion
 * Nextion 
