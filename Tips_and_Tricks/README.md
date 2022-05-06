@@ -8,3 +8,5 @@ A series of documents explain the various tips, tricks, and traps illustrated on
 2) [Dynamic Round Sliders](/Tips_and_Tricks/ROUND_SLIDERS.md)
 3) [Geometric functions](/Tips_and_Tricks/GEOMETRIC_FUNCTIONS.md)
  
+
+You can discuss this and make suggestions for improvements on the [Unoffical Nextion formum post](https://unofficialnextion.com/t/nextion-gesture-tips-tricks/1585).
