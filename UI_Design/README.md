@@ -6,13 +6,19 @@ These resources may be helpful for others designing the graphics for their inter
 
 The SVG files have full multi-page project examples (a lot more than the thumbnails), have template components that be easily adapted, and use named 'swatches' for easily changing the color scheme off all components.
 
-The UI designs rely on [a robust implementation of 'gestures'](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/tree/main/Tips_and_Tricks), so that touch-interactive components can make full use of the entire small screen area.  The 'Minimilistic Design' is the main theme currently being used, but the two initial Material-based designs are also included.  (The Nextion Editor makes it easy to change the look-and-feel of a UI by swapping out graphics files, especially if you work on fixed grid reference for all components, as the themes below do).
+The UI designs rely on [a robust implementation of 'gestures'](/Tips_and_Tricks), so that touch-interactive components can make full use of the entire small screen area.  The 'Minimilistic Design' is the main theme currently being used, but the two initial Material-based designs are also included.  (The Nextion Editor makes it easy to change the look-and-feel of a UI by swapping out graphics files, especially if you work on fixed grid reference for all components, as the themes below do).
 
-## Design Themes
-1) Material Design - Dark Bronze theme (to match bronzed buttons and case - used in first HMI).
-2) Material Design - Dark Neon theme (to use, instead of work against, the strong blue cast of Nextion screens - used in second HMI).
-3) Minimilist Design - adapted from Yuhang Lu's concept and related adaptations to Home Assistant - see credits below (used in current HMI).
+## Design Styles
+1) [Material Design](/UI_Design/Material_Bronze) - Dark Bronze theme (to match bronzed buttons and case - used in first HMI).
+2) [Material Design](/UI_Design/Material_Neon) - Dark Neon theme (to use, instead of work against, the strong blue cast of Nextion screens - used in second HMI).
+3) [Minimilist Design](/UI_Design/Minimalist) - adapted from Yuhang Lu's concept and related adaptations to Home Assistant - see credits below (used in current HMI).
 
+### Design Goal and Principles
+The guiding principles and needs that these UI styles aimed to meet were:
+* Customised to work well on small HMI screens (with limited graphical capabilities).
+* Modular components that fit flexibly and efficiently together to make full use of the limited screen/touch area available.
+* Easy to read full details (without reading glasses) on close range.
+* Main status information is clear from across the room (up to ~10 m).
 
 ## Resources and Credits
 
