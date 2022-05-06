@@ -24,7 +24,7 @@ The UI designs rely on [a robust implementation of 'gestures'](https://github.co
 ### Minimilist Design
   * [Minimilist Smart Home concept](https://www.behance.net/gallery/88433905/Redesign-Smart-Home) by [Yuhang Lu](https://www.behance.net/7ahang).
   * [UI Lovelace Minimilist](https://ui-lovelace-minimalist.github.io/UI/) for Home Assistant by [tben](https://community.home-assistant.io/u/tben/summary).
-  * [Mushroom Cards](https://community.home-assistant.io/t/mushroom-cards-build-a-beautiful-dashboard-easily/388590) for Home Assistant by [piitaya](https://github.com/piitaya).
+  * 🍄 [Mushroom Cards](https://community.home-assistant.io/t/mushroom-cards-build-a-beautiful-dashboard-easily/388590) for Home Assistant by [piitaya](https://github.com/piitaya).
 
 ### Inkscape (vector graphics editor - for UI SVG graphics in repository)
   * [software](https://inkscape.org/release/)
