@@ -1,5 +1,5 @@
 # Home Assistant Nextion Handler
-(*Version 0.5; Last updated: 2022-04-22*)
+(*Version 0.5; Last updated: 2022-05-09*)
 
 Nextion Handler allows you to program a Nextion touch screen device (NSPanels in particular) to interact with Home Assistant (HA) **without having to do any coding in ESPHome YAML or Home Assistant automations**.  It uses a supporting Python script (to handle '**command_strings**' that you program into your HMI files) together with some boilerplate code (that does the routine parts of executing your programmed commands).
 
