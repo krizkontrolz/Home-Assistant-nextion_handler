@@ -867,10 +867,10 @@ Details ...
 ------------------------------------------------------------------------------
 ## Credits & Related Resources:
 ### ESPHome: Flasshing, Base Configuration, Functionality
-* [ESPHome Nextion device](https://www.esphome.io/components/display/nextion.html)
-* [ESPHome Nextion class](https://esphome.io/api/classesphome_1_1nextion_1_1_nextion.html)
-* Masto [Github config](https://github.com/masto/NSPanel-Demo-Files/blob/main/Dimming%20Update/Screensaver%20Page/nspanel-demo.yaml) and [video](https://www.youtube.com/watch?v=Kdf6W_Ied4o&t=2341s)
-* [Fix for Sonoff NSPanel display to escape Protocol Reparse Mode so standard communication protocol will work](https://github.com/esphome/esphome/pull/2956)
+* [ESPHome Nextion device](https://www.esphome.io/components/display/nextion.html).
+* [ESPHome Nextion class](https://esphome.io/api/classesphome_1_1nextion_1_1_nextion.html).
+* Masto [Github config](https://github.com/masto/NSPanel-Demo-Files/blob/main/Dimming%20Update/Screensaver%20Page/nspanel-demo.yaml) and [video](https://www.youtube.com/watch?v=Kdf6W_Ied4o&t=2341s).
+* [Fix for Sonoff NSPanel display](https://github.com/esphome/esphome/pull/2956) to escape Protocol Reparse Mode so standard communication protocol will work.
 
 ### UI Design
 * Resources, with graphics examples and templates, are on [this page](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/tree/main/UI_Design).
@@ -880,7 +880,7 @@ Details ...
   [HMI editor](https://nextion.tech/nextion-editor/),
   [Editor Guide](https://nextion.tech/editor_guide/),
   [Nextion Instruction Set](https://nextion.tech/instruction-set/),
-  [Blog examples](https://nextion.tech/blogs/)
-* Unofficial Nextion [user forum](https://unofficialnextion.com/)
+  [Blog examples](https://nextion.tech/blogs/).
+* Unofficial Nextion [user forum](https://unofficialnextion.com/).
 ------------------------------------------------------------------------------
 
