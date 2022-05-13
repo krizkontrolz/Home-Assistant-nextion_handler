@@ -1,11 +1,9 @@
 # User Interface Design for Nextion devices
 (_Last updated: 2022-05-13_)
 
-_**... work in progress ...**_
-
 These resources may be helpful for others designing the graphics for their interfaces on small HMI (human-machine interface) screens like Nextions.
 
-The SVG files have full multi-page project examples (a lot more than the preview thumbnails show), have template components that be can easily adapted to other projects, and use named 'swatches' for easily changing the color scheme off all components.
+The SVG files have full multi-page project examples (a lot more than the preview thumbnails show), have template components that be can easily adapted to other projects, and use named 'swatches' for easily changing the color theme off all components.
 
 The UI designs rely on [a robust implementation of 'gestures'](/Tips_and_Tricks), so that touch-interactive components can make full use of the entire small screen area.  The 'Minimilast Design' is the main style that I'm currently using/developing, but the two initial Material-based designs (like the Home Assistant UI uses) are also included.  The Nextion Editor makes it easy to change the look-and-feel of a UI by swapping out graphics files, especially if you work on consistent reference grid for all components, as the themes below do (multiples of 40 px x 40 px).
 
@@ -21,6 +19,9 @@ The UI designs rely on [a robust implementation of 'gestures'](/Tips_and_Tricks)
 * :arrow_forward: [Minimalist Design](/UI_Design/Minimalist) - adapted from Yuhang Lu's concept and related adaptations to Home Assistant (see credits below).
 
   This clean, minimalist design is still mainly based on Material Design principles but uses thick bars/sliders and adds a flat circle background behind icons (as per Yuhang Lu's concept).  The circle allows extra information to be conveyed, by using combinations of colors for both icons and backgrounds, while adding some understated additional visual appeal.
+
+**Example NSPanel pages using dark-themed Minimalist style.**
+![Example dark Minimalist style](/UI_Design/Minimalist/ExampleM_IR_ST_LT_1280x640.png)
 
 ### Design Goal and Principles
 The guiding principles and needs that these UI styles aimed to meet were:
