@@ -63,13 +63,13 @@ The documentation below should help in exploring the example HMI files and creat
 </details>
 
 
-### SET COMMAND LIST
+### 🔺 SET COMMAND LIST
 You enter SET commands in the Nextion Editor text variables `HA_SET1` .. `HA_SET5` on each page.  You use them to configure how you want to pull data from Home Assistant each time that the Nextion page is updated and what HA data you want assigned to each Nextion variable.
 
 <details>
   <summary>more ...</summary>
 
-SET commands typically perform the following steps:
+🔺 SET commands typically perform the following steps:
  
 - Expand the shorthand Nextion variable (`Nx`) to the full variable name.
 - Look up the entity $alias  (`E`) in the alias dictionary to retrieve the full HA entity_id.
@@ -161,8 +161,8 @@ In this example, assuming `sensor.rain_delay` was the entity_id associated with 
 </details>
 
 
-### ACTION COMMAND LIST
-You assign ACTION commands to the `HA_ACT` string in your Nextion Editor 'events'.  You use them to configure what commands are sent to Home Assistant when events, such as button clicks, are triggered on the Nextion.
+### 🔻 ACTION COMMAND LIST
+You assign ACTION commands to the `HA_ACT` string in your Nextion Editor 'events'.  You use them to configure the service calls that you want Home Assistant to execute when triggered by Nextion touch events, such as UI button clicks.
 
 
 🔻 `tgl E` (toggle `E`).
