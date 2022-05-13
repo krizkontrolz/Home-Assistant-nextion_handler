@@ -1,30 +1,30 @@
 # Home Assistant Nextion Handler
-(*Version 0.5; Last updated: 2022-05-09*)
+(_Version 0.5; Last updated: 2022-05-13_)
 
 Nextion Handler allows you to program a Nextion touch screen device (NSPanels in particular) to interact with Home Assistant (HA) **without having to do any coding in ESPHome YAML or Home Assistant automations**.  It uses a supporting Python script (to handle '**command_strings**' that you program into your HMI files) together with some boilerplate code (that does the routine parts of executing your programmed commands).
 
-* **ESPhome** acts as a passive conduit tranferring command_strings from the Nextion to HA and Nextion Instructions back from HA to the Nextion (standarized boilerplate YAML configuration).
+* :arrow_forward: **ESPhome** acts as a passive conduit tranferring command_strings from the Nextion to HA and Nextion Instructions back from HA to the Nextion (standarized boilerplate YAML configuration).
 
-* **Home Assistant** configuration is a single automation to confgure the `nextion_handler.py` service (and includes a dictionary of entity_id aliases to help manage which Home Assitant entity you associate with each Nextion variable).
+* :arrow_forward: **Home Assistant** configuration is a single automation to confgure the `nextion_handler.py` service (and includes a dictionary of entity_id aliases to help manage which Home Assitant entity you associate with each Nextion variable).
 
-* All programming logic is kept together in one place, the **Nextion Editor** HMI files, supported by standardized boilerplate code to handle the HA interaction loop.
+* :arrow_forward: All programming logic is kept together in one place, the **Nextion Editor** HMI files, supported by standardized boilerplate code to handle the HA interaction loop.
 
 ------------------------------------------------------------------------------
 ## Nextion Handler Framework Overview
 There are only 3 places where you need to add customized code to your Nextion Editor HMI file to link it to HA: 2 types of Nextion Handler commands (**NHCmds**), and 1 'subroutine'.
 
->'**SET**' commands assign Nextion variables the values of data you request from Home Assistant.
+:arrow_forward: '**SET**' commands assign Nextion variables the values of data you request from Home Assistant.
 
 
 SET commands are entered into text variables on each page as **command strings** (which are lists of NHCmds separated by commas or linebreaks, with arguements separated by spaces). The **boilerplate [Postinit]** event of each page sends the HA_Set command_strings to HA.
 
 
->'**ACTION**' commands perform actions you request in HA (to control lights, scenes, scripts,  etc.).
+:arrow_forward: '**ACTION**' commands perform actions you request in HA (to control lights, scenes, scripts,  etc.).
 
 Your Events in Nextion Editor need to assign a sequence of ACTION NHCmds to a command_string string. You then send the commands with the **boilerplate** '**SEND_ACTIONS**' subroutine, which temporarilly speeds up the **boilerplate** '**UPDATE_LOOP**' (a Nextion timer that enforces state changes to a **TRIGGER** value to signal how Home Assistant should respond).
 
 
->'**APPLY_VARS**' is a Nextion 'subroutine' where you place your code for visualising changes in data and refreshing the UI.
+:arrow_forward: '**APPLY_VARS**' is a Nextion 'subroutine' where you place your code for visualising changes in data and refreshing the UI.
 
 ------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ The documentation below should help in exploring the example HMI files and creat
 
 ------------------------------------------------------------------------------
 ## Nextion Handler Instruction Set
-* `Nx` = Nextion variable name
+▶️ `Nx` = Nextion variable name
  
 <details>
   <summary>as a shorthand ...</summary>
@@ -51,7 +51,7 @@ The documentation below should help in exploring the example HMI files and creat
   
 </details>
 
-* `E` = $alias or HA entity_id;
+▶️ `E` = $alias or HA entity_id;
 
 <details>
   <summary>as a shorthand ...</summary>
@@ -80,38 +80,41 @@ SET commands typically perform the following steps:
   
 </details>
 
--  `sett Nx len E`  (assign `len` chars of state of `E`, as string/text, to `Nx`).
-- `setn Nx scale E (d)` (assign `Nx` the integer value of `scale` * state of `E`)
-    <details>
-      <summary>more ...</summary>
+🔺 `sett Nx len E`  (assign `len` chars of state of `E`, as string/text, to `Nx`).
+
+🔺 `setn Nx scale E (d)` (assign `Nx` the integer value of `scale` * state of `E`)
+
+<details>
+  <summary>  more ...</summary>
 
   The scaling factor (`scale`) can cater for the way `Nx` uses ints to represent floats (stored as int(val * num_dps) and for changing of units, e.g. for energy, 1dp kW fits better on small display than Watts, so HA state in Watts * scalefactor of 0.01 gives `Nx` 1 dp float in kW (divide by 1000 to convert Watts to kW, then multiply by 10 to store as Nextion 1dp float): `setn EN.sol 0.1 $ 0`.
  
   Optionally specify a value, `d`, to return if state of E is not numeric, otherwise the setn commands will be skipped on errors.
 
-    --- 
+--- 
   
-    </details>
+</details>
 
 
--  `setb Nx E` (assign `Nx` 0 or 1 based whether the state of `E` is in FALSE_STATES)).
--  `setb Nx E cp x` (assign `Nx` 0 or 1 based on comparing (`cp`) the state of `E` to `x`)
-    <details>
+🔺 `setb Nx E` (assign `Nx` 0 or 1 based whether the state of `E` is in FALSE_STATES)).
+
+🔺 `setb Nx E cp x` (assign `Nx` 0 or 1 based on comparing (`cp`) the state of `E` to `x`)
+<details>
       <summary>more ...</summary>
     
    The comparitor, `cp`, must be  in   `[eq, ne, lt, le, gt, ge, =, !=, <, <=, >, >=]`.
  
    Optionally specify a value, `d`, to return if state of E is not numeric, otherwise the setb command will be skipped on errors.
 
-    --- 
+--- 
   
-    </details>
+</details>
 
 
--  `setlt Nx_state Nx_tp Nx_brt Nx_ct Nx_rgb565 E` (assign `Nx` variables the state,
+🔺 `setlt Nx_state Nx_tp Nx_brt Nx_ct Nx_rgb565 E` (assign `Nx` variables the state,
     'type', brightness, color temperature and color of light `E`).
     
-    <details>
+<details>
       <summary>more ...</summary>
 
    'type' is a bit-encoded value of the supported modes of light `E`: bits are 1:brightness, 2:color_temp, 3:rgb.
@@ -120,12 +123,12 @@ SET commands typically perform the following steps:
 
     Use '_' in place of `Nx` variable names to skip assignments for those attributes.
 
-    --- 
+--- 
   
-    </details>
+</details>
 
--  `setntf Nx_count (Nx_title) (Nx_msg) (n) (chars_title) (chars_msg)` (assign 3 `Nx` variables the Count, Title and Message of the `n`th Persistent Notification.)
-    <details>
+🔺 `setntf Nx_count (Nx_title) (Nx_msg) (n) (chars_title) (chars_msg)` (assign 3 `Nx` variables the Count, Title and Message of the `n`th Persistent Notification.)
+<details>
       <summary>more ...</summary>
 
    Use '_' in place of `Nx` variable names, or omit them, to skip assignments for those attributes.
@@ -133,20 +136,15 @@ SET commands typically perform the following steps:
    Default numeric arguments (if unassigned) are 1, for message num, and 255 for string len.)
 
 
-    --- 
+--- 
   
-    </details>
+</details>
 
 
-
-
-
-
-- `setdt Nx` (assign `Nx` current data-time as "dd/mm HHhMM").
-
+🔺 `setdt Nx` (assign `Nx` current data-time as "dd/mm HHhMM").
 
 <details>
-  <summary>EXAMPLE: `setn IR.nRN_DL 1 $` (using shorthand notation).</summary>
+  <summary>▶️ EXAMPLE: `setn IR.nRN_DL 1 $` (using shorthand notation).</summary>
 
 (Equivalent to long form of `setn IR.nRN_DL.val 1 sensor.rain_delay`.)
 Set the Nextion variable `IR.nRN_DL.val` to the integer value of the state of the HA entity with the alias `IR.nRN_DL` after multiplying by a scaling factor of 1.
@@ -167,47 +165,62 @@ In this example, assuming `sensor.rain_delay` was the entity_id associated with 
 You assign ACTION commands to the `HA_ACT` string in your Nextion Editor 'events'.  You use them to configure what commands are sent to Home Assistant when events, such as button clicks, are triggered on the Nextion.
 
 
-- `tgl E` (toggle `E`).
-- `ton E` (turn on `E`).
-- `tof E` (turn off `E`).
-- `inps E string` (set value of input_select `E` to `string`).
-- `inpb E b` (turn input_binary `E` `on` if `b`!=0 otherwise turn `off`).
-- `inpn E x` (set value of input_number `E` to `x`).
-- `lt_brt E x` (set brightness percent of light `E` to `x` (0..100)).
-- `lt_brtv E x` (set brightness value of light `E` to `x` (0..255)).
-- `lt_ct E x` (set colour temperature of light `E` to `x` mireds).
-- `lt_rgb E r g b` (set colour of light `E` to RGB = `r`, `g`, `b`).
-- `lt_hs E h s` (set colour of light `E` to Hue = `h`, Saturation = `s`).
-- `lt_cw E dx dy r` (set color of light `E` to Color-Wheel location `dx`, `dy` from centre of wheel radius `r`).
-    <details>
-      <summary>more ...</summary>
+🔻 `tgl E` (toggle `E`).
 
-    Assumes a Home-Assistant-style color-wheel with red (hue 0) at 3 o'clock, increasing CLOCKWISE to 360.
- 
-    (CLOCKWISE accounts for screen y increasing downwards, which reverses angle of Cartesian ArcTan.)
+🔻 `ton E` (turn on `E`).
 
-    The Nexion Editor example below shows a template generic 'pop-up' light control page (that can be called for an abritrary light entity) together with the event for tapping on the color wheel to build the `HA_ACT.txt` command_string to call the `lt_cw` NH command.
- 
-    <img src="https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/current_version/images/LT_colorwheel_event.png" alt="Color wheel HMI event code">
+🔻 `tof E` (turn off `E`).
 
-    --- 
-  
-    </details>
+🔻 `inps E string` (set value of input_select `E` to `string`).
 
+🔻 `inpb E b` (turn input_binary `E` `on` if `b`!=0 otherwise turn `off`).
 
-- `lt_wt E` (set light `E` to a supported white/color_temp mode).
+🔻 `inpn E x` (set value of input_number `E` to `x`).
 
+🔻 `lt_brt E x` (set brightness percent of light `E` to `x` (0..100)).
 
-- `scn E` (turn on scene `E`).
-- `scpt E` (call script `E`).
-- `say E string` (Play TTS of message `string` to media player `E`).
-- `ntf title|message` (Create a Persistent Notification in HA with strings `title` & `message` (separated by '|')).
-- `ntfx n` (Dismiss the `n`th Persistent Notification in HA).
-- `sub Nx` ('click' the Nextion (hidden) hotspot `Nx` to execute a 'subroutine': sends `click Nx,1` instruction to Nextion).
+🔻 `lt_brtv E x` (set brightness value of light `E` to `x` (0..255)).
 
+🔻 `lt_ct E x` (set colour temperature of light `E` to `x` mireds).
+
+🔻 `lt_rgb E r g b` (set colour of light `E` to RGB = `r`, `g`, `b`).
+
+🔻 `lt_hs E h s` (set colour of light `E` to Hue = `h`, Saturation = `s`).
+
+🔻 `lt_cw E dx dy r` (set color of light `E` to Color-Wheel location `dx`, `dy` from centre of wheel radius `r`).
 
 <details>
-  <summary>EXAMPLE: `scpt $rain+7` (using shorthand notation).</summary>
+  <summary>more (color wheel example) ...</summary>
+
+Assumes a Home-Assistant-style color-wheel with red (hue 0) at 3 o'clock, increasing CLOCKWISE to 360.
+ 
+(CLOCKWISE accounts for screen y increasing downwards, which reverses angle of Cartesian ArcTan. So hue=90, with a greenish color, is at the 6 o'clock position.)
+
+The Nexion Editor example below shows a template generic 'pop-up' light control page (that can be called for an abritrary light entity) together with the event for tapping on the color wheel to build the `HA_ACT.txt` command_string to call the `lt_cw` NH command.
+ 
+![Color wheel example in HMI](/current_version/images/LT_colorwheel_event.png)
+
+--- 
+  
+</details>
+
+
+🔻 `lt_wt E` (set light `E` to a supported white/color_temp mode).
+
+🔻 `scn E` (turn on scene `E`).
+
+🔻 `scpt E` (call script `E`).
+
+🔻 `say E string` (Play TTS of message `string` to media player `E`).
+
+🔻 `ntf title|message` (Create a Persistent Notification in HA with strings `title` & `message` (separated by '|')).
+
+🔻 `ntfx n` (Dismiss the `n`th Persistent Notification in HA).
+
+🔻 `sub Nx` ('click' the Nextion (hidden) hotspot `Nx` to execute a 'subroutine': sends `click Nx,1` instruction to Nextion).
+
+<details>
+  <summary>▶️ EXAMPLE: `scpt $rain+7` (using shorthand notation).</summary>
 
 (Equivalent to long form of `scpt script.rain_delay_incr`.)
 Calls a script to increase the 'rain delay' for suspending automated irrigation by 7 days.
@@ -225,7 +238,7 @@ Click to expand sections below for an example of **how each of the 3 customized 
 
 
 <details>
-  <summary>Example NEXTION EVENT to SEND ACTION commands to Home Assistant (Nextion Editor - event tab, HA_ACT)</summary>
+  <summary>▶️ Example NEXTION EVENT to SEND ACTION commands to Home Assistant (Nextion Editor - event tab, HA_ACT)</summary>
   
 ---
 
@@ -247,7 +260,7 @@ This example shows how to program calling Home Assistant actions from within Nex
 
 
 <details>
-  <summary>Example HA_SET string for pulling required HA data into Nextion pages (Nextion Editor - string, HA_SET1)</summary>
+  <summary>▶️ Example HA_SET string for pulling required HA data into Nextion pages (Nextion Editor - string, HA_SET1)</summary>
   
 ---
 
@@ -264,7 +277,7 @@ This example shows the `HA_SET1.txt` string to bring in the data required for a 
 
 
 <details>
-  <summary>Example APPLY_VARS to update Nextion UI with returned data from HA (Nextion Editor - APPLY_VARS 'subroutine')</summary>
+  <summary>▶️ Example APPLY_VARS to update Nextion UI with returned data from HA (Nextion Editor - APPLY_VARS 'subroutine')</summary>
 
 ---
 
@@ -292,7 +305,7 @@ Click to expand sections below for boilerplate code (this is standardized code t
 The details below help explain what the code is doing and how the pieces fit together.  But the easiest way to include the boilerplate components into your own projects is to use a page from one of the example HMI files as a template (and copy the set of components from there rather than trying to recreate them from the code below).
 
 <details>
-  <summary>UPDATE_LOOP (Nextion Editor - timer)</summary>
+  <summary>▶️ UPDATE_LOOP (Nextion Editor - timer)</summary>
   
 ---
 > The `UPDATE_LOOP` is attached to a timer on each Nextion page to control the timing and scheduling of most important tasks (polling, updates, queues, dimming, sleeping: as detailed in the comments at the top of the standardized boilerplat code below) including fetching your data from Home Assistant in an orderly and efficient way.
@@ -401,7 +414,7 @@ if(TRIGGER==0)
 </details>
 
 <details>
-  <summary>SEND_ACTIONS (Nextion Editor - hidden hotspot 'subroutine')</summary>
+  <summary>▶️ SEND_ACTIONS (Nextion Editor - hidden hotspot 'subroutine')</summary>
   
 ---
 
@@ -474,7 +487,7 @@ if(override_frpts==0)
 
 
 <details>
-  <summary>Global settings (Nextion Editor - Program.s tab)</summary>
+  <summary>▶️ Global settings (Nextion Editor - Program.s tab)</summary>
   
 ---
   
@@ -525,7 +538,7 @@ page wake_page   //Power on start page (255 = last page)
 </details>
 
 <details>
-  <summary>Page PostInitialize Event (Nextion Editor - Page tab)</summary>
+  <summary>▶️ Page PostInitialize Event (Nextion Editor - Page tab)</summary>
   
 ---
 
@@ -597,7 +610,7 @@ click APPLY_VARS,1
 </details>
 
 <details>
-  <summary>ESPHome configuration to send commands & data between HA and Nextion (ESPHome YAML file)</summary>
+  <summary>▶️ ESPHome configuration to send commands & data between HA and Nextion (ESPHome YAML file)</summary>
   
 ---
   
@@ -676,7 +689,7 @@ sensor:
 </details>
 
 <details>
-  <summary>Nextion Handler (Home Assistant - Python script)</summary>
+  <summary>▶️ Nextion Handler (Home Assistant - Python script)</summary>
   
 ---
   
@@ -692,7 +705,7 @@ The `automation.yaml` required to configure the `nextion_handler.py` script is s
 
 
 <details>
-  <summary>Nextion Handler service configuration and alias 'dictionary' (Home Assistant - automation.yaml)</summary>
+  <summary>▶️ Nextion Handler service configuration and alias 'dictionary' (Home Assistant - automation.yaml)</summary>
   
 ---
   
@@ -747,7 +760,7 @@ Aliases are convenient because _a)_ they save you having to switch back & forth 
 
 
 <details>
-  <summary>(OPTIONAL) Home Assistant UI card for monitoring nextion_handler (Home Assistant UI MarkDown card)</summary>
+  <summary>▶️ (OPTIONAL) Home Assistant UI card for monitoring nextion_handler (Home Assistant UI MarkDown card)</summary>
   
 ---
   
@@ -824,7 +837,7 @@ cards:
    
    
 <details>
-  <summary>(OPTIONAL) 'Swipe' and 'Press' GESTUREs (Nextion Editor - timer)</summary>
+  <summary>▶️ (OPTIONAL) 'Swipe' and 'Press' GESTUREs (Nextion Editor - timer)</summary>
   
 ---
 
@@ -866,14 +879,16 @@ Details ...
   
 ------------------------------------------------------------------------------
 ## Credits & Related Resources:
-### ESPHome: Flasshing, Base Configuration, Functionality
+
+### UI Design
+* ▶️  [This page](/UI_Design) has tips and information for designing graphical UIs for small screens like the NSPanel, including template vector graphics files (that can easily be adapted to other projects) and example HMI files using these designs.
+* ▶️  [This page](/Tips_and_Tricks) has tips, tricks and traps related to programing the functional aspects of UIs, including HMI code and examples for robust gestures, circular sliders, and geometric functions.
+
+### ESPHome: Flashing, Base Configuration, Functionality
 * [ESPHome Nextion device](https://www.esphome.io/components/display/nextion.html).
 * [ESPHome Nextion class](https://esphome.io/api/classesphome_1_1nextion_1_1_nextion.html).
 * Masto [Github config](https://github.com/masto/NSPanel-Demo-Files/blob/main/Dimming%20Update/Screensaver%20Page/nspanel-demo.yaml) and [video](https://www.youtube.com/watch?v=Kdf6W_Ied4o&t=2341s).
 * [Fix for Sonoff NSPanel display](https://github.com/esphome/esphome/pull/2956) to escape Protocol Reparse Mode so standard communication protocol will work.
-
-### UI Design
-* Resources, with graphics examples and templates, are on [this page](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/tree/main/UI_Design).
 
 ### Nextion
 * Nextion 
