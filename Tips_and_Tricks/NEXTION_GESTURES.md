@@ -11,9 +11,9 @@ The demo page will highlight each edge green as you swipe into it and **show the
 
 ![Edge swipe demo page](/Tips_and_Tricks/images/GESTURE_edge-swipe.png)
 
-The **advantages** of this approach are that it is very easy to implement, it makes for a very responsive UI (both the swipes and other UI interactions can be immediate [Touch Press Event]s), and there aren't many traps that you need to program around (in terms of non-obvious ways that the Nextion events trigger and run).
+:heavy_plus_sign: The **advantages** of this approach are that it is very easy to implement, it makes for a very responsive UI (both the swipes and other UI interactions can be immediate [Touch Press Event]s), and there aren't many traps that you need to program around (in terms of non-obvious ways that the Nextion events trigger and run).
 
-The **downside** is that it provides a limited set of features, it may not be intuitive to some users that swipes need to start from the bezel, and other UI elements can be accidently triggered if swipes start from within the screen borders (or if users fingers 'bounce' while swiping).
+:heavy_minus_sign: The **downside** is that it provides a limited set of features, it may not be intuitive to some users that swipes need to start from the bezel, and other UI elements can be accidently triggered if swipes start from within the screen borders (or if users fingers 'bounce' while swiping).
 
 
 
@@ -25,13 +25,13 @@ Some **potential traps to be aware of**:
   <summary>expand …</summary>
 
 * Screen touches will immediately generate [Touch Press Event]s for **BOTH** `tc0` and the intial UI component that is touched (_before_ `tc0` has a chance to gain exclusive control).  Having gesture code that is triggered by the [Touch Press Event] for `tc0` (the whole page), will not stop code from also running for the [Touch Press Event] of that component, which would likely give unintended results for your gestures where both sets of event code are triggered.  
-_**SOLUTION:**_ The code you attach to UI components needs to be assigned to their [Touch Release Event]s not [Touch Press Event]s. 
+✅ _**SOLUTION:**_ The code you attach to UI components needs to be assigned to their [Touch Release Event]s not [Touch Press Event]s. 
 * Likewise, when a user lifts their finger at the end of a touch interaction, this will generate a [Touch Release Event] for **BOTH** `tc0` and the intial UI component that was touched.  As before, this could give unintended results if both the code for the `tc0`-linked gesture and the UI component are allowed to be triggered from the same user input.  
-_**SOLUTION:**_ the gesture code should set a `gesture type` when it ends that [Touch Release Event]s can use in a test condition to only execute their code on designated 'gesture types' (while avoiding running if a 'swipe' gesture is already triggering another action or if the touch interaction is too ambiguous to be reliably interpreted).
+✅ _**SOLUTION:**_ the gesture code should set a `gesture type` when it ends that [Touch Release Event]s can use in a test condition to only execute their code on designated 'gesture types' (while avoiding running if a 'swipe' gesture is already triggering another action or if the touch interaction is too ambiguous to be reliably interpreted).
 * Swipe Gestures can potentially have conflicts with the use of horizontal/vertical sliders.  
-_**SOLUTION:**_ The gesture code needs to check whether the touch event started on a slider component and, if so, disable itself so that sliders have exclusive control of these touch interactions.  This avoids unintenionally triggering both swipe and slider actions from the same touch interaction.  To accomplish this, test the condition `if(b[tc0.val].type==1)`, where `tc0.val` stores the `id` of the component that the touch event started on, `b[...]` gives the `type` of that component, and sliders have a component `type` of 1.
+✅ _**SOLUTION:**_ The gesture code needs to check whether the touch event started on a slider component and, if so, disable itself so that sliders have exclusive control of these touch interactions.  This avoids unintenionally triggering both swipe and slider actions from the same touch interaction.  To accomplish this, test the condition `if(b[tc0.val].type==1)`, where `tc0.val` stores the `id` of the component that the touch event started on, `b[...]` gives the `type` of that component, and sliders have a component `type` of 1.
 * If touch events are disabled for a UI component (with the `tsw` instruction) then the Nextion will not generate _any_ data for touch events that start on that component - so `tc0` will also be 'blind' to such touches and unable to respond.   
-_**SOLUTION:**_  Instead of using `tsw` (disables touch without hiding) to disable/enable UI components, either use `vis` (hides and disables), or use conditions in UI component touch event code to disable/bypass unintended execution (such as using the gesture type that the gesture interpreter code produces).
+✅ _**SOLUTION:**_  Instead of using `tsw` (disables touch without hiding) to disable/enable UI components, either use `vis` (hides and disables), or use conditions in UI component touch event code to disable/bypass unintended execution (such as using the gesture type that the gesture interpreter code produces).
 
 --- 
   
@@ -44,9 +44,9 @@ The demo page for realtime swipe & press gestures shows a roubust approach that 
 <details>
   <summary>expand …</summary>
 
-* `tc0`: The `TouchCap` [Touch Press Event] code tests for touches starting on horizontal sliders and skips gesture processing in such cases. (Additional exclusions can be made where alternate gesture processing is required, such as in the more advanced [Round slider gesture example](/Tips_and_Tricks/ROUND_SLIDERS.md).)
-* `GESTURE.tim`: The `Timer` component that does the gesture processing allows gestures to trigger actions in two ways: gestures that trigger once a condition is met during the touch event _before_ it is complete (swipe and very-long-press gestures), and by generating a `gest_type` code that can be used _after_ the touch event is complete as part of a condition to modify what the code in [Touch Release Event]s does.  The code for `GESTURE.tim` is shown below.
-* `gest_type` coding: The comment at the top of the code below lists the different `gest_type` values that `GESTURE.tim` returns.  This includes a `gest_type` of "0" where some movement is detected, but not enough to trigger a 'swipe' action.  Using `gest_type` in event code allows inadvertent/ambiguous user touches to be filtered out, for legitimate button 'presses' to be distinguished by the condition `if(gest_type>90)`, and then the type of press (short, long, and very-long) can be used to modify what actions are performed.
+* :arrow_forward: `tc0`: The `TouchCap` [Touch Press Event] code tests for touches starting on horizontal sliders and skips gesture processing in such cases. (Additional exclusions can be made where alternate gesture processing is required, such as in the more advanced [Round slider gesture example](/Tips_and_Tricks/ROUND_SLIDERS.md).)
+* :arrow_forward: `GESTURE.tim`: The `Timer` component that does the gesture processing allows gestures to trigger actions in two ways: gestures that trigger once a condition is met during the touch event _before_ it is complete (swipe and very-long-press gestures), and by generating a `gest_type` code that can be used _after_ the touch event is complete as part of a condition to modify what the code in [Touch Release Event]s does.  The code for `GESTURE.tim` is shown below.
+* :arrow_forward: `gest_type` coding: The comment at the top of the code below lists the different `gest_type` values that `GESTURE.tim` returns.  This includes a `gest_type` of "0" where some movement is detected, but not enough to trigger a 'swipe' action.  Using `gest_type` in event code allows inadvertent/ambiguous user touches to be filtered out, for legitimate button 'presses' to be distinguished by the condition `if(gest_type>90)`, and then the type of press (short, long, and very-long) can be used to modify what actions are performed.
 
 --- 
   
@@ -169,9 +169,9 @@ if(tch0>0)  //Skip last timer cycle where stroke ends (tch0=0) BEFORE tc0 stops 
 </details>
 
                       
-The **advantage** of realtime gesture processing is it that opens more powerful opportunities for interpreting gestures, and for getting these to work in a more intuitive way for users (matching more closely how most other touch screen devices work).
+:heavy_plus_sign: The **advantage** of realtime gesture processing is it that opens more powerful opportunities for interpreting gestures, and for getting these to work in a more intuitive way for users (matching more closely how most other touch screen devices work).
 
-The main **downside** is that coding is more complicated (it's a bit more of learning curve initially), particularly making sure that you are coding around all the quirky issues noted above (to avoid touch events unintentionally triggering or not triggering code from other UI components).
+:heavy_minus_sign: The main **downside** is that coding is more complicated (it's a bit more of learning curve initially), particularly making sure that you are coding around all the quirky issues noted above (to avoid touch events unintentionally triggering or not triggering code from other UI components).
 
 ## More Creative Gestures
 Processing touch events in realtime in fast timer loops provides a powerful engine for more creative ways of interpreting and responding to user touch interactions.  
