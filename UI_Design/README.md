@@ -5,18 +5,26 @@ _**... work in progress ...**_
 
 These resources may be helpful for others designing the graphics for their interfaces on small HMI (human-machine interface) screens like Nextions.
 
-The SVG files have full multi-page project examples (a lot more than the preview thumbnails show), have template components that be easily adapted, and use named 'swatches' for easily changing the color scheme off all components.
+The SVG files have full multi-page project examples (a lot more than the preview thumbnails show), have template components that be can easily adapted to other projects, and use named 'swatches' for easily changing the color scheme off all components.
 
-The UI designs rely on [a robust implementation of 'gestures'](/Tips_and_Tricks), so that touch-interactive components can make full use of the entire small screen area.  The 'Minimilast Design' is the main theme currently being used, but the two initial Material-based designs (like the Home Assistant UI uses) are also included.  The Nextion Editor makes it easy to change the look-and-feel of a UI by swapping out graphics files, especially if you work on fixed grid reference for all components, as the themes below do.
+The UI designs rely on [a robust implementation of 'gestures'](/Tips_and_Tricks), so that touch-interactive components can make full use of the entire small screen area.  The 'Minimilast Design' is the main style that I'm currently using/developing, but the two initial Material-based designs (like the Home Assistant UI uses) are also included.  The Nextion Editor makes it easy to change the look-and-feel of a UI by swapping out graphics files, especially if you work on consistent reference grid for all components, as the themes below do (multiples of 40 px x 40 px).
 
 ## Design Styles
-1) :arrow_forward: [Material Design](/UI_Design/Material_Bronze) - Dark Bronze theme (to match bronzed buttons and case - used in first HMI).
-2) :arrow_forward: [Material Design](/UI_Design/Material_Neon) - Dark Neon theme (to use, instead of work against, the strong blue cast of Nextion screens - used in second HMI).
-3) :arrow_forward: [Minimalist Design](/UI_Design/Minimalist) - adapted from Yuhang Lu's concept and related adaptations to Home Assistant - see credits below (used in current HMI).
+* :arrow_forward: [Material Design](/UI_Design/Material_Bronze) - Dark Bronze theme (similar to the Home Assistant UI style).
+
+  This initial design was used to test the constraints of the Nextion display and find color themes that worked best within those constraints (once the designed graphics were moved from a high quality computer display and viewed on the actual NSPanel).  This gives some tips on dealing with the display constraints using a bronzed color theme in this style as an example.  
+
+* :arrow_forward: [Material Design](/UI_Design/Material_Neon) - Dark Neon theme (glowing edges, accentuated by the blue cast).
+
+  This design shows an alternate approach to dealing with the display constraints by accentuating one of its flaws (the strong blue cast) as a feature, rather than trying to minimise it.  In the example files, the blue cast is used to give a strong glowing effect around the edges of graphical elements.
+  
+* :arrow_forward: [Minimalist Design](/UI_Design/Minimalist) - adapted from Yuhang Lu's concept and related adaptations to Home Assistant - see credits below (used in current HMI).
+
+  This clean, minimalist design is still mainly based on Material Design principles but adds a flat circle background behind icons (as per Yuhang Lu's concept).  The circle allows extra information be conveyed, by changing colors of both icons and backgrounds, while adding some understated additional visual appeal.
 
 ### Design Goal and Principles
 The guiding principles and needs that these UI styles aimed to meet were:
-* :small_blue_diamond: Designed specifically to work well on small, low resolution HMI screens.
+* :small_blue_diamond: Designed specifically to work well on small, low resolution HMI screens.  
 * :small_blue_diamond: Use modular UI components that fit flexibly and efficiently together to make full use of the limited screen/touch area available.
 * :small_blue_diamond: UI elements sized/styled so that full details can be easily (without reading glasses) during close-range.
 * :small_blue_diamond: Key status information is clearly legible from across a room (up to ~10 m, so that alerts can be clearly displayed with motion/presence triggers without the need for physical user interaction).
