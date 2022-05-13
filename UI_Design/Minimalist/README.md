@@ -9,4 +9,6 @@ This is the current UI design that I'm using on my NSPanels.  It is also the one
 * A palette of named swatch colors (to easily change and tweak color themes across the project).
 
 
-...
+**Screenshot in Inkscape showing elements organised with named hierarchical grouping**.  Flexible turning on/off visibility of individual graphical elements within components allows them to be easily adapted for multiple UI functions.
+
+![Inkscape screenshot of hiearachical organization](/UI_Design/Minimalist/InkScape_Object-Grouping-Hierarchy.png)
