@@ -1,4 +1,4 @@
-# User Interface Design for Nextion devices
+# User Interface Design for HMI devices
 (_Last updated: 2022-05-13_)
 
 These resources may be helpful for others designing the graphics for their interfaces on small HMI (human-machine interface) screens like Nextions.
