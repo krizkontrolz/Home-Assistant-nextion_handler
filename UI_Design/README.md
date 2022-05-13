@@ -32,6 +32,14 @@ The guiding principles and needs that these UI styles aimed to meet were:
 * :small_blue_diamond: Intuitive look, feel and functionality relative to the standard Home Assistant and other UIs that users are familiar with (within the contraints of the subset of functionality that can be sensibily duplicated on such small displays).
 * :small_blue_diamond: Adapted to work well on imperfect budget HMI displays ([tolerant of the screen limitations of the Nextion display](/UI_Design/Material_Bronze#dealing-with-some-of-the-main-constraints-of-the-nextion-display) such 16-bit color (tends to cause banding across smooth color transitions), washed-out and distorted colors (especially when viewed from an oblique angle, once installed in a wall), inaccurate color rendering (16-bit color with strong blue cast)).
 
+## Basics of Nextion Editor Graphical UI
+
+The standard approach for making graphical elements respond to user interactions (or data states) in the Nextion Editor is to prepare two images for each page:
+* A primary background image, which will serve as the default background for the page (typically with all responsive graphical elements in their inactive state).
+* A secondary 'crop' image, from which rectangles will be croped to override components with an alternate visual state either automatically (as part the inbuilt function of some Nextion components) or through the HMI code you write to respond to user inputs and changes in data states.
+
+The details are covered well in one of [Scargill's Tech Blogs here](https://tech.scargill.net/nextion-wifi-touch-display/).
+
 ## Resources and Credits
 
 ### Material Design
