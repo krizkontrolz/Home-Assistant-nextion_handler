@@ -1,5 +1,5 @@
 # Minimalist Design
-(_Last updated: 2022-05-13)
+(_Last updated: 2022-05-13_)
 
 **_work in progress_**
 
