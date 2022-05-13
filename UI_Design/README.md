@@ -18,7 +18,7 @@ The UI designs rely on [a robust implementation of 'gestures'](/Tips_and_Tricks)
 
   This design shows an alternate approach to dealing with the display constraints by accentuating one of its flaws (the strong blue cast) as a feature, rather than trying to minimise it.  In the example files, the blue cast is used to give a strong glowing effect around the edges of graphical elements.
   
-* :arrow_forward: [Minimalist Design](/UI_Design/Minimalist) - adapted from Yuhang Lu's concept and related adaptations to Home Assistant - see credits below (used in current HMI).
+* :arrow_forward: [Minimalist Design](/UI_Design/Minimalist) - adapted from Yuhang Lu's concept and related adaptations to Home Assistant (see credits below).
 
   This clean, minimalist design is still mainly based on Material Design principles but adds a flat circle background behind icons (as per Yuhang Lu's concept).  The circle allows extra information to be conveyed, by using combinations of colors for both icons and backgrounds, while adding some understated additional visual appeal.
 
