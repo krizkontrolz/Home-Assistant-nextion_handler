@@ -1,4 +1,5 @@
 # User Interface Design for Nextion devices
+(_Last updated: 2022-05-13_)
 
 _**... work in progress ...**_
 
@@ -15,10 +16,12 @@ The UI designs rely on [a robust implementation of 'gestures'](/Tips_and_Tricks)
 
 ### Design Goal and Principles
 The guiding principles and needs that these UI styles aimed to meet were:
-* Customised to work well on small HMI screens (with limited graphical capabilities).
-* Modular components that fit flexibly and efficiently together to make full use of the limited screen/touch area available.
-* Easy to read full details (without reading glasses) on close range.
-* Main status information is clear from across the room (up to ~10 m).
+* Designed specifically to work well on small, low resolution HMI screens.
+* Use modular UI components that fit flexibly and efficiently together to make full use of the limited screen/touch area available.
+* UI elements sized/styled so that full details can be easily (without reading glasses) during close-range.
+* Key status information is clearly legible from across a room (up to ~10 m, so that alerts can be clearly displayed with motion/presence triggers without the need for physical user interaction).
+* Intuitive look, feel and functionality relative to the standard Home Assistant UIs that users are familiar with (within the contraints of the subset of functionality that can be sensibily duplicated on a small display).
+* Adapted to work well on imperfect budget HMI displays (tolerant of the screen limitations of the Nextion display such 16-bit color (tends to cause banding across smooth color transitions), washed-out and distorted colors (especially when viewed from an oblique angle, once installed in a wall), inaccurate color rendering (16-bit color with strong blue cast)).
 
 ## Resources and Credits
 
@@ -29,10 +32,11 @@ The guiding principles and needs that these UI styles aimed to meet were:
 
 ### Minimilist Design
   * [Minimilist Smart Home concept](https://www.behance.net/gallery/88433905/Redesign-Smart-Home) by [Yuhang Lu](https://www.behance.net/7ahang).
-  * [UI Lovelace Minimilist](https://ui-lovelace-minimalist.github.io/UI/) for Home Assistant by [tben](https://community.home-assistant.io/u/tben/summary).
+  * :sunflower: [Lovelace UI • Minimalist](https://ui-lovelace-minimalist.github.io/UI/) for Home Assistant by [tben](https://community.home-assistant.io/u/tben/summary).
   * 🍄 [Mushroom Cards](https://community.home-assistant.io/t/mushroom-cards-build-a-beautiful-dashboard-easily/388590) for Home Assistant by [piitaya](https://github.com/piitaya).
 
-### Inkscape (free cross-platform vector graphics editor - for UI SVG graphics in repository)
+### Inkscape
+(free cross-platform vector graphics editor - for UI SVG graphics in repository)
   * [software](https://inkscape.org/release/)
   * [tutorials](https://inkscape.org/learn/tutorials/)
-  * 
+   
