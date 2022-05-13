@@ -26,10 +26,10 @@ The UI designs rely on [a robust implementation of 'gestures'](/Tips_and_Tricks)
 The guiding principles and needs that these UI styles aimed to meet were:
 * :small_blue_diamond: Designed specifically to work well on small, low resolution HMI screens.  
 * :small_blue_diamond: Use modular UI components that fit flexibly and efficiently together to make full use of the limited screen/touch area available.
-* :small_blue_diamond: UI elements sized/styled so that full details can be easily (without reading glasses) during close-range.
-* :small_blue_diamond: Key status information is clearly legible from across a room (up to ~10 m, so that alerts can be clearly displayed with motion/presence triggers without the need for physical user interaction).
-* :small_blue_diamond: Intuitive look, feel and functionality relative to the standard Home Assistant UIs that users are familiar with (within the contraints of the subset of functionality that can be sensibily duplicated on a small display).
-* :small_blue_diamond: Adapted to work well on imperfect budget HMI displays (tolerant of the screen limitations of the Nextion display such 16-bit color (tends to cause banding across smooth color transitions), washed-out and distorted colors (especially when viewed from an oblique angle, once installed in a wall), inaccurate color rendering (16-bit color with strong blue cast)).
+* :small_blue_diamond: UI elements sized/styled so that full details can be easily read (without reading glasses) during use (at close-range).
+* :small_blue_diamond: Key status information is clearly legible at long range (from across the room), so that alerts are clearly visible when the display is turned on with presence automations, without the need for physical user interaction.
+* :small_blue_diamond: Intuitive look, feel and functionality relative to the standard Home Assistant and other UIs that users are familiar with (within the contraints of the subset of functionality that can be sensibily duplicated on such small displays).
+* :small_blue_diamond: Adapted to work well on imperfect budget HMI displays ([tolerant of the screen limitations of the Nextion display](/UI_Design/Material_Bronze#dealing-with-some-of-the-main-constraints-of-the-nextion-display) such 16-bit color (tends to cause banding across smooth color transitions), washed-out and distorted colors (especially when viewed from an oblique angle, once installed in a wall), inaccurate color rendering (16-bit color with strong blue cast)).
 
 ## Resources and Credits
 
