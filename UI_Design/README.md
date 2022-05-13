@@ -5,14 +5,14 @@ _**... work in progress ...**_
 
 These resources may be helpful for others designing the graphics for their interfaces on small HMI (human-machine interface) screens like Nextions.
 
-The SVG files have full multi-page project examples (a lot more than the thumbnails), have template components that be easily adapted, and use named 'swatches' for easily changing the color scheme off all components.
+The SVG files have full multi-page project examples (a lot more than the preview thumbnails show), have template components that be easily adapted, and use named 'swatches' for easily changing the color scheme off all components.
 
-The UI designs rely on [a robust implementation of 'gestures'](/Tips_and_Tricks), so that touch-interactive components can make full use of the entire small screen area.  The 'Minimilistic Design' is the main theme currently being used, but the two initial Material-based designs are also included.  (The Nextion Editor makes it easy to change the look-and-feel of a UI by swapping out graphics files, especially if you work on fixed grid reference for all components, as the themes below do).
+The UI designs rely on [a robust implementation of 'gestures'](/Tips_and_Tricks), so that touch-interactive components can make full use of the entire small screen area.  The 'Minimilast Design' is the main theme currently being used, but the two initial Material-based designs (like the Home Assistant UI uses) are also included.  The Nextion Editor makes it easy to change the look-and-feel of a UI by swapping out graphics files, especially if you work on fixed grid reference for all components, as the themes below do.
 
 ## Design Styles
 1) [Material Design](/UI_Design/Material_Bronze) - Dark Bronze theme (to match bronzed buttons and case - used in first HMI).
 2) [Material Design](/UI_Design/Material_Neon) - Dark Neon theme (to use, instead of work against, the strong blue cast of Nextion screens - used in second HMI).
-3) [Minimilist Design](/UI_Design/Minimalist) - adapted from Yuhang Lu's concept and related adaptations to Home Assistant - see credits below (used in current HMI).
+3) [Minimalist Design](/UI_Design/Minimalist) - adapted from Yuhang Lu's concept and related adaptations to Home Assistant - see credits below (used in current HMI).
 
 ### Design Goal and Principles
 The guiding principles and needs that these UI styles aimed to meet were:
