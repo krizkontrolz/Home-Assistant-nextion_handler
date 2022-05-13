@@ -20,7 +20,7 @@ The UI designs rely on [a robust implementation of 'gestures'](/Tips_and_Tricks)
   
 * :arrow_forward: [Minimalist Design](/UI_Design/Minimalist) - adapted from Yuhang Lu's concept and related adaptations to Home Assistant - see credits below (used in current HMI).
 
-  This clean, minimalist design is still mainly based on Material Design principles but adds a flat circle background behind icons (as per Yuhang Lu's concept).  The circle allows extra information be conveyed, by changing colors of both icons and backgrounds, while adding some understated additional visual appeal.
+  This clean, minimalist design is still mainly based on Material Design principles but adds a flat circle background behind icons (as per Yuhang Lu's concept).  The circle allows extra information to be conveyed, by using combinations of colors for both icons and backgrounds, while adding some understated additional visual appeal.
 
 ### Design Goal and Principles
 The guiding principles and needs that these UI styles aimed to meet were:
