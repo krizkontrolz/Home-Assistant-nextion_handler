@@ -20,7 +20,8 @@ This clean, minimalist design is still mainly based on Material Design principle
 **Example NSPanel pages using dark-themed Minimalist style.**
 ![Example dark Minimalist style](/UI_Design/Minimalist/ExampleM_IR_ST_LT_1280x640.png)
 
-### Design Goal and Principles
+
+## Design Goal and Principles
 The guiding principles and design requirements that these UI styles aimed to meet were:
 * 🔹 Designed specifically to work well on small, low resolution HMI screens.  
 * 🔹 Use modular UI components that fit flexibly and efficiently together to make full use of the limited screen/touch area available (snapping together like Tetris pieces to completely fill the available screen area).
@@ -29,6 +30,7 @@ The guiding principles and design requirements that these UI styles aimed to mee
 * 🔹 Intuitive look, feel and functionality relative to the standard Home Assistant and other UIs that users are familiar with (within the contraints of the subset of functionality that can be sensibily duplicated on such small displays).
 * 🔹 Make the most frequently-used controls and information easier to access than the standard Home Assistant interface, such as by reducing the number of user touch interactions required to perform an action.
 * 🔹 Adapted to work well on imperfect HMI displays ([tolerant of the screen limitations of the Nextion display](/UI_Design/Material_Bronze#dealing-with-some-of-the-main-constraints-of-the-nextion-display) such 16-bit color (tends to cause banding across smooth color transitions), washed-out and distorted colors (especially when viewed from an oblique angle, when mounted in a wall), inaccurate color rendering (16-bit color with strong blue cast)).
+
 
 ## Basics of Nextion Editor Graphical UI
 
