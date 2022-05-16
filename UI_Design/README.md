@@ -1,7 +1,7 @@
 # User Interface Design for HMI devices
-(_Last updated: 2022-05-13_)
+(_Last updated: 2022-05-16_)
 
-These resources may be helpful for others designing the graphics for their interfaces on small HMI (human-machine interface) screens like Nextions.
+These resources may be helpful for others designing the graphics for their interfaces on small HMI (human-machine interface) displays like Nextions.
 
 The SVG files have full multi-page project examples (a lot more than the preview thumbnails show), have template components that be can easily adapted to other projects, and use named 'swatches' for easily changing the color theme across all components in the project.
 
@@ -14,8 +14,8 @@ This initial design was used to test the constraints of the Nextion display and 
 * ▶️ ['Neon' Material Design](/UI_Design/Material_Neon) - Dark Neon theme (glowing edges, accentuated by the blue cast).  
 This design shows an alternate approach to dealing with the display constraints by accentuating one of its flaws (the strong blue cast) as a feature, rather than trying to minimise it.  In the example files, the blue cast is used to give a strong glowing effect around the edges of graphical elements.
   
-* ▶️ [Minimalist Design](/UI_Design/Minimalist) - adapted from Yuhang Lu's concept and related adaptations to Home Assistant (see credits below).  
-This clean, minimalist design is still mainly based on Material Design principles but uses thick bars/sliders and adds a flat circle background behind icons (as per Yuhang Lu's concept).  The circle allows extra information to be conveyed, by using combinations of colors for both icons and backgrounds, while adding some understated additional visual appeal.
+* ▶️ [Minimalist Design](/UI_Design/Minimalist) - adapted from [Yuhang Lu's concept](https://www.behance.net/gallery/88433905/Redesign-Smart-Home) and related adaptations to Home Assistant (see credits below).  
+This clean, minimalist design is still mainly based on Material Design principles but uses thick bars/sliders and adds a flat circle background behind icons (as per Yuhang Lu's concept).  The circle allows extra information to be conveyed, by using combinations of colors for both icons and backgrounds, while adding some understated additional visual appeal.  The color themes and styles take their cues from [🌻tben's](https://ui-lovelace-minimalist.github.io/UI/) and [🍄piitaya's](https://community.home-assistant.io/t/mushroom-cards-build-a-beautiful-dashboard-easily/388590) Home Assistant UIs, but adapted to render well on an NSPanel ([and deal with its distortions](/UI_Design/Material_Bronze#dealing-with-some-of-the-main-constraints-of-the-nextion-display)).
 
 **Example NSPanel pages using dark-themed Minimalist style.**
 ![Example dark Minimalist style](/UI_Design/Minimalist/ExampleM_IR_ST_LT_1280x640.png)
@@ -23,19 +23,23 @@ This clean, minimalist design is still mainly based on Material Design principle
 ### Design Goal and Principles
 The guiding principles and design requirements that these UI styles aimed to meet were:
 * 🔹 Designed specifically to work well on small, low resolution HMI screens.  
-* 🔹 Use modular UI components that fit flexibly and efficiently together to make full use of the limited screen/touch area available (fitting together like Tetris pieces to completely fill the available screen area).
+* 🔹 Use modular UI components that fit flexibly and efficiently together to make full use of the limited screen/touch area available (snapping together like Tetris pieces to completely fill the available screen area).
 * 🔹 UI elements sized/styled so that full details can be easily read (without reading glasses) during use (at close-range).
-* 🔹 Key status information is clearly legible at long range (from across the room), so that entity states are obvious from a brief glance when the displays are turned on by presence automations (without any need for direct user interaction).
+* 🔹 Key status information is clear at a glance from long range (across the room), so that entity states are obvious when the displays are flashed up in response to presence automations (without any need for direct user interaction).
 * 🔹 Intuitive look, feel and functionality relative to the standard Home Assistant and other UIs that users are familiar with (within the contraints of the subset of functionality that can be sensibily duplicated on such small displays).
-* 🔹 Adapted to work well on imperfect HMI displays ([tolerant of the screen limitations of the Nextion display](/UI_Design/Material_Bronze#dealing-with-some-of-the-main-constraints-of-the-nextion-display) such 16-bit color (tends to cause banding across smooth color transitions), washed-out and distorted colors (especially when viewed from an oblique angle, once installed in a wall), inaccurate color rendering (16-bit color with strong blue cast)).
+* 🔹 Reduce the number of user touch interactions required to perform actions where possible - provide the most frequently-used controls and information in a more efficient UI than the standard Home Assistant interface.
+* 🔹 Adapted to work well on imperfect HMI displays ([tolerant of the screen limitations of the Nextion display](/UI_Design/Material_Bronze#dealing-with-some-of-the-main-constraints-of-the-nextion-display) such 16-bit color (tends to cause banding across smooth color transitions), washed-out and distorted colors (especially when viewed from an oblique angle, when mounted in a wall), inaccurate color rendering (16-bit color with strong blue cast)).
 
 ## Basics of Nextion Editor Graphical UI
 
-The standard approach for making graphical elements respond to user interactions (or data states) in the Nextion Editor is to prepare two images for each page:
+The standard approach for making graphical elements respond to user interactions (or data states) in the Nextion Editor is to prepare two full images for each page:
 * 1️⃣ A primary background image, which will serve as the default background for the page (typically with all responsive graphical elements in their inactive state).
 * 2️⃣ A secondary 'crop' image, from which rectangles will be croped to override components with an alternate visual state either automatically (as part the inbuilt function of some Nextion components) or through the HMI code you write to respond to user inputs and changes in data states.
 
 The details are covered well in one of [Scargill's Tech Blogs here](https://tech.scargill.net/nextion-wifi-touch-display/).
+
+
+(The main alternative approach is to dynamically compose the display in realtime using graphical elements stored on the Nextion and sending Nextion Instructions that determine when and where the different elements are displayed.  The stock NSPanel firmware uses this approach, and the rendering rules can be offloaded to the ESP32 or another device.  This is better suited to generic 'adaptable' UIs that allow simpler, but limited, configuration of pre-defined Nextion UI options.)
 
 ## Resources and Credits
 
