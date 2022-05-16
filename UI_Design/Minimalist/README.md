@@ -18,23 +18,19 @@ A precise set of parametric rules define how UI components are constructed (alth
 🎉 The advantage of this approach is that anyone with a little planning and patience can create stunningly beautiful UIs that are highly customised to their specific needs (without requiring much creative ability).
 
 ### 🔸 EXTENT (structural foundation):
-_The base foundation is a transparent rectangle that is a multiple of 20 x 20 px blocks (snapped to 20x20 grid)._
-
+_The base foundation is a transparent rectangle that is a multiple of 20 x 20 px blocks (snapped to 20x20 grid)._  
 It sets the outer bounds of the component, ensures that all components will snap together, and maintains the reference for offsets by which each constituent element floats away from grid edges.  For a typical single entity card, with label, (like the `Garage` light example above) this would be 80px x 120px.
 
 ### 🔸 shadow (beneath card):
-_Offsets from the EXTENT: top = 3px, sides = 4px, bottom = 3px. Rectangle rounding radius (of corners) = 11px._
-
+_Offsets from the EXTENT: top = 3px, sides = 4px, bottom = 3px. Rectangle rounding radius (of corners) = 11px._  
 No blurring is applied. (Sharp shadows look cleaner on a low-resolution display.  If blurring is applied, then a 'clip mask' will be needed to keep the blurring with the bounds of EXTENT, otherwise snapping and page boundaries will be compromised).
 
 ### 🔸 card (visible base):
-_Offsets from the EXTENT: top = 3px, sides = 5px, bottom = 5px. Rectangle rounding radius = 10px._
-
+_Offsets from the EXTENT: top = 3px, sides = 5px, bottom = 5px. Rectangle rounding radius = 10px._  
 ...
 
 ### 🔸 circle (icon background, full size):
-_Circle radius = 30px. Offsets from the EXTENT: top = 10px, sides = 10px. (Centre snapped to 20x20 grid.)_
-
+_Circle radius = 30px. Offsets from the EXTENT: top = 10px, sides = 10px. (Centre snapped to 20x20 grid.)_  
 ...
 
 ### 🔸 icon (full size):
@@ -45,19 +41,20 @@ _16pt Robotto Condensed. 15px below bottom of circle, centred. (Offset from EXTE
 (Secondary labels, such as units of measure: _14 pt Robotto Condensed_.)
 
 ### 🔸 bar (sliders and background for dynamic text)
-_Rectangle height 28px, rounding radius 7px. Offsets from the EXTENT: top = 10px, sides = 10px. Circle radius = 30px. (Centre snaps to 20x20 grid.)_
-
+_Rectangle height 28px, rounding radius 7px. Offsets from the EXTENT: top = 10px, sides = 10px. Circle radius = 30px. (Centre snaps to 20x20 grid.)_  
 ... wide horizontal (full / half width)  (sizes of card, circ & icon for interactive & static icons)
 
 ### 🔸 button (modified bar)
-_Variant of `bar` with rounding radius = 14px (so that rounding diameter = height = 28px to form semi-circluar end caps)._
-
+_Variant of `bar` with rounding radius = 14px (so that rounding diameter = height = 28px to form semi-circluar end caps)._  
 The card behind a single row of buttons also has semi-circular end caps, with diameter = height, such that _card radius = 16px, shadow radius = 17px_.
 Circ & icon sizes.
 
-### 🔸 wallpaper (background)
-_Master wallpaper covering full display (320px x 480px) CLONED for each page._
+### 🔸 scenes (multiselector)
+_Variant of standard icons with enlarged circle background that merges with a small bar below as background for a text label._  
+Multiple mutually-exclusive scenes are placed next to each other - the selected scene is highlighted (using the active color coding for interactive icons described below) while all other related scene options are colored in their inactive state.
 
+### 🔸 wallpaper (background)
+_Master wallpaper covering full display (320px x 480px) CLONED for each page._  
 ... master, cloned  (EU NSP template)
 
 ## Color Conventions
