@@ -14,7 +14,7 @@ This is the current UI design that I'm using on my NSPanels.  It is also the one
 ![Inkscape screenshot of hiearachical organization](/UI_Design/Minimalist/InkScape_Object-Grouping-Hierarchy.png)
 
 ## Anatomy of a UI Card
-A precise set of parametric rules define how UI components are constructed (although these are applied with the pragmatic Pythonic maxim,   _"A foolish consistency is the hobgoblin of little minds..." (Emerson)_.)  The rules are described sequentially for each element below, from the base layer upwards, noting that each individual UI component would ultimately only use a subset of these elements (and would hide the rest).  
+A precise set of parametric rules define how UI components are constructed (although these are applied with the pragmatic Pythonic maxim,   _"A foolish consistency is the hobgoblin of little minds..." (Emerson)_.)  The rules are described sequentially for each element below, from the base layer upwards, noting that each individual UI card would ultimately only use a subset of these elements (and would hide the rest).  
 🎉 The advantage of this approach is that anyone with a little planning and patience can create stunningly beautiful UIs that are highly customised to their specific needs (without requiring much creative ability).
 
 ### 🔸 EXTENT (structural foundation):
@@ -79,14 +79,15 @@ Consistently following a set of conventions for how UI elements are colored make
 ### Buttons
 ...
 
-## Variants and Editing
-... 
+## Creating Customised/Variant Cards
+Although the included SVG file has many cards and components that you can use in your projects, you will likely want to create some of your own custom cards as the base components that you duplicate for your own projects.  In these cases it will often be easiest to start from basic similar card (like and 80x120 entity card or a slider card) and customise it to your needs. 
 
 ### Resizing
 ... don't just resize whole object - resize each element invidually maintaining offsets above. (Extent, then shadow, then card: Adjust Rect height and width in multiples of 40px - offset from original will be maintained and keep everything correct).
 
 ### Grouped Cards
-... (same card) - start with component for single entity/button; expand EXTENT, shadow and card (as for resizing); then duplicate the required elements (such as circle and icon) and align to where they would be positioned if in a separate adjacent component.  e.g. Bedroom card for 4 entities.
+For a grouped card, that combines multiple entities, it is **easier to expand an indvidual card** (than to try merging multiple individual cards).  Start with a basic card for an individual entity that you want to group and expand it (by **resizing the rectangles for the EXTENT, shadow and card** elements, as described above).  **Then duplicate the elements you want multiples of** in the group (circles, icons, bars, buttons) and rearrange those duplicated elements (aligned to where they would of been if they had remained part of separate, adjacent, ungrouped cards).  The `Bedroom` card above shows an example thats groups four entities together on one card.
+
 
 ### Editing Tips
 Side bar setup with docked tools...
