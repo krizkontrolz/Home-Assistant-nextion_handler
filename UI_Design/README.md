@@ -27,7 +27,7 @@ The guiding principles and design requirements that these UI styles aimed to mee
 * 🔹 UI elements sized/styled so that full details can be easily read (without reading glasses) during use (at close-range).
 * 🔹 Key status information is clear at a glance from long range (across the room), so that entity states are obvious when the displays are flashed up in response to presence automations (without any need for direct user interaction).
 * 🔹 Intuitive look, feel and functionality relative to the standard Home Assistant and other UIs that users are familiar with (within the contraints of the subset of functionality that can be sensibily duplicated on such small displays).
-* 🔹 Reduce the number of user touch interactions required to perform actions where possible - provide the most frequently-used controls and information in a more efficient UI than the standard Home Assistant interface.
+* 🔹 Make the most frequently-used controls and information easier to access than the standard Home Assistant interface, such as by reducing the number of user touch interactions required to perform an action.
 * 🔹 Adapted to work well on imperfect HMI displays ([tolerant of the screen limitations of the Nextion display](/UI_Design/Material_Bronze#dealing-with-some-of-the-main-constraints-of-the-nextion-display) such 16-bit color (tends to cause banding across smooth color transitions), washed-out and distorted colors (especially when viewed from an oblique angle, when mounted in a wall), inaccurate color rendering (16-bit color with strong blue cast)).
 
 ## Basics of Nextion Editor Graphical UI
