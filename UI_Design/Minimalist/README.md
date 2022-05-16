@@ -14,7 +14,8 @@ This is the current UI design that I'm using on my NSPanels.  It is also the one
 ![Inkscape screenshot of hiearachical organization](/UI_Design/Minimalist/InkScape_Object-Grouping-Hierarchy.png)
 
 ## Anatomy of a UI Card
-A precise set of parametric rules define how UI components are constructed (although these are applied with the pragmatic Pythonic maxim,   _"A foolish consistency is the hobgoblin of little minds..." (Emerson)_.)  The rules are described sequentially for each element below, from the base layer upwards, noting that each individual UI component would ultimately only use a subset of these elements (and would hide the rest).
+A precise set of parametric rules define how UI components are constructed (although these are applied with the pragmatic Pythonic maxim,   _"A foolish consistency is the hobgoblin of little minds..." (Emerson)_.)  The rules are described sequentially for each element below, from the base layer upwards, noting that each individual UI component would ultimately only use a subset of these elements (and would hide the rest).  
+🎉 The advantage of this approach is that anyone with a little planning and patience can create stunningly beautiful UIs that are highly customised to their specific needs (without requiring much creative ability).
 
 ### 🔸 EXTENT (structural foundation):
 _The base foundation is a transparent rectangle that is a multiple of 20 x 20 px blocks (snapped to 20x20 grid)._
