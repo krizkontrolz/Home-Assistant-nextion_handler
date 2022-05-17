@@ -1,5 +1,5 @@
 # Minimalist Design
-(_Last updated: 2022-05-13_)
+(_Last updated: 2022-05-17_)
 
 **_work in progress_**
 
@@ -7,6 +7,7 @@ This is the current UI design that I'm using on my NSPanels.  It is also the one
 * 🔹 Well structured and named object hiearchy (dock the 'Objects' tool to the first side bar and use it as the main method for selecting groups/items to edit.  This is especially important for where in the hiearchy you copy from (the whole group from that level down will be copied) and where in the hiearchy you paste to (it will be inserted above the selected item)).
 * 🔹 A selection of common UI component templates, all built on a base of 40x40 px block multiples to easily snap to a 40x40 grid (to cleanly fit together a 320x480 NSPanel display).
 * 🔹 A palette of named swatch colors (to easily change and tweak color themes across the project).
+* 🔹 A well-defined set of rules is documented below, making it easy to use and modify UI 'cards' that have a coherent style and can convey dense information in an efficient and consistent manner.
 
 
 **Screenshot in Inkscape showing elements organised with named hierarchical grouping**.  Flexible turning on/off visibility of individual graphical elements within components allows them to be easily adapted for multiple UI functions.
@@ -19,7 +20,7 @@ A precise set of parametric rules define how UI components are constructed (alth
 
 ### 🔸 EXTENT (structural foundation):
 _The base foundation is a transparent rectangle that is a multiple of 20 x 20 px blocks (snapped to 20x20 grid)._  
-It sets the outer bounds of the component, ensures that all components will snap together, and maintains the reference for offsets by which each constituent element floats away from grid edges.  For a typical single entity card, with label, (like the `Garage` light example above) this would be 80px x 120px.
+It sets the outer bounds of the component, ensures that all components will snap together cleanly, and maintains the reference for offsets by which each constituent element floats away from grid edges.  For a typical single entity card, with label, (like the `Garage` light example above) this would be 80px x 120px.
 
 ### 🔸 shadow (beneath card):
 _Offsets from the EXTENT: top = 3px, sides = 4px, bottom = 3px. Rectangle rounding radius (of corners) = 11px._  
@@ -27,35 +28,38 @@ No blurring is applied. (Sharp shadows look cleaner on a low-resolution display.
 
 ### 🔸 card (visible base):
 _Offsets from the EXTENT: top = 3px, sides = 5px, bottom = 5px. Rectangle rounding radius = 10px._  
-...
+The card is the visible base on which all other elements are laid.  The card casts a `shadow` onto the background `wallpaper`.
 
 ### 🔸 circle (icon background, full size):
 _Circle radius = 30px. Offsets from the EXTENT: top = 10px, sides = 10px. (Centre snapped to 20x20 grid.)_  
-...
+`Circle`s are used as the background to `icon`s and convey the state and function of the entity associated with each `icon` more clearly.
 
 ### 🔸 icon (full size):
-... 250% scaling of MDI icons fits in 30px radius circle.
+_Mater Design Icon SVGs with 250% scaling fits in 30px radius background `circle`._  
+Color conventions for `icon`s and background `circle`s are detailed futher down.
 
 ### 🔸 labels:
 _16pt Robotto Condensed. 15px below bottom of circle, centred. (Offset from EXTENT: bottom = 35px.)_  
 (Secondary labels, such as units of measure: _14 pt Robotto Condensed_.)
 
-### 🔸 bar (sliders and background for dynamic text)
+### 🔸 bar (horizontal sliders and background for dynamic text)
 _Rectangle height 28px, rounding radius 7px. Offsets from the EXTENT: top = 10px, sides = 10px. Circle radius = 30px. (Centre snaps to 20x20 grid.)_  
 ... wide horizontal (full / half width)  (sizes of card, circ & icon for interactive & static icons)
 
 ### 🔸 button (modified bar)
 _Variant of `bar` with rounding radius = 14px (so that rounding diameter = height = 28px to form semi-circluar end caps)._  
-The card behind a single row of buttons also has semi-circular end caps, with diameter = height, such that _card radius = 16px, shadow radius = 17px_.
-Circ & icon sizes.
+The card behind a single row of buttons also has semi-circular end caps, with diameter = height, such that _`card` rectangle radius = 16px, `shadow` rectangle radius = 17px and `EXTENT` height = 40px_.  
+Circ & icon sizes....
 
 ### 🔸 scenes (multiselector)
 _Variant of standard icons with enlarged circle background that merges with a small bar below as background for a text label._  
 Multiple mutually-exclusive scenes are placed next to each other - the selected scene is highlighted (using the active color coding for interactive icons described below) while all other related scene options are colored in their inactive state.
 
-### 🔸 wallpaper (background)
+### 🔸 wallpaper (page background)
 _Master wallpaper covering full display (320px x 480px) CLONED for each page._  
-... master, cloned  (EU NSP template)
+Using 'clones' of a 'master' `wallpaper` makes it much easier to manage the background on each page.  This way, any edits made to the master will automatically flow through to every page (and makes it much more convenient if you want to test textured backgrounds, in place of a solid color, in a later theme).  
+(For the EU NSPanel, the right hand side of the display is hidden, which has to taken into account when creating images (that still need to be 480x320, but with the covered part of the display blacked out).  The SVG file includes a template for this which involves working on 500x320 area, so that cards can still be snapped to grid an maintain their alignment - marked areas on each edge show what needs to be clipped to recentre the grid-aligned cards and the rectangle that can be used as the final 'clip mask' for the page, to extract the recentred 480x320 image, is included in the template.)
+
 
 ## Color Conventions
 Consistently following a set of conventions for how UI elements are colored makes it much easier to interpret dense information on the display at a glance.
@@ -73,8 +77,14 @@ Consistently following a set of conventions for how UI elements are colored make
 * 🔹 For an non-interactive icon (e.g. `Front` door contact sensor above): Active state (inactive grery icon color on Active_Background background); Inactive state(inactive grey semi-transparent icon on inactive grey background).
 * 🔹 For static information icon (e.g. the temperature icon for above the `light color temperature` slider above): Enabled state (white icon on inactive grey background); Disabled state (dark disabled grey icon on inactive grey background).
 
+### Structural backgrounds
+Greyscale
+
+### Labels
+.... bright & dim
+
 ### Buttons
-...
+... White on button-colored (between Active and background blue).
 
 ## Creating Customised/Variant Cards
 Although the included SVG file has many cards and components that you can use in your projects, you will likely want to create some of your own custom cards as the base components that you duplicate for your own projects.  In these cases it will often be easiest to start from basic similar card (like and 80x120 entity card or a slider card) and customise it to your needs. 
