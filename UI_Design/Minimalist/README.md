@@ -74,8 +74,10 @@ For the **EU NSPanel**, the right hand edge of the display is hidden by the case
 Consistently following a set of conventions for how UI elements are colored makes it much easier to interpret dense information on the display at a glance.
 
 ### States and Interaction
-* 🔹 A `colored icon` indicates that it is `interactive` (it will trigger an action when touched), whereas grey-scale icons provide information that is not directly interactive (such as sensor information).
+* 🔹 A `colored icon` indicates that it is `interactive` (it will trigger an action, such as toggling, when touched), whereas grey-scale icons provide information that is not directly interactive (such as sensor information).
 * 🔹 A `colored background` indicates that information for that entity is in an `active` state (it is 'on', the value exceeds a threshold, or it matches some criteria, such as tracker location matching "Home"), whereas a grey-scale background indicates that is in its non-active state.
+
+Note that this convention declutters the interface by obviating the need for 'toggle buttons' that are so ubiquitous in other UIs - simply coloring the `icon` indicates that pressing it will trigger a toggle (where that is the expected effect, and/or it may trigger other single-click, or long-click actions).
 
 ### Icon and Background Colors (part of named 'swatch' palette)
 * 🔹 Five colors are used to indicates states and interactive elements: orange, red, purple, blue, green (following [Lovelace Minimalist UI](https://ui-lovelace-minimalist.github.io/UI/) and [Mushroom Cards](https://community.home-assistant.io/t/mushroom-cards-build-a-beautiful-dashboard-easily/388590)).
