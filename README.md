@@ -1,5 +1,5 @@
 # Home Assistant Nextion Handler
-(_Version 0.5; Last updated: 2022-05-13_)
+(_Version 0.5; Last updated: 2022-05-18_)
 
 Nextion Handler allows you to program a Nextion touch screen device (NSPanels in particular) to interact with Home Assistant (HA) **without having to do any coding in ESPHome YAML or Home Assistant automations**.  It uses a supporting Python script (to handle '**command_strings**' that you program into your HMI files) together with some boilerplate code (that does the routine parts of executing your programmed commands).
 
@@ -28,7 +28,7 @@ Your Events in Nextion Editor need to assign a sequence of ACTION NHCmds to a co
 
 ------------------------------------------------------------------------------
 
-![Nextion handler framework](https://user-images.githubusercontent.com/100061886/154831899-4fbf9ff9-cb42-4a55-88d7-86fd3c81443d.png "Nextion handler framework")
+![Nextion handler framework](/current_version/images/nextion_handler_framework_dark.png "Nextion handler framework")
 
 See expandable details and examples for each **CUSTOMIZABLE** and **BOILERPLATE** component below.
 
@@ -194,7 +194,7 @@ You assign ACTION commands to the `HA_ACT` string in your Nextion Editor 'events
 
 Assumes a Home-Assistant-style color-wheel with red (hue 0) at 3 o'clock, increasing CLOCKWISE to 360.
  
-(CLOCKWISE accounts for screen y increasing downwards, which reverses angle of Cartesian ArcTan. So hue=90, with a greenish color, is at the 6 o'clock position.)
+(CLOCKWISE accounts for display y increasing downwards, which reverses angle of Cartesian ArcTan. So hue=90, with a greenish color, is at the 6 o'clock position.)
 
 The Nexion Editor example below shows a template generic 'pop-up' light control page (that can be called for an abritrary light entity) together with the event for tapping on the color wheel to build the `HA_ACT.txt` command_string to call the `lt_cw` NH command.
  
@@ -353,7 +353,7 @@ if(loop_cnt>=sleep_cnt)  //FAST UPDATES (after user interaction)
   {
     TRIGGER=-4
   }
-  //Restore Nextion screen brightness (after progressive dimming)
+  //Restore Nextion display brightness (after progressive dimming)
   dim=dim_default
   //Progressively Slow down rate of fast updates with each rpt
   UPDATE_LOOP.tim=UPDATE_LOOP.tim+fastupdate_tim
@@ -503,8 +503,8 @@ A template Nextion configuration page (CFG) in the working example HMI file show
 //~~~~~~~~~~~~~~~~~~~~~
 //
 // ----- Global Settings controlling UPDATE_LOOP behaviour ------
-int dim_default=100       //Default screen brightness when there is activity
-int dim_min=80            //Minimum screen brightness screen dims to without actvity
+int dim_default=100       //Default display brightness when there is activity
+int dim_min=80            //Minimum display brightness dims to without actvity
 int upate_secs=15         //Passive polling interval when inactive
 int sleep_cnt=20          //Inactivity refresh cycles before sleeping (also see thsp and ussp below)
 int fastupdate_rpt=3      //Default number of fast repeats after SEND_ACTIONS
@@ -880,8 +880,8 @@ Details ...
 ## Credits & Related Resources:
 
 ### UI Design
-* ▶️  [This page](/UI_Design) has tips and information for designing graphical UIs for small screens like the NSPanel, including template vector graphics files (that can easily be adapted to other projects) and example HMI files using these designs.
-* ▶️  [This page](/Tips_and_Tricks) has tips, tricks and traps related to programing the functional aspects of UIs, including HMI code and examples for robust gestures, circular sliders, and geometric functions.
+* ▶️  Tips and information for **[designing graphical components of UIs](/UI_Design)** for small displays like the NSPanel, including template vector graphics files (that can easily be adapted to other projects) and example HMI files using these designs.
+* ▶️  Tips, tricks and traps related to **[programing the touch interaction functionality](/Tips_and_Tricks)** of UIs, including HMI code and examples for robust gestures, circular sliders, and geometric functions.
 
 ### ESPHome: Flashing, Base Configuration, Functionality
 * [ESPHome Nextion device](https://www.esphome.io/components/display/nextion.html).
