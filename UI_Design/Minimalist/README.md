@@ -4,12 +4,12 @@
 **_documentation still in progress_**
 
 This is the current UI design that I'm using on my NSPanels.  It is also the one that is easiest for others to use as a template because it has been set up with:
-* 🔹 Well structured and named object hiearchy (dock the 'Objects' tool to the Inkscape side bar to navigate).
-* 🔹 UI components are all built on a base of 40x40 px block multiples so that they cleanly snap together to fill a 320x480 NSPanel display.
-* 🔹 A palette of named swatch colors (to easily change and tweak color themes across an entire project).
-* 🔹 A well-defined set of composition rules (documented below), making it easy to use and modify UI 'cards' that have a coherent style and can convey dense information in an efficient and consistent manner.
+* 🔹 well structured and named object hiearchy (dock the 'Objects' tool to the Inkscape side bar to navigate);
+* 🔹 UI components that are all built on a base of 40x40 px block multiples so that they cleanly snap together to fill a 320x480 NSPanel display;
+* 🔹 a palette of named swatch colors (to easily change and tweak color themes across an entire project);
+* 🔹 a well-defined set of composition rules (documented below), making it easy to use and customize UI 'cards' that have a coherent style and can convey dense information in an efficient and consistent manner.
 
-🎉 The advantage of this approach is that anyone with a little planning and patience can create stunningly beautiful UIs that are highly customised to their specific needs (without requiring much creative ability).
+🎉 Anyone, with a little planning and patience, can create stunningly beautiful UIs that are highly customised to their specific needs (without requiring much creative ability) by using this approach.
 
 
 **Screenshot in Inkscape showing elements organised with named hierarchical grouping**.  Flexibly turning the visibility of individual graphical elements on/off within components allows them to be easily adapted for multiple UI functions.
@@ -45,19 +45,19 @@ _16pt Robotto Condensed. 15px below bottom of circle, centred. (Offset from `EXT
 (Secondary labels, such as units of measure: _14 pt Robotto Condensed_.)
 
 ### 🔸 bar (horizontal sliders and background for dynamic text)
-_Rectangle height 28px, rounding radius 7px. Offsets from the `EXTENT`: top = 10px, sides = 10px. Circle radius = 30px. (Centre snaps to 20x20 grid.)_  
-Horizontal `bar`s typically require wider cards where they are used as sliders and background for text that dynamically updates with changes to states/attributes.
+_Rectangle height 28px, rounding radius 7px. Offsets from the `EXTENT`: top = ##px, bottom = ##px._  
+Horizontal `bar`s typically require wider cards where they are used as sliders or as background for text that dynamically updates with changes to states/attributes.
 An `icon` (with `circle` background) may be associated with a bar to indicate its function (following the color conventions below).
 
-**'Interactive' `icon`s:** _`Circle` radius = ##px, with MDI `icon`s scaled to match (~##%)_  
+**'Interactive' `icon`s:** _`Circle` radius = ##px, with MDI `icon`s scaled to match (~##%), `EXTENT` height = ##px_  
   `Icon`s that are used to trigger an action when pressed (interactive), need to be large enough for reliable touch interactions.
   
-**'Static' `icon`s:** _`Circle` radius = ##px, with MDI `icon`s scaled to match (~##%)_  
+**'Static' `icon`s:** _`Circle` radius = ##px, with MDI `icon`s scaled to match (~##%), `EXTENT` height = ##px_  
   `Icon`s that are only used to indicate the function of a bar (static), can to be smaller because they are not used for touch interactions.
 
 ### 🔸 button (modified bar)
 _Variant of `bar` with rounding radius = 14px (so that rounding diameter = height = 28px to form semi-circluar end caps)._  
-The card behind a single row of buttons also has semi-circular end caps, with diameter = height, such that _`card` rectangle radius = 16px, `shadow` rectangle radius = 17px and `EXTENT` height = 40px_. Buttons may include an icon with a `circle` _radius 16px_ aligned to fit exactly in the half-round left end cap, and _`icon` scaled to match (~##%)_.
+The card behind a single row of buttons should also have semi-circular end caps, with diameter = height, such that _`card` rectangle radius = 16px, `shadow` rectangle radius = 17px, and `EXTENT` height = 40px_ (e.g.  `Rain delay` card above). Buttons may include an icon with a `circle` _radius 16px_ aligned to fit exactly in the half-round left end cap, and _`icon` scaled to match (~##%)_.
 
 ### 🔸 scenes (multiselector)
 _Variant of standard `icon`s with enlarged `circle` background that merges with a small `bar` below as background for a text label._  
