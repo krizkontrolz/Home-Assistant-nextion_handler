@@ -92,14 +92,19 @@ Consistently following a set of conventions for how UI elements are colored make
 Note that this convention declutters the interface by obviating the need for 'toggle buttons' that are so ubiquitous in other UIs - simply coloring the `icon` indicates that pressing it will trigger a toggle (where that is the expected effect, and/or it may trigger other single-click, or long-click actions).
 
 #### Icon and Background Colors (part of named 'swatch' palette)
-* 🔹 Five colors are used to indicates states and interactive elements: `orange`, `red`, `purple`, `blue`, `green` (following [Lovelace Minimalist UI](https://ui-lovelace-minimalist.github.io/UI/) and [Mushroom Cards](https://community.home-assistant.io/t/mushroom-cards-build-a-beautiful-dashboard-easily/388590)).  
-(These colors have been modified from Material Design standards to work well on a Nextion NSPanel display.)
+* 🔹 Five colors are used to indicates states and interactive elements: `orange`, `red`, `purple`, `blue`, `green` (following [Lovelace Minimalist UI](https://ui-lovelace-minimalist.github.io/UI/) and [Mushroom Cards](https://community.home-assistant.io/t/mushroom-cards-build-a-beautiful-dashboard-easily/388590)).  (These colors have been modified from Material Design standards to work well on a Nextion NSPanel display.)
 * 🔹 Three variants are used for each color (ranked from brightest to darkest): `Active_Icon` (used when an interactive icon is in its active state, and blended into the grey background with transparency when in its inactive state); `Active_Background` (applied to an icon background when in its active state; also applied to the interactive state of other elements such as slider bars); and `Dim` (used for the slider background, the background of dynamic text).
 
 #### Example icon types coloring:
-* 🔹 For an interactive icon (e.g. `Garage` light above): Active state (Active_Icon icon color on Active_Background background); Inactive state(Active_Icon semi-transparent icon on inactive grey background).
-* 🔹 For an non-interactive icon (e.g. `Front` door contact sensor above): Active state (inactive grery icon color on Active_Background background); Inactive state(inactive grey semi-transparent icon on inactive grey background).
-* 🔹 For static information icon (e.g. the temperature icon for above the `light color temperature` slider above): Enabled state (white icon on inactive grey background); Disabled state (dark disabled grey icon on inactive grey background).
+* 🔹 For an **interactive icon** (e.g. `Garage` light in screenshots):  
+  Active state (`Active_Icon` icon color on `Active_Background` background);  
+  Inactive state (`Active_Icon` semi-transparent icon on `Inactive_Backround` grey background).
+* 🔹 For an **non-interactive icon** (e.g. `Front` door contact sensor in screenshots):  
+  Active state (`Inactive_Grey` icon color on `Active_Background` background);  
+  Inactive state(`Inactive_Grey` semi-transparent icon on `Inactive_Backround` grey).
+* 🔹 For a **static icon** (e.g. the temperature icon for above the `light color temperature` slider in screenshots):  
+  Enabled state (`white` icon on `Inactive_Background` grey);  
+  Disabled state (dark `Disabled` grey icon on `Inactive_Backround` grey).
 
 #### Buttons
 `Button`s use white `label`s and `icon`s on a `button-colored` background that is slightly darker than the `Active_Icon` blue (so that white text remains legible when the display is viewed at an oblique angle and the blue color becomes washed out).
@@ -118,7 +123,7 @@ All the static non-interactive 'structural' components of the UI are distinguise
 
 
 ## Creating Customised/Variant Cards
-Although the included SVG file has many cards and components that you can use in your projects, you will likely want to create some of your own custom cards as the base components that you duplicate for your own projects.  In these cases it will often be easiest to start from basic similar card (like and 80x120 entity card or a slider card) and customise it to your needs. 
+Although the included SVG file has many cards and components that you can use in your projects, you will likely want to create some of your own custom cards as the templates that you repeatedly duplicate and modify for your own projects.  In these cases it will often be easiest to start from a similar basic card (like and 80x120 entity card or a slider card) and customise it to your needs. 
 
 
 <details>
