@@ -3,7 +3,7 @@
 
 **_documentation still in progress_**
 
-This is the current UI design that I'm using on my NSPanels.  It is also the one that is easiest for others to use as a template because it has been set up with:
+This is the current UI design that I'm using on my NSPanels.  It is also the one that is easiest for others to use as a template because the vector graphics (SVG) have been set up with:
 * 🔹 well structured and named object hiearchy (dock the 'Objects' tool to the Inkscape side bar to navigate);
 * 🔹 UI components that are all built on a base of 40x40 px block multiples so that they cleanly snap together to fill a 320x480 NSPanel display;
 * 🔹 a palette of named swatch colors (to easily change and tweak color themes across an entire project);
@@ -131,19 +131,19 @@ Although the included SVG file has many cards and components that you can use in
 
 
 #### Resizing
-... don't just resize whole object - resize each element invidually maintaining offsets above. (Extent, then shadow, then card: Adjust Rect height and width in multiples of 40px - offset from original will be maintained and keep everything correct).
+Do not resize cards by simply scaling the whole grouped object(s) - that will mess up the consistency of offsets and component sizes relative to other cards.  
+Instead, work through each element in the object hierarchy and resize them invidually, maintaining offsets specified above. The design rules make this much easier than it sounds - with the rectangle tool selected, start with the `EXTENT` and adjust the rectangle width and height in multiples of 40px.  Then make use the same multiples of 40px to adjust the width and height of the `shadow` and `card` rectangles (and their offsets and corner-rounding will be maintained correctly).  Do the same for any `bar` and `button` rectangles you want to use, then check if you need to change the alignment of any `label`s, `icon`s and/or `circle`s.  (For more complicated changes, such as `Grouped Cards` described below, duplicate any elements you require extra copies of, arrange them properly in the object hierarchy tree, align and color them as needed).
 
 #### Grouped Cards
 For a grouped card, that combines multiple entities, it is **easier to expand an indvidual card** (than to try merging multiple individual cards).  Start with a basic card for an individual entity that you want to group and expand it (by **resizing the rectangles for the EXTENT, shadow and card** elements, as described above).  **Then duplicate the elements you want multiples of** in the group (circles, icons, bars, buttons) and rearrange those duplicated elements (aligned to where they would of been if they had remained part of separate, adjacent, ungrouped cards).  The `Bedroom` card above shows an example thats groups four entities together on one card.
 
 
 #### Editing Tips
-Side bar setup with docked tools...
-Use 'Objects' hieararchy (rather than ungrouping then regrouping) to select, copy/duplicate and paste...
-Parametric editing.... (transform to move, rectangle to resize)
-Mouse quick selection: Select (objects) vs Node (elements) (and Rectangle, Text etc. when editing objects of those types).
-
-...(docked 'Object' view) and use it as the main method for selecting groups/items to edit.  This is especially important for where in the hiearchy you copy from (the whole group from that level down will be copied) and where in the hiearchy you paste to (it will be inserted above the selected item)).
+* Use the 'Objects' hieararchy (rather than ungrouping then regrouping) to select, copy/duplicate and paste elements.
+* It is especially important to keep the object tree properly organised by being precise about where in the hiearchy you copy from (the whole group from that level down will be copied), where in the hiearchy you paste to (it will be inserted above the selected item)), and which individual element (and which LHS selection tool you have active) when editing.
+* It helps if you dock the 'Object' and the other key object property tools (`Transform`, `Fill and stroke`, `Swatch`, `Export PNG`, `Align` etc.) to the two sidebars on the right hand side.
+* To maintain precision it helps to do most editing parametrically (entering exact pixel values numericaly) using the `Rectangle` and `Circle` tools (on the LHS) and the object properties docked to the RHS sidebars: `Transform` (to move objects and resize icons). 
+* For quick mouse selection the main 'select' tool (top LHS) selects whole groups and the finer 'node' tool beneath it selects objects within groups.  (Although, once selected, you then need to pick the appropriate 'select', 'rectangle', 'circle', 'text' tool to make the specific types of edits each of those tools allows - the top toolbar changes to reflect the currently available editing options.) 
 
 --- 
   
