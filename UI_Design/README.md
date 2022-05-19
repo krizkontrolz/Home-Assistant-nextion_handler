@@ -1,5 +1,5 @@
 # User Interface Design for HMI devices
-(_Last updated: 2022-05-16_)
+(_Last updated: 2022-05-19_)
 
 These resources may be helpful for others designing the graphics for their interfaces on small HMI (human-machine interface) displays like Nextions.
 
@@ -36,12 +36,12 @@ The guiding principles and design requirements that these UI styles aimed to mee
 
 The standard approach for making graphical elements respond to user interactions (or data states) in the Nextion Editor is to prepare two full images for each page:
 * 1️⃣ A primary background image, which will serve as the default background for the page (typically with all responsive graphical elements in their inactive state).
-* 2️⃣ A secondary 'crop' image, from which rectangles will be croped to override components with an alternate visual state either automatically (as part the inbuilt function of some Nextion components) or through the HMI code you write to respond to user inputs and changes in data states.
+* 2️⃣ A secondary 'crop' image, from which rectangles will be cropped in the same display location to override components with an alternate visual state either automatically (as part the inbuilt function of some Nextion components) or through the HMI code you write to respond to user inputs and changes in data states.
 
 The details are covered well in one of [Scargill's Tech Blogs here](https://tech.scargill.net/nextion-wifi-touch-display/).
 
 
-(The main alternative approach is to dynamically compose the display in realtime using graphical elements stored on the Nextion and sending Nextion Instructions that determine when and where the different elements are displayed.  The stock NSPanel firmware uses this approach, and the rendering rules can be offloaded to the ESP32 or another device.  This is better suited to generic 'adaptable' UIs that allow simpler, but limited, configuration of pre-defined Nextion UI options.)
+(The main alternative approach is to dynamically compose the display in realtime using graphical elements stored on the Nextion and sending Nextion Instructions that determine when and where the different elements are displayed.  The stock NSPanel firmware uses this approach, and the rendering rules can be offloaded to the ESP32 or another device.  This is better suited to generic 'adaptable' UIs that allow simpler, but limited, configuration of pre-defined Nextion UI components.)
 
 ## Resources and Credits
 
@@ -51,12 +51,12 @@ The details are covered well in one of [Scargill's Tech Blogs here](https://tech
   * [Google Fonts](https://fonts.google.com/specimen/Roboto+Condensed)
 
 ### Minimilist Design
-  * ⚪: [Minimalist Smart Home concept](https://www.behance.net/gallery/88433905/Redesign-Smart-Home) by [Yuhang Lu](https://www.behance.net/7ahang).
+  * ⚪ [Minimalist Smart Home concept](https://www.behance.net/gallery/88433905/Redesign-Smart-Home) by [Yuhang Lu](https://www.behance.net/7ahang).
   * 🌻 [Lovelace UI • Minimalist](https://ui-lovelace-minimalist.github.io/UI/) for Home Assistant by [tben](https://community.home-assistant.io/u/tben/summary).
   * 🍄 [Mushroom Cards](https://community.home-assistant.io/t/mushroom-cards-build-a-beautiful-dashboard-easily/388590) for Home Assistant by [piitaya](https://github.com/piitaya).
 
 ### Inkscape
-(free cross-platform vector graphics editor - for UI SVG graphics in repository)
+(Free cross-platform vector graphics editor - for UI SVG graphics in repository.)
   * [software](https://inkscape.org/release/)
   * [tutorials](https://inkscape.org/learn/tutorials/)
    
