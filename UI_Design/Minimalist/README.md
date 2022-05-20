@@ -3,7 +3,8 @@
 
 This is the current UI design that I'm using on my NSPanels.  It is also the one that is easiest for others to use as a template because the vector graphics (SVG) have been set up with:
 * 🔹 well structured and named object hiearchy (dock the 'Objects' tool to the Inkscape side bar to navigate);
-* 🔹 UI components that are all built on a base of 40x40 px block multiples so that they cleanly snap together to fill a 320x480 NSPanel display;
+* 🔹 UI components that are all built on a base of 20x20 pixel block multiples so that they cleanly snap together to fill a 320x480 NSPanel display;
+* 🔹 gridded 'extents' of UI components that map easily to touch co-ordinate bounds (`x` and `y` in multiples of 20 in the Nextion HMI editor);
 * 🔹 a palette of named swatch colors (to easily change and tweak color themes across an entire project);
 * 🔹 a well-defined set of composition rules (documented below), making it easy to use and customize UI 'cards' that have a coherent style and can convey dense information in an efficient and consistent manner.
 
