@@ -70,6 +70,10 @@ Using 'clones' of a 'master' `wallpaper` makes it much easier to manage the back
 
 #### 🔸 EU NSPanel template (landscape with covered strip down right edge):
 For the **EU NSPanel**, the right hand edge of the display is hidden by the case, which has to be taken into account when creating HMI images (that still need to be 480x320, but with the covered part of the display blacked out).  The SVG file includes a _500x320 template_ for this which allows cards to be snapped to grid while editing and still maintain their final alignment.  Marked areas on each edge show what needs to be clipped to recentre the grid-aligned cards and the 'clip mask' rectangle between these marked areas can be applied to the final HMI page image to extract the properly-centred 480x320 image (including the black strip for the covered area on the right).
+
+**The EU template is 500px x 320px with 14px clipped from the LHS and 6px from RHS.** Use the 480px x 320px rectangle between the two orange bars as a clip mask.     This allows easier alignment while editing (snapping to 20x20 grid) but still keeps the visible UI elements centred (after accounting for the black ~28 pixels coverd by the case down the RHS).   
+  
+![EU template](/UI_Design/Minimalist/DOCS_EU_Template.png)  
   
 --- 
   
@@ -109,7 +113,7 @@ Note that this convention declutters the interface by obviating the need for 'to
 ![Icon types and coloring](/UI_Design/Minimalist/DOCS_Icon_Types.png)
   
 #### Buttons
-`Button`s use white `label`s and `icon`s on a `button-colored` background that is slightly darker than the `Active_Icon` blue (so that white text remains legible when the display is viewed at an oblique angle and the blue color becomes washed out).
+`Button`s use white `label`s and `icon`s on a `button-colored` background that is slightly darker than the `Active_Icon` blue (so that white text remains legible when the display is viewed at an oblique angle and the blue color becomes washed out).  The depressed `button` state is colored `Dim` blue.
 
 #### Labels
 Lables have a bright grey for showing text associated with active UI elements, and a darker grey to designate inactive or disabled elements.  
