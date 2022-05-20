@@ -27,12 +27,12 @@ _The base foundation is a transparent rectangle that is a multiple of 20 x 20 px
 The `EXTENT` sets the outer bounds of the component, ensures that all components will snap together cleanly, and maintains the reference for offsets by which each constituent element floats away from grid edges.  For a typical single entity card, with label, (like the `Garage` light example above) this would be 80px x 120px.
 
 #### 🔸 shadow (beneath card):
-_Offsets from the `EXTENT`: top = 4px, sides = 4px, bottom = 2px. Rectangle rounding radius (of corners) = 11px._  
-No blurring is applied. (Sharp `shadow`s look cleaner on a low-resolution display.  If blurring is applied, then a 'clip mask' will be needed to keep the blurring with the bounds of EXTENT, otherwise snapping and page boundaries will be compromised).
+_Offsets from the `EXTENT`: top = 4px, sides = 3px, bottom = 2px. Rectangle rounding radius (of corners) = 11px._  
+No blurring is applied. (Sharp `shadow`s look cleaner on a low-resolution display.  If blurring is applied, then a 'clip mask' will be needed to keep the blurring with the bounds of EXTENT, otherwise snapping and page boundaries will be compromised). The `shadow` is 74px x 112px for an 80px x 120px `EXTENT` (and will always be ..4px x ..2px if the `EXTENT` dimensions are whole multiples of 10px).
 
 #### 🔸 card (visible base):
-_Offsets from the `EXTENT`: and equal 4px on all sides. Rectangle rounding radius = 10px._  
-The `card` is the visible base on which all other elements are laid.  The `card` casts a `shadow` onto the background `wallpaper`.
+_Offsets from the `EXTENT`: an equal 4px on all sides. Rectangle rounding radius = 10px._  
+The `card` is the visible base on which all other elements are laid.  The `card` casts a `shadow` onto the background `wallpaper`.  The `card` is 72px x 110px for an 80px x 120px `EXTENT`.
 
 #### 🔸 circle (icon background, full size):
 _`Circle` radius = 30px. Offsets from the `EXTENT`: top = 10px, sides = 10px. (Centre snapped to 20x20 grid.)_  
@@ -89,7 +89,7 @@ Consistently following a set of conventions for how UI elements are colored make
 
 
 #### States and Interaction
-* 🔹 A `colored icon` indicates that it is `interactive` (it will trigger an action, such as toggling, when touched), whereas grey-scale icons provide information that is not directly interactive (such as sensor information).
+* 🔹 A `colored icon` indicates that it is `interactive` (it will trigger an action, such as toggling, when touched), whereas grey-scale icons provide information that is not directly interactive (such as sensor outputs).
 * 🔹 A `colored background` indicates that information for that entity is in an `active` state (it is 'on', the value exceeds a threshold, or it matches some criteria, such as tracker location matching "Home"), whereas a grey-scale background indicates that is in its non-active state.
 
 Note that this convention declutters the interface by obviating the need for 'toggle buttons' that are so ubiquitous in other UIs - simply coloring the `icon` indicates that pressing it will trigger a toggle (where that is the expected effect, and/or it may trigger other single-click, or long-click actions).
