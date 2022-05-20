@@ -99,18 +99,19 @@ Note that this convention declutters the interface by obviating the need for 'to
 
 ![Main color palette](/UI_Design/Minimalist/DOCS_Main_Colors.png)
   
-#### Example icon types coloring:
-* 🔹 For an **interactive icon** (e.g. `Garage` light in screenshots):  
-  Active state (`Active_Icon` icon color on `Active_Background` background);  
-  Inactive state (`Active_Icon` semi-transparent icon on `Inactive_Backround` grey background).
-* 🔹 For an **non-interactive icon** (e.g. `Front` door contact sensor in screenshots):  
-  Active state (`Inactive_Grey` icon color on `Active_Background` background);  
-  Inactive state(`Inactive_Grey` semi-transparent icon on `Inactive_Backround` grey).
-* 🔹 For a **static icon** (e.g. the temperature icon for above the `light color temperature` slider in screenshots):  
+#### Coloring Conventions to Indicate Different Types of UI Functions for Icons:
+* 🔹 For an **interactive icon** (e.g. performs a toggle or other action when touched):  
+  Inactive state (`Active_Icon` semi-transparent icon on `Inactive_Backround` grey background);  
+  Active state (`Active_Icon` icon color on `Active_Background` background).  
+* 🔹 For an **non-interactive icon** (e.g. reports a categorical sensor value that can logically be interpreted in terms of two states):  
+  Inactive state(`Inactive_Grey` semi-transparent icon on `Inactive_Backround` grey);    
+  Active state (`Inactive_Grey` icon color on `Active_Background` background).  
+  (For numeric sensors that report continous data, the 'active' state can be used to highlight when a threshold value, beyond the bounds of normal operation, is breached.) 
+* 🔹 For a **static icon** (e.g. the temperature icon indicating what is being changed by a `light color temperature` slider):  
   Enabled state (`white` icon on `Inactive_Background` grey);  
   Disabled state (dark `Disabled` grey icon on `Inactive_Backround` grey).
 
-![Icon types and coloring](/UI_Design/Minimalist/DOCS_Icon_Types.png)
+![Coloring conventions to indicate icon functions](/UI_Design/Minimalist/DOCS_Icon_Types.png)
   
 #### Buttons
 `Button`s use white `label`s and `icon`s on a `button-colored` background that is slightly darker than the `Active_Icon` blue (so that white text remains legible when the display is viewed at an oblique angle and the blue color becomes washed out).  The depressed `button` state is colored `Dim` blue.
@@ -141,12 +142,12 @@ Do not resize cards by simply scaling the whole grouped object(s) - that will me
 Instead, work through each element in the object hierarchy and resize them invidually, maintaining offsets specified above. The design rules make this much easier than it sounds - with the rectangle tool selected, start with the `EXTENT` and adjust the rectangle width and height in multiples of 40px.  Then make use the same multiples of 40px to adjust the width and height of the `shadow` and `card` rectangles (and their offsets and corner-rounding will be maintained correctly).  Do the same for any `bar` and `button` rectangles you want to use, then check if you need to change the alignment of any `label`s, `icon`s and/or `circle`s.  (For more complicated changes, such as `Grouped Cards` described below, duplicate any elements you require extra copies of, arrange them properly in the object hierarchy tree, align and color them as needed).
 
 #### Grouped Cards
-For a grouped card, that combines multiple entities, it is **easier to expand an indvidual card** (than to try merging multiple individual cards).  Start with a basic card for an individual entity that you want to group and expand it (by **resizing the rectangles for the EXTENT, shadow and card** elements, as described above).  **Then duplicate the elements you want multiples of** in the group (circles, icons, bars, buttons) and rearrange those duplicated elements (aligned to where they would of been if they had remained part of separate, adjacent, ungrouped cards).  The `Bedroom` card above shows an example thats groups four entities together on one card.
+For a grouped card, that combines multiple entities, it is **easier to expand an indvidual card** (than to try merging multiple individual cards).  Start with a basic card for an individual entity that you want to group and expand it (by **resizing the rectangles for the `EXTENT`, `shadow` and `card`** elements, as described above).  **Then duplicate the elements you want multiples of** in the group (`circle`s, `icon`s, `bar`s, `button`s) and rearrange those duplicated elements (aligned to where they would have been if they had remained part of separate, adjacent, ungrouped cards).  The `Bedroom` card above shows an example thats groups four entities together on one card.
 
 
 #### Editing Tips
 * Use the 'Objects' hieararchy (rather than ungrouping then regrouping) to select, copy/duplicate and paste elements.
-* It is especially important to keep the object tree properly organised by being precise about where in the hiearchy you copy from (the whole group from that level down will be copied), where in the hiearchy you paste to (it will be inserted above the selected item)), and which individual element (and which LHS selection tool you have active) when editing.
+* It is especially important to keep the object tree properly organised by being precise about where in the hiearchy you copy from (the whole group from that level down will be copied), where in the layer hiearchy you paste to (it will be inserted above the selected item)), and which individual element (and which LHS selection tool you have active) when editing.
 * It helps if you dock the 'Object' and the other key object property tools (`Transform`, `Fill and stroke`, `Swatch`, `Export PNG`, `Align` etc.) to the two sidebars on the right hand side.
 * To maintain precision it helps to do most editing parametrically (entering exact pixel values numericaly) using the `Rectangle` and `Circle` tools (on the LHS) and the object properties docked to the RHS sidebars: `Transform` (to move objects and resize icons). 
 * For quick mouse selection the main 'select' tool (top LHS) selects whole groups and the finer 'node' tool beneath it selects objects within groups.  (Although, once selected, you then need to pick the appropriate 'select', 'rectangle', 'circle', 'text' tool to make the specific types of edits each of those tools allows - the top toolbar changes to reflect the currently available editing options.) 
