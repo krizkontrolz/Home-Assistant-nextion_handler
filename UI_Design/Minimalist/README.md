@@ -1,5 +1,5 @@
 # Minimalist Design
-(_Last updated: 2022-05-20_)
+(_Last updated: 2022-05-21_)
 
 This is the current UI design that I'm using on my NSPanels.  It is also the one that is easiest for others to use as a template because the vector graphics (SVG) have been set up with:
 * 🔹 well structured and named object hiearchy (dock the 'Objects' tool to the Inkscape side bar to navigate);
@@ -24,7 +24,7 @@ A precise set of parametric rules define how UI components are constructed (alth
 
 #### 🔸 EXTENT (structural foundation):
 _The base foundation is a transparent rectangle that is a multiple of 20 x 20 px blocks (snapped to 20x20 grid)._  
-The `EXTENT` sets the outer bounds of the component, ensures that all components will snap together cleanly, and maintains the reference for offsets by which each constituent element floats away from grid edges.  For a typical single entity card, with label, (like the `Garage` light example above) this would be 80px x 120px.
+The `EXTENT` sets the outer bounds of the component, ensures that all components will snap together cleanly, and maintains the reference for offsets by which each constituent element floats away from grid edges.  For a typical single entity card, with label, (like the `Garage` light example above) this is 80px x 120px.
 
 #### 🔸 shadow (beneath card):
 _Offsets from the `EXTENT`: top = 4px, sides = 3px, bottom = 2px. Rectangle rounding radius (of corners) = 11px._  
@@ -34,6 +34,10 @@ No blurring is applied. (Sharp `shadow`s look cleaner on a low-resolution displa
 _Offsets from the `EXTENT`: an equal 4px on all sides. Rectangle rounding radius = 10px._  
 The `card` is the visible base on which all other elements are laid.  The `card` casts a `shadow` onto the background `wallpaper`.  The `card` is 72px x 110px for an 80px x 120px `EXTENT`.
 
+**An example 320px x 480px Nextion page demonstrating a range of generic reusuable/repurposable UI template components built with the design rules.**  
+  
+![Template Nextion page](/UI_Design/Minimalist/DOCS_Demo_US_Page.png)  
+  
 #### 🔸 circle (icon background, full size):
 _`Circle` radius = 30px. Offsets from the `EXTENT`: top = 10px, sides = 10px. (Centre snapped to 20x20 grid.)_  
 `Circle`s are used as the background to `icon`s and convey the state and function of the entity associated with each card more clearly.
@@ -149,9 +153,10 @@ For a grouped card, that combines multiple entities, it is **easier to expand an
 #### Editing Tips
 * Use the 'Objects' hieararchy (rather than ungrouping then regrouping) to select, copy/duplicate and paste elements.
 * It is especially important to keep the object tree properly organised by being precise about where in the hiearchy you copy from (the whole group from that level down will be copied), where in the layer hiearchy you paste to (it will be inserted above the selected item)), and which individual element (and which LHS selection tool you have active) when editing.
-* It helps if you dock the 'Object' and the other key object property tools (`Transform`, `Fill and stroke`, `Swatch`, `Export PNG`, `Align` etc.) to the two sidebars on the right hand side.
-* To maintain precision it helps to do most editing parametrically (entering exact pixel values numericaly) using the `Rectangle` and `Circle` tools (on the LHS) and the object properties docked to the RHS sidebars: `Transform` (to move objects and resize icons). 
-* For quick mouse selection the main 'select' tool (top LHS) selects whole groups and the finer 'node' tool beneath it selects objects within groups.  (Although, once selected, you then need to pick the appropriate 'select', 'rectangle', 'circle', 'text' tool to make the specific types of edits each of those tools allows - the top toolbar changes to reflect the currently available editing options.) 
+* It helps if you dock key object dialogues ('Layers and Object', `Transform`, `Fill and Stroke`, `Swatches`, `Export`, `Align and Distribute` etc.) to two sidebars on the right hand side.  (See the Inkscape screenshot at the top of this page.)
+* To maintain precision it helps to do most editing parametrically (entering exact pixel values numericaly) using the `Rectangle` and `Circle` tools (from the 'toolbox' bar on the LHS) and the object properties docked to the RHS sidebars: `Transform` (to move objects and resize icons). 
+* For quick mouse selection the main 'select' tool (top LHS) selects whole groups and the finer 'node' tool beneath it selects objects within groups.  (Although, once selected, you then need to pick the appropriate 'select', 'rectangle', 'circle', 'text' tool to make the specific types of edits each of those tools allows - the top toolbar changes to reflect the currently available editing options.)
+* There are lots of helpful Inkscape guides and tutorials online, such as this [basic introduction](https://inkscape.org/doc/tutorials/basic/tutorial-basic.html) and this [guide to the layout of the Inkscape UI](https://inkscape-manuals.readthedocs.io/en/latest/interface.html).
 
 --- 
   
