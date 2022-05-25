@@ -1,25 +1,25 @@
-# Home Assistant nextion_handler.py Instruction Set
+# Home Assistant Nextion Handler framework
 (_Version 0.5; Last updated: 2022-05-25_)
 
 Nextion Handler allows you to program a Nextion touch screen device (NSPanels in particular) to interact with Home Assistant (HA) **without having to do any coding in ESPHome YAML or Home Assistant automations**.  It uses a supporting Python script (to handle '**command_strings**' that you program into your HMI files) together with some boilerplate code (that does the routine parts of executing your programmed commands).
 
-* :arrow_forward: **ESPhome** acts as a passive conduit tranferring command_strings from the Nextion to HA and Nextion Instructions back from HA to the Nextion (standarized boilerplate YAML configuration).
+* ▶️ **ESPhome** acts as a passive conduit tranferring command_strings from the Nextion to HA and Nextion Instructions back from HA to the Nextion (standarized boilerplate YAML configuration).
 
-* :arrow_forward: **Home Assistant** configuration is a single automation to confgure the `nextion_handler.py` service (and includes a dictionary of entity_id aliases to help manage which Home Assitant entity you associate with each Nextion variable).
+* ▶️ **Home Assistant** configuration is a single automation to confgure the `nextion_handler.py` service (and includes a dictionary of entity_id aliases to help manage which Home Assitant entity you associate with each Nextion variable).
 
 * :arrow_forward: All programming logic is kept together in one place, the **Nextion Editor** HMI files, supported by standardized boilerplate code to handle the HA interaction loop.
 
 ------------------------------------------------------------------------------
-## Nextion Handler Framework Overview
+## Overview
 There are only 3 places where you need to add customized code to your Nextion Editor HMI file to link it to HA: 2 types of Nextion Handler commands (**NHCmds**), and 1 'subroutine'.
 
-:arrow_forward: '**SET**' commands assign Nextion variables the values of data you request from Home Assistant.
+▶️ '**SET**' commands assign Nextion variables the values of data you request from Home Assistant.
 
 
 SET commands are entered into text variables on each page as **command strings** (which are lists of NHCmds separated by commas or linebreaks, with arguements separated by spaces). The **boilerplate [Postinit]** event of each page sends the HA_Set command_strings to HA.
 
 
-:arrow_forward: '**ACTION**' commands perform actions you request in HA (to control lights, scenes, scripts,  etc.).
+▶️ '**ACTION**' commands perform actions you request in HA (to control lights, scenes, scripts,  etc.).
 
 Your Events in Nextion Editor need to assign a sequence of ACTION NHCmds to a command_string string. You then send the commands with the **boilerplate** '**SEND_ACTIONS**' subroutine, which temporarilly speeds up the **boilerplate** '**UPDATE_LOOP**' (a Nextion timer that enforces state changes to a **TRIGGER** value to signal how Home Assistant should respond).
 
@@ -34,7 +34,7 @@ See expandable details and examples for each **CUSTOMIZABLE** and **BOILERPLATE*
 
 ------------------------------------------------------------------------------
 ## Getting Started: Template and Demo Files
-If you would rather not do any programing at all, the pre-complied Widget UI NSPanel templates provide a very easy starting point for linking your NSPanels to Home Assistant (but with the trade-off that there is less room to customise the UI).
+If you would rather not do any programing at all, the [pre-complied Widget UI NSPanel templates](\widget_ui) provide a very easy starting point for linking your NSPanels to Home Assistant (but with the trade-off that there is less room to customise the UI).
 
 If you want full control of how your Nextion UI looks and interacts with HA, then you can use the instruction set below in your Nextion HMI files to do that (and you can mix your customised pages with the generic/adaptable Widget UI pages in the same project, which lets you gradually customise the parts of the UI that are most important to you).
 The easiest way to get started is to use some of the example files (included in this repository) as templates, try out the debug page in the Nextion Editor, then play with customizing the UI components to create a test page that fits your own project to try out on your own device.
