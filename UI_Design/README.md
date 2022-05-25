@@ -50,7 +50,7 @@ The details are covered well in one of [Scargill's Tech Blogs here](https://tech
   * [MDI Icons](https://materialdesignicons.com/)
   * [Google Fonts](https://fonts.google.com/specimen/Roboto+Condensed)
 
-### Minimilist Design
+### Minimalist Design
   * ⚪ [Minimalist Smart Home concept](https://www.behance.net/gallery/88433905/Redesign-Smart-Home) by [Yuhang Lu](https://www.behance.net/7ahang).
   * 🌻 [Lovelace UI • Minimalist](https://ui-lovelace-minimalist.github.io/UI/) for Home Assistant by [tben](https://community.home-assistant.io/u/tben/summary).
   * 🍄 [Mushroom Cards](https://community.home-assistant.io/t/mushroom-cards-build-a-beautiful-dashboard-easily/388590) for Home Assistant by [piitaya](https://github.com/piitaya).
