@@ -30,7 +30,7 @@ Further details for the Widget UI, including installation instructions, [are bei
 ---
 
 ## Full Nextion Handler instruction set
-If you want full control of how your Nextion UI looks and interacts with HA, then you can use the full Nextion Handler framework (that the Widget UI uses) and include its instructions in your own  Nextion HMI files.  Full details of the this framework, and the instruction set it makes available to program HA interactions into your HMI files, are documented [here](/main/HA_NEXTION_HANDLER_INSTRUCTIONS.md).  
+If you want full control of how your Nextion UI looks and interacts with HA, then you can use the full Nextion Handler framework (that the Widget UI uses) and include its instructions in your own  Nextion HMI files.  Full details of the this framework, and the instruction set it makes available to program HA interactions into your HMI files, are documented [here](/HA_NEXTION_HANDLER_INSTRUCTIONS.md).  
 
 An example of some pages in a customised Nextion Handler UI:  
 ![Nextion handler framework](/UI_Design/Minimalist/ExampleM_IR_ST_LT_1280x640.png "Example customised Nextion Handler UI")
@@ -38,12 +38,12 @@ An example of some pages in a customised Nextion Handler UI:
 ---
 
 ## Nextion Touch UI Tips, Tricks & Traps
-Some tips related to **[programing the touch interaction functionality](/Tips_and_Tricks)** of UIs may be useful to others programing Nextion devices (more generally tha this project or integration to HA).  This includes HMI code and examples for robust gestures, circular sliders, and geometric functions.
+Some tips related to **[programing the touch interaction functionality](/Tips_and_Tricks)** of UIs may be useful to others programing Nextion devices (more generally than this project).  Those folders includes HMI code and examples for robust gestures, circular sliders, and geometric functions.
 
 ---
 
 ## Graphical UI design for HMIs
-Some tips and information for **[designing graphical components of UIs](/UI_Design)** for small displays like the NSPanel may also be more widely useful for anyone programming HMI interfaces.  This includes template vector graphics files (that can easily be adapted to other projects) and example HMI files using these designs.  It has very detailed design rules and SVG templates for an adaption of the popular Minimilist UI style (as used in the screenshot above).
+Some tips and information for **[designing graphical components of UIs](/UI_Design)** for small displays like the NSPanel may also be more widely useful for others programming HMI interfaces.  The folders includes template vector graphics files (that can easily be adapted to other projects) and example HMI files using these designs.  It has very detailed design rules and SVG templates for an adaption of the popular Minimilist UI style (as used in the screenshot above) that anyone, with a little patience, can follow to create high quality UIs for their HMIs (even if they aren't particularly creative).
 
 ---
 
