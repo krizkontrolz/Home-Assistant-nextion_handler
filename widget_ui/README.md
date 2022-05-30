@@ -1,6 +1,8 @@
 # Widget UI
 
 **🚧 under construction 🚧**
+(_Last updated 30/05/2022_)
+
 
 ## Installation (HMI is only for US NSPanel only at this stage)
 **Pre-requisites:**  Home Assistant (HA) with ESPHome installed, an NSPanel that has been flashed with ESPHome (add links), and some basic familiarity with configuring HA.
@@ -11,6 +13,9 @@
 
 
 #### Installation steps (🚧 NB: files have not quite been uploaded yet 🚧)
+
+<details>
+  <summary>▶️ show Installation steps ...</summary>
 
 * Flashing the ESPHome YAML template:
   * Download a copy of the template ESPHome YAML configuration file and fill in your details from your backup configuration into the `substitutions:` section at the top of the file.
@@ -27,7 +32,9 @@
   * Copy the Widget UI TFT file in the location you specified in the `tft_url` of your ESPHome configuration, and rename it to match the filename you set.  Then press the ```TFT upload button``` on the device's page in Home Assistant (that we referred to and located above).
   * Wait for the NSPanel to flash and reboot with the new UI.  (You may have to reboot both HA and the NSPanel after the first installation.)
 
-TODO: Add screen shots.
+ --- 
+  
+</details>
 
 
 ## UI Features
@@ -37,7 +44,24 @@ Each page is tiled with cards, one per entity, that adapt to the type of entity 
 Each card has four quadrants for touch interactions:
 * Icon: primary touch interaction (such as toggle).
 * Right of Icon: open a 'pop-up' page with more control options for that type of entity.  (Only lights supported for now, other pop-ups will be added).
-* Bottom left & right: (feature to be added) most common secondary functions for that type of entity (such as decreasing/increasing brightness).
+* Bottom left & right: (feature to be added) most common secondary functions for that type of entity (such as decreasing/increasing brightness).  
+  
+
+ **Screenshots of Widget UI** (3 pages, each tiled with 2x4 entity cards) showing how the appearance of cards adapts to the type of entity allocated to them.  
+   
+![Widgets UI screenshots](/widget_ui/Screenshots_Widgets.png "Widget UI screenshots")
+ 
+
+<details>
+  <summary>▶️ show screenshots of Popups ...</summary>
+
+ **Screenshots of current 'popup cards' to support widget entity cards.**  (Where available, popups are triggered by touching the top right quadrant of the enity card). 
+   
+![Widget Popups](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/widget_ui/Screenshots_Popups.png "Widget Popups")
+
+ --- 
+  
+</details>
 
 ### Page Swipe Gestures
 * Left and Right swipes: change pages forwards and backwards (for as many pages are required for the configured list of entities).
@@ -45,16 +69,29 @@ Each card has four quadrants for touch interactions:
 * Upward swipes: force an immediate update of the widgets on the current page with data from HA.
 
 ### Icons
-A currated set of icons is used on the cards.  These are paired, with icons and coloring already formatted to [follow the Minimilist Design UI standards](/UI_Design/Minimalist/).  A default icon will allocated based on the entity type (domain and class).  But you set a different one in your `widgets:` list you by specifying the _number_ (not name) of the icon you want from the index below. (Default icons are in the first 4 rows.)
+A currated set of icons is used on the cards.  These are paired, with icons and coloring already formatted to [follow the Minimilist Design UI standards](/UI_Design/Minimalist/).  A default icon will allocated based on the entity type (domain and class).  But you set a different one in your `widgets:` list you by specifying the _number_ (not name) of the icon you want from the index below. (Default icons are in the first 4 rows.)  
+  
+<details>
+  <summary>▶️ show Icon Index ...</summary>
 
-**Index of numbering for available icon choices.**  Icons are paired - the off/unhighlighted state is on the left and the on/highlighted version is on the right.  
+ **Index of numbering for available icon choices.**  Icons are paired - the off/unhighlighted state is on the left and the on/highlighted version is on the right.  
+   
+ ![Widget UI Icon index](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/widget_ui/Widget_Icons_Index.png "Icon numbering index")
 
-![Widget UI Icon index](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/widget_ui/Widget_Icons_Index.png "Icon numbering index")
+ --- 
+  
+</details>
+
 
 
 ## 🚧 Current Status 🚧
 
-The details of how information is displayed is still being fine tuned, and functionality is still being added for the types of things you can control in HA.  At this stage you can use the Widgets to:
+The details of how information is displayed is still being fine tuned, and functionality is still being added for the types of things you can control in HA.
+
+ <details>
+  <summary>▶️ show development status ...</summary>
+ 
+ At this stage you can use the Widgets to:
 * 🔸 easily view information about your smart home;
 * 🔸 'toggle' Home Assistant entities (lights, switches, scripts, automations, scenes etc.);
 * 🔸 fully control lights (with a 'pop-up card');
@@ -63,8 +100,10 @@ The details of how information is displayed is still being fine tuned, and funct
   
 More features are continually being added (as the supported capabilities of the underlying Nextion Hanlder are being developed and expanded).
 
-**Screenshots of current 'popup cards' to support widget entity cards.**  (Where available, popups are triggered by touching the top right quadrant of the enity card).  
 
-![Widget Popups](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/widget_ui/Screenshots_Popups.png "Widget Popups")
+ --- 
+  
+</details>
+ 
 
 
