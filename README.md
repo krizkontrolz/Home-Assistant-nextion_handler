@@ -1,5 +1,5 @@
 # Home Assistant Nextion Handler
-(_Version 0.5; Last updated: 2022-05-29_)
+(_Version 0.5; Last updated: 2022-05-30_)
 
 **🚧 documenting feature update in progress 🚧**
 
@@ -7,7 +7,7 @@
 
 
 ## Widget UI
-There is now an ultra easy way to connect your NSPanel device to Home Assistant that doesn't require any programming or complex configuring.  The new Widget UI blends elements of the original NSPanel widgets, the Home Assistant 'glance' cards, and some of the graphical and functional aspects of Mushroom cards and Minimalist UI (popular UI mods for HA).  After installation, customising your Widgets is as simple as setting up an HA glance card - you simply provide a list of entities (and optionally a name and icon to go with them).  The Widget UI uses a group of pages tiled with a set of adaptable generic cards that are populated sequentially with information from your list of HA entities.  The information displayed adapts to the type of entity being displayed so that it shows useful information from a range of attributes specific to that type of entity, not just its 'state'.
+There is now an ultra easy way to connect your NSPanel device to Home Assistant that doesn't require any programming or complex configuring.  The new Widget UI blends elements of the original NSPanel widgets, the Home Assistant 'glance' cards, and some of the graphical and functional aspects of Mushroom cards and Minimalist UI (popular UI mods for HA).  After installation, customising your Widgets is as simple as setting up an HA glance card - you simply provide a list of entities (and optionally a name and icon to go with them).  The Widget UI uses a group of pages tiled with a set of adaptable generic cards that are populated sequentially with information from your list of HA entities.  The information displayed adapts to the type of entity being displayed so that it shows useful information from a range of attributes specific to that type of entity, not just its 'state', as in the example below.
 
 The Widget UI uses:
 * 🔹 an ESPHome template (flashed to Nextion's  ESP32 chip);
@@ -16,10 +16,10 @@ The Widget UI uses:
 
 Further details for the Widget UI, including current development status and installation instructions, [see the `widget_ui` folder](/widget_ui). 
 
-**Widget UI screenshots of 3 pages** showing how the appearance of cards adapts to the type of entity allocated to them.  
+**Demo page for Widget UI showing some of the different types of entity cards.**  
   
-![Widgets UI screenshots](/widget_ui/Screenshots_Widgets.png "Widget UI screenshots")
 
+![Nextion Handler Widget UI photo](/widget_ui/ScreenPhoto_Widgets_0396_small.JPG "Example photo of Widget UI")
 
 ---
 
@@ -29,6 +29,7 @@ If you want full control of how your Nextion UI looks and interacts with HA, the
 **Screnshot examples of some pages in a customised Nextion Handler UI:**  
   
 ![Nextion Handler screenshots](/current_version/images/Screenshots_MinimDark_b.png "Nextion Hanlder Screenshots")
+
 
 ---
 
