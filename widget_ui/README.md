@@ -1,6 +1,4 @@
 # Widget UI
-
-**🚧 under construction 🚧**
 (_Last updated 2022/06/02_)
 
 
@@ -18,7 +16,7 @@
   
   
 ### Installation steps
-(🚧 NB: files have not quite been uploaded yet 🚧) 
+(🚧 NB: files will be uploaded this weekend after final testing 🚧) 
 (HMI is only available for US NSPanels only at this stage)
   
 *🔹 Flashing the ESPHome YAML template:
@@ -74,7 +72,7 @@ Navigation and other common functions use swipe gestures (rather than on-screen 
 </details>  
   
   
-## Popup Pages
+## Popup Pages (incl. NSPanel Settings & Relays)
 Popup pages provide additional detail and control, particularly where generic Widget cards are too limiting:  
   
 <details>
@@ -88,8 +86,9 @@ Popup pages provide additional detail and control, particularly where generic Wi
   * Sleep time: the time until the scree is blacked out.
   * Fast repeats: the number of times that data updates are requested after a touch action is triggered.  This addresses the issue that some states in HA can update very quickly after a service call, whereas others can have substantial lag (e.g., garage doors, some types of lights).
   * Fast slowdown: the amount by which fast repeats are progressively slowed down.  This amount of time is added to each subsequent repeat.
-  * (Un)Linking or NSPanel relays to switches: _on device control disabled for now until ESPHome issues can be resolved._
   * Status information: Small text below the title bar shows the number of widgets read from the YAML configuration, and the version number of the TFT file.  The WiFi status and signal strenght are indicated in the top right corner.  
+  * **🔸 (Un)Linking or NSPanel buttons to relays.**  This linking _**can  also be done in Home Assistant**_ via the UI switches that ESPHome creates  _**or by holding down one of the buttons for ~6 seconds**_ to link/unlink it from its respective relay.  When linked, pushing the physical NSPanel buttons will toggle their respective relays (as with the original firmware).  When unlinked, you can use the buttons to trigger other automations in Home Assistant.  Even when unlinked, holding a button for 3 to 5 seconds will still toggle the relays (so that there is always a way to turn the relay off).  
+
   
 Be conservative with the update settings initially, then tweak them when your configuration is working well.  There is a trade-off between how fast and frequently you initiated data updates after a touch interaction, and how responsive the NSPanel will be to multiple successive touch interactions (such as multiple taps for triggerig quick increase/decrease step changes to light brightness).  
   
@@ -256,22 +255,22 @@ A currated set of icons is used on the cards.  These are paired, with icons and 
 
 ---
   
-## 🚧 Current Status 🚧
+## Current Status
 
 The details of how information is displayed is still being fine tuned, and functionality is still being added for the types of things you can control in HA.
 
  <details>
   <summary>▶️ show development status ...</summary>
  
- At this stage you can use the Widgets to:
-* 🔸 create a dashboard easily view information about your smart home, and highlight anything abnormal;
-* 🔸 'toggle' all Home Assistant entities that can be toggled (lights, media players, switches, scripts, automations, covers, fans, input_booleans etc.);
-* 🔸 fully control lights (with a 'pop-up card');
-* 🔸 use interactive widgets to control most of the common types of entities (as per the details in the entity cards interactions list);
-* 🔸 read and dismiss HA notifications;
-* 🔸 change NSPanel settings.
+The Widgets currently provide sufficient functionality to provide most of the every-day Home Assistant controls, allowing you to:
+* 🔹 create a dashboard to easily view information about your smart home, and visually highlight anything needing attention;
+* 🔹 'toggle' all Home Assistant entities that can be toggled (lights, media players, switches, scripts, automations, covers, fans, input_booleans etc.);
+* 🔹 fully control lights (with a 'pop-up card');
+* 🔹 use interactive widgets to control most of the common types of entities (as per the details in the Widget Card interactions list);
+* 🔹 read and dismiss HA notifications;
+* 🔹 change NSPanel settings (including managing the linking/unlinking of NSPanel physical buttons to their respective relays).
   
-More features are continually being added (as the supported capabilities of the underlying Nextion Hanlder are being developed and expanded).
+🚧 More features are continually being added (as the supported capabilities of the underlying Nextion Hanlder are being developed and expanded). 🚧
 
 
  --- 
