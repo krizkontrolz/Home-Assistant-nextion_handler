@@ -1,0 +1,70 @@
+#* Add this to your Home Assistant automations.yaml file
+# If you changed the 'ha_prefix:' from 'nsp1' in the 'substitutions:' your ESPHome config, then edit below to match.
+# Otherwise you should only need to enter your list of entities in the 'widgets:' section below.
+
+# NSPanel Widget UI config (v0.6_2022-06-03)
+- alias: "NSP1 Nextion handler"
+  mode: queued # need a good sequential queue to handle multiple calls in quick succession
+  max: 10
+  trigger:
+    - platform: state
+      entity_id: sensor.nsp1_trigger # << TRIGGER - state changes are sent from Nx when it needs this script to do something.
+  action:
+    - service: python_script.nextion_handler
+      data:
+        trig_val: sensor.nsp1_trigger # << TRIGGER (same as above).
+        nx_cmd_service: esphome.nsp1_send_command # << ESPhome service for sending Nextion Instructions to NSPanel.
+        action_cmds:                         # << Widget interactions send ACTION commands here.
+          - sensor.nsp1_ha_act
+        update_cmds:                         # << Widget pages specify what data updates they want here.
+          - sensor.nsp1_ha_set1
+          - sensor.nsp1_ha_set2
+        widgets: #______________________________________________________________
+          # Add a list of your entities here: only the "- entity: " parameter is mandatory,
+          # but usually customise the "name:" and "icon:" too.
+          # See: https://github.com/krizkontrolz/Home-Assistant-nextion_handler/tree/main/widget_ui
+          - entity: persistent_notification.all  # special case
+          - entity: template                     # special case (advanced) - create your own
+            icon: 133
+            icon_state: 1
+            name: Template
+            alt: "Custom"
+            info: "Template this text"
+          #*** Edit for your own devices
+          - entity: light.kitchen_lights         # replace with your own light
+            name: Kitchen
+            icon: 50                             # see icon index
+          - entity: update.home_assistant_core_update
+            name: HA Core
+          #*** Some other suggestions - edit to match your own entities 
+          # - entity: sensor.gdacs
+          #   icon: 40
+          #   icon_state: "{{ states.sensor.gdacs.state|int > 1 }}"
+          # - entity: media_player.tv
+          #   name: TV
+          #   icon: 82
+          # - entity: device_tracker.jane_doe
+          #   name: Jane
+          #   icon: 88
+          # - entity: vacuum.my_vac
+          #   name: Vacuum
+          # - entity: weather.dark_sky
+          #   name: Weather
+          # - entity: scene.evening_lights
+          #   name: Evening
+          # - entity: switch.dishwasher
+          #   name: Dishwash
+          #   icon: 144
+          # - entity: binary_sensor.lounge_motion
+          #   name: Lounge
+          #   icon: 100
+          # - entity: automation.dusk_lights
+          #   name: Dusk Lt
+          # - entity: script.irrigate_lawn
+          #   name: Irr Lawn
+          #   icon: 165
+          # - entity: input_number.irr_pct
+          #   name: Water %
+          #   icon: 163
+          # - entity: button.nsp1_tft_upload
+          #   name: Upld TFT
