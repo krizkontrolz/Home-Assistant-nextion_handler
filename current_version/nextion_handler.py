@@ -1,17 +1,17 @@
-#
 #* Home Assistant Nextion Handler
-#* (v0.5.0; Last updated: 2022-04-02)
+#* (v0.6_2022-06-03)
 # Handler for NH 'command_strings' sent from Nextion events & update requests.
 # see: https://github.com/krizkontrolz/Home-Assistant-nextion_handler
 #
 # ------------------------------------------------------------------------------
 #
-#* Notes to add to next CHANGELOG (https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/CHANGELOG.md):
-# ...
+#* CHANGELOG: https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/CHANGELOG.md
+#
 # ------------------------------------------------------------------------------
 #
 # TODO:
-#    Complete support for simpler no-code 'widget'-based configuration option (that use specialize template TFT files.)
+#    (v0.6 features complete )
+#    ...
 # ------------------------------------------------------------------------------
 
 
@@ -35,7 +35,7 @@ STANDARD_NX_DATA_EXTs = ['val', 'txt']
 FALSE_STATES = ['off', 'False', '0', '']
 
 #* List of entity states (as strings) to be interpreted as missing
-INVALID_STATES = ['unknown', 'not available', 'None', 'unavailable', 'unknown', 'undefined']
+INVALID_STATES = ['unknown', 'not available', 'None', 'Unavailable', 'unavailable', 'undefined']
 
 
 #* Alternative Aliases Dictionary for translating shorthand entitity aliases ($nx -> e)
@@ -64,7 +64,7 @@ ENTITY_ALIASES_ALT = {
 def nx_cmd(nx_command_str, domain, service):
     '''Send the Nextion command string to the send cmd service for the Nextion device'''
     try:
-        service_data = {'cmd': nx_command_str}
+        service_data = {'cmd': nx_command_str}  #!.encode('iso-8859-1')
         hass.services.call(domain, service, service_data, False)
         # #!
         # dbg_msg = 'Nextion Handler sent Nextion command:\n<{}>.'.format(nx_command_str)
@@ -80,11 +80,13 @@ def nx_cmd(nx_command_str, domain, service):
 
 def nx_var_parse (nx_shorthand, data_type = None):
     '''Interpret 'shorthand' Nextion variable names by appending their data type
-    return: the full Nextion variable name (for nx_cmd) and 
-            the standardized lookup name for that Nextion variable
-                (the standard key that would link that Nextion variable to its
-                paired Home Assistant entity_id in ENTITY_ALIASES dictionary)
-            the data type ('val' for ints, or 'txt' for strings)'''
+    returns:
+        nx_full: the full Nextion variable name (for nx_cmd). 
+        nx_lookup: the standardized lookup name for that Nextion variable
+            (the standard key that would link that Nextion variable to its
+            paired Home Assistant entity_id in ENTITY_ALIASES dictionary).
+        data_type: 'val' for Nextion ints, or 'txt' for strings.
+    '''
     nx_full = None
     nx_lookup = None
     nx_parts = nx_shorthand.split('.')
@@ -132,9 +134,8 @@ def nx_var_parse (nx_shorthand, data_type = None):
     return nx_full, nx_lookup, data_type
 
 
-#TODO: test WIDGET-based entity lookup (when WIDGETs are fully implemented)
-def get_entity_id_state(e, nx_lookup=None, class_prefix=None):
-    '''Translate the (shorthand) HA entity parameter by:
+def get_entity_id_state(e, nx_lookup=None, domain_prefix=None):
+    '''Translate the (shorthand) HA entity parameter (e) by:
         * treating e as a $ alias (leading $ stripped to create lookup key) to
             find its matching entity_id in the ENTITY_ALIASES dictionary, or
         * if e == '$' use nx_lookup (the standardized lookup key for a Nextion
@@ -150,10 +151,16 @@ def get_entity_id_state(e, nx_lookup=None, class_prefix=None):
     Checks the entity_id is valid, and raise ValueError if not.
 
     * SET NhCmds typically provide nx_lookup (from the Nx variable being set).
-    * ACTION NhCmds typically provide the class_prefix of the entity being acted on. 
-    Return the entity_id and its state.
+    * ACTION NhCmds typically provide the domain_prefix of the entity being acted on. 
+
+    Returns:
+        entity_id: the (full) HA entity_id
+        ent_state: ALL the mapped state data for entity_id (incl. attributes)
+        state: the string value for just the 'state' (ent_state.state) of e
     '''
     name = ''
+    entity_id = ''
+    # $ Alias
     if e[0] == '$':
         # Expected/typical use case is 'e' provided as an alias, indicated by a '$' prefix
         if e == '$':
@@ -166,38 +173,55 @@ def get_entity_id_state(e, nx_lookup=None, class_prefix=None):
             entity_id = ENTITY_ALIASES[key]
         except:
             raise ValueError('$Alias not found: <{}>'.format(e))
-    #TODO: Widget alias #@wd - complete, but need to test this **
+    # @ Widget number
     elif e[0] == '@':
         # '@n' Widget aliases indicates the nth entity in the calling automations YAML 'widgets:' list (indexed from 0)
-        if not widgets_read:
-            #* Get list of Widgets (& their settings) from 'widgets:' YAML section
-            try:
-                WIDGETS_LIST = data.get('widgets')
-            except:
-                # Log error message
-                err_msg = 'Error trying get "widgets:" list from YAML in calling automation.'
-                #logger.warning('nextion_handler.py ' + err_msg)
-                raise ValueError(err_msg)
-            widgets_read = True
+        #!if not widgets_read:  (Move reading Widgets to main reading of data)
+        #* Get list of Widgets (& their settings) from 'widgets:' YAML section
+        try:
+            WIDGETS_LIST = data.get('widgets')
+        except:
+            # Log error message
+            err_msg = 'Error trying get "widgets:" list from YAML in calling automation.'
+            #logger.warning('nextion_handler.py ' + err_msg)
+            raise ValueError(err_msg)
+            #widgets_read = True
         try:
             n = int(e[1:])  # the rest of the entity alias after @ should be the widget number (0...) and its index position in the YAML list
-            entity_id = WIDGETS_LIST[n]['entity_id']  # entity_id is REQUIRED - no default provided - will trigger exception if missing
+            entity_id = WIDGETS_LIST[n]['entity']  # entity_id is REQUIRED - no default provided - will trigger exception if missing
         except:
             raise ValueError('@Alias for Widget not found in "widgets:" list from YAML in calling automation: <{}>'.format(e))
-    elif class_prefix and e[:len(class_prefix)] != class_prefix:
-        # The expected entity class_prefix is not present, so needs to be prepended to e
-        entity_id = class_prefix + e
+    # Append missing domain prefix
+    elif domain_prefix and e[:len(domain_prefix)] != domain_prefix:
+        entity_id = domain_prefix + e
+    # Full HA entity_id (no adjustment needed)
     else:
-        # e is the full entity_id already (no adjustment needed)
         entity_id = e
 
     # Get the state of entity_id - this also ensures that entity_id is valid
     try:
-        state = hass.states.get(entity_id).state
+        ent_state = hass.states.get(entity_id)  # full mapped state & attribute data for entity
+        state = ent_state.state                 # just the _string_ for the state
     except:
-        raise ValueError('Home Assistant could not find specified entity_id.')
+        raise ValueError('Home Assistant could not find specified entity_id: <{}>'.format(entity_id))
 
-    return entity_id, state
+    return entity_id, ent_state, state
+
+def timedelta_to_str(now, before):
+    '''Convert the timedelta (now - before) to a nicely readable string'''
+    try:
+        td = now - before
+        parts = str(td).split(':')  # string is formatted as 'dd, hh:mm:ss.uuuuuu'
+        if parts[0] == '0':
+            return '{} min ago'.format(parts[1])
+        else:
+            dh = parts[0].split(',')
+            if len(dh) == 1:
+                return '{} hr {} min ago'.format(parts[0], parts[1])
+            else:
+                return '{} {} hr ago'.format(dh[-2], dh[-1])
+    except:
+        return 'Never'
 
 
 
@@ -210,9 +234,6 @@ def get_entity_id_state(e, nx_lookup=None, class_prefix=None):
 def sett(args_list, domain, service):
     '''sett Nx chars E  (assign len chars of state of E, as string/text, to Nx)'''
     try:
-        # #!
-        # dbg_msg = 'Nextion Handler:\n<{}>.'.format('Made it to start of sett')
-        # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Debug', 'message': dbg_msg, 'notification_id': 'nx_handler_debug' }, False)
         if len(args_list) == 3:
             [nx, chars_, e] = args_list
             try:
@@ -222,7 +243,7 @@ def sett(args_list, domain, service):
                 raise ValueError('Number of chars is not an integer.')
             nx_full, nx_lookup, data_type = nx_var_parse(nx, 'txt')
             #state = entity_state(e, nx_lookup)
-            entity_id, state = get_entity_id_state(e, nx_lookup=nx_lookup)  # will raise exception if it can't translate e to valid entity_id
+            state = get_entity_id_state(e, nx_lookup=nx_lookup)[2]  # will raise exception if it can't translate e to valid entity_id
             if state is not None:
                 new_value = '"' + str(state)[:chars] +'"'  # Nextion commands need double quotes for text
                 nx_cmd_str = '{}={}'.format(nx_full, new_value)
@@ -260,7 +281,7 @@ def setn (args_list, domain, service):
                 raise ValueError('The scaling factor provided is not a valid number: {}.'.format(scale_str))
             nx_full, nx_lookup, data_type = nx_var_parse(nx)
             #state = entity_state(e, nx_lookup)
-            entity_id, state = get_entity_id_state(e, nx_lookup=nx_lookup)  # will raise exception if it can't translate e to valid entity_id
+            state = get_entity_id_state(e, nx_lookup=nx_lookup)[2]  # will raise exception if it can't translate e to valid entity_id
             try:
                 new_value = int(float(state) * scale_factor)
             except:
@@ -310,7 +331,7 @@ def setb (args_list, domain, service):
                 [nx, e] = args_list
                 d = None
             nx_full, nx_lookup, data_type = nx_var_parse(nx)
-            entity_id, state = get_entity_id_state(e, nx_lookup=nx_lookup)  # will raise exception if it can't translate e to valid entity_id
+            state = get_entity_id_state(e, nx_lookup=nx_lookup)[2]  # will raise exception if it can't translate e to valid entity_id
             if str(state) in INVALID_STATES:
                 if d is not None:
                     if d == 'e':
@@ -337,7 +358,7 @@ def setb (args_list, domain, service):
                 [nx, e, cp, x] = args_list
                 d = None
             nx_full, nx_lookup, data_type = nx_var_parse(nx)
-            entity_id, state = get_entity_id_state(e, nx_lookup=nx_lookup)  # will raise exception if it can't translate e to valid entity_id
+            state = get_entity_id_state(e, nx_lookup=nx_lookup)[2]  # will raise exception if it can't translate e to valid entity_id
             if str(state) in INVALID_STATES:
                 if d is not None:
                     if d == 'e':
@@ -360,8 +381,9 @@ def setb (args_list, domain, service):
                         state = float(state)
                     except:
                         # try treating both the state and comparison value as strings
+                        #TODO? use letter comparitors (eq etc.) for TEXT comparisons (vs numeric) - ALREADY DONE (with above exception??)
                         state = str(state)
-                if cp in ['eq', '==']:
+                if cp in ['eq', '==', '=']:
                     new_value = 1 if state == x else 0
                 elif cp in ['ne', '!=']:
                     new_value = 1 if state != x else 0
@@ -396,9 +418,6 @@ def setb (args_list, domain, service):
     return True
 
 
-
-
-#! NEW: setlt bLtOn.val LT.nLtType.val nLtBrt.val nLtCt.val nLtClr.val $SW.bLG_LP
 def setlt (args_list, domain, service):
     '''setlt Nx_state Nx_tp Nx_brt Nx_ct Nx_rgb565 E (assign Nx variables the state,
     'type, brightness, color temperature and color of light E).
@@ -406,6 +425,7 @@ def setlt (args_list, domain, service):
     Use '_' in place of `Nx` variable names to skip assignments for those attributes.
     The light color is converted to Nextion 16-bit RGB565 format (to assign directly to color attributes of Nextion UI components).
     '''
+    prefix = 'light.'
     try:
         rgb565 = 0  # 33808  # default (on failure to set properly below): mid grey (128,128,128)
         (r, g, b) = (0, 0, 0) # (70, 70, 70) 
@@ -414,16 +434,13 @@ def setlt (args_list, domain, service):
             #
             #-- READ light attributes from HA
             #*state & entity_id
-            entity_id, state = get_entity_id_state(e, class_prefix='light.')  # will raise exception if it can't translate e to valid entity_id
+            nx_full, nx_lookup, data_type = nx_var_parse(nx_st)
+            ent_state, state = get_entity_id_state(e, nx_lookup=nx_lookup, domain_prefix=prefix)[1:]  # will raise exception if it can't translate e to valid entity_id
             #..
             #*supported_color_modes (-> light type capabilities)
             # modes in [None (default), 'onoff', 'brightness', 'color_temp', 'white', 'hs', 'xy', 'rgb', 'rgbw', 'rgbww']
-            try:
-                sm = hass.states.get(entity_id).attributes['supported_color_modes']
-            except:
-                sm = ['onoff']
+            sm = ent_state.attributes.get('supported_color_modes', 'onoff')
             #*light_type (nextion_handler encoding for light control 'pop-up page')
-            #TODO? (option c is now working?): find a set intersection test that works in HA py scripts (these 2 methods DO NOT!) #!
             is_brt = False
             is_ct = False
             is_clr = False
@@ -437,7 +454,7 @@ def setlt (args_list, domain, service):
                 is_clr = True
             #* convert lt capability flags to bit encoding for Nx variable
             light_type = 0
-            #! '+=' "NOT SUPPORTED in restricted HA Python script env: gives error: "'_inplacevar_' is not defined"
+            #! '+=' NOT SUPPORTED in restricted HA Python script env: gives error: '_inplacevar_' is not defined'
             if is_brt:              # bit 1: brightness
                 light_type = light_type + 1  # HA Py Env error for "+=": "'_inplacevar_' is not defined"
             if is_ct:               # bit 2: color_temp
@@ -451,35 +468,16 @@ def setlt (args_list, domain, service):
                 on_state = 1
                 #*color_mode (to help interpret other/conditional light attributes)
                 # modes in [None (default), 'onoff', 'brightness', 'color_temp', 'white', 'hs', 'xy', 'rgb', 'rgbw', 'rgbww']
-                try:
-                    cm = hass.states.get(entity_id).attributes['color_mode']
-                except:
-                    cm = 'x'  #pass
+                cm = ent_state.attributes.get('color_mode', 'x')
                 #*brightness
-                try:
-                    brightness = hass.states.get(entity_id).attributes['brightness']
-                    brightness_pct = int(float(brightness)*100/255)
-                except:
-                    brightness_pct = 80  # default value
-                    #err_msg = 'Could not get brightness for <{}>.'.format(e)
-                    #raise ValueError(err_msg)
+                brightness = ent_state.attributes.get('brightness', 200)
+                brightness_pct = int(float(brightness)*100/255)
                 #*color_temp
-                try:
-                    ct = hass.states.get(entity_id).attributes['color_temp']
-                    ct = int(ct)
-                except:
-                    ct = 370  # warmish white (mireds)
-                    #err_msg = 'Could not get color_temp for <{}>.'.format(e)
-                    #raise ValueError(err_msg)
+                ct = ent_state.attributes.get('color_temp', 370)
+                ct = int(ct)
                 #*rgb_color
-                try:
-                    (r_, g_, b_) = hass.states.get(entity_id).attributes['rgb_color']
-                    (r, g, b) = (int(r_), int(g_), int(b_))
-                except:
-                    # this color will only make it through to the NX UI if there has been an error.
-                    (r,g,b)=(99,0,0) #! << dark red (color to indicate and error in NX UI)
-                    #err_msg = 'Could not get valid rgb_color for <{}>.'.format(e)
-                    #raise ValueError(err_msg)
+                (r_, g_, b_) = ent_state.attributes.get('rgb_color', (99,0,0))  #! (99,0,0) is dark red (color to indicate and error in NX UI)
+                (r, g, b) = (int(r_), int(g_), int(b_))
             else:
                 on_state = 0
                 cm = 'off'
@@ -556,6 +554,171 @@ def setlt (args_list, domain, service):
     return True
 
 
+
+def setmp (args_list, domain, service):
+    '''setmp Nx_state Nx_pos Nx_dur Nx_nm Nx_src Nx_vol Nx_mut Nx_ttl Nx_alb Nx_art E (assign Nx variables the
+    state, media_pos, duration, name, source, volume, is_muted, media_title, album_name, artist(media) of media_player E).
+    Use '_' in place of `Nx` variable names to skip assignments for those attributes.
+    (ALTERNATE SETS of attributes or INDIVIDUAL attributes can be requested from this same function )).
+    '''
+    #TODO: Allow MULTIPLE attributes (standard list for 8 & 11 args) and INDIVIDUAL attributes
+    #TODO: add other attributes (like an informative string?)
+    #state: -1: err, 0: off, 1: on, 2: pause, 3: play
+    STATE_DICT = {'off': 0, 'on': 1, 'idle': 2, 'paused': 3, 'playing': 4}  # else -1  #! ?? idle, stop ... anything else - 'unavailable' etc.
+    NUM_NM_CHARS = 15
+    NUM_SRC_CHARS = 20
+    NUM_TTL_CHARS = 128
+    NUM_ALB_CHARS = 50
+    NUM_ART_CHARS = 20
+    prefix = 'media_player.'
+    try:
+        #-- PARSE and assign incoming arguments
+        [nx_st, nx_pos, nx_dur, nx_nm, nx_src, nx_vol, nx_mut, nx_ttl, nx_alb, nx_art] = ['_']*10  # assign default 'skip' char ('_') to each arg (except Entity, which MUST be specified)
+        num_args = len(args_list)
+        if num_args == 11:
+            # setmp requesting FULL_standard set of attributes (SET of 10 attributes)
+            [nx_st, nx_pos, nx_dur, nx_nm, nx_src, nx_vol, nx_mut, nx_ttl, nx_alb, nx_art, e] = args_list
+            nx = nx_st  # the Nextion variable name to be used to determine the entity alias if E == '$'
+        elif num_args == 8:
+            # setmp requesting REDUCED_standard set of attributes (SET of 8)
+            [nx_st, nx_pos, nx_dur, nx_src, nx_vol, nx_mut, nx_ttl, e] = args_list
+            nx = nx_st
+        elif num_args == 3:
+            # setmp nx attr E (INDIVIDUAL attribute - numeric)
+            [nx, attr, e] = args_list
+            if attr == 'st':  # numeric state code
+                nx_st = nx
+            elif attr == 'pos':
+                nx_pos = nx
+            elif attr == 'dur':
+                nx_dur = nx
+            elif attr == 'vo':
+                nx_vol = nx
+            elif attr == 'mut':
+                nx_mut = nx
+            else:
+                raise ValueError('Invalid ATTRIBUTE requested in setmp.')
+        elif num_args == 4:
+            # setmp nx attr chars E  (INDIVIDUAL attribute - string)
+            [nx, attr, num_chars, e] = args_list
+            if attr == 'nm':
+                nx_nm = nx
+                NUM_NM_CHARS = int(num_chars)
+            elif attr == 'src':
+                nx_src = nx
+                NUM_SRC_CHARS = int(num_chars)
+            elif attr == 'ttl':
+                nx_ttl = nx
+                NUM_TTL_CHARS = int(num_chars)
+            elif attr == 'alb':
+                nx_alb = nx
+                NUM_ALB_CHARS = int(num_chars)
+            elif attr == 'art':
+                nx_art = nx
+                NUM_ART_CHARS = int(num_chars)
+            #TODO: add TEXT status option (instead of numeric coding)
+            # elif attr == 'stt':
+            #     nx_stt = nx
+            #     NUM_STT_CHARS = int(num_chars)
+            else:
+                raise ValueError('Invalid ATTRIBUTE requested in setmp.')
+        else:
+            raise ValueError('Wrong number of items in arguments list.')
+
+        #
+        #-- READ attributes from HA & SET Nextion variables
+        #*ent_state & state
+        nx_full, nx_lookup, data_type = nx_var_parse(nx)
+        ent_state, state = get_entity_id_state(e, nx_lookup=nx_lookup, domain_prefix=prefix)[1:]  # will raise exception if it can't translate e to valid entity_id
+        state_code = STATE_DICT.get(state, -1)
+        #..
+        # State (string -> code)  #TODO? add option for TEXT state too?
+        if nx_st != '_':
+            nx_full, nx_lookup, data_type = nx_var_parse(nx_st)
+            nx_cmd_str = '{}={}'.format(nx_full, state_code)
+            nx_cmd(nx_cmd_str, domain, service)
+        #* NUMERIC attributes
+        # media_position (int secs)
+        if nx_pos != '_':
+            nx_full, nx_lookup, data_type = nx_var_parse(nx_pos)
+            try:
+                val = ent_state.attributes['media_position']
+                val = int(val)
+            except:
+                val = 0  #pass
+            nx_cmd_str = '{}={}'.format(nx_full, val)  #! Roon always reports 0
+            #!nx_cmd_str = '{}={}'.format(nx_full, 300)
+            nx_cmd(nx_cmd_str, domain, service)
+        # media_duration (int secs)
+        if nx_dur != '_':
+            nx_full, nx_lookup, data_type = nx_var_parse(nx_dur)
+            val = ent_state.attributes.get('media_duration', 0)
+            val = int(val)
+            nx_cmd_str = '{}={}'.format(nx_full, val)
+            nx_cmd(nx_cmd_str, domain, service)
+        # source (int 0..100, from float 0..1)
+        if nx_vol != '_':
+            nx_full, nx_lookup, data_type = nx_var_parse(nx_vol)
+            val = ent_state.attributes.get('volume_level', 0)
+            val = int(val*100)
+            nx_cmd_str = '{}={}'.format(nx_full, val)
+            nx_cmd(nx_cmd_str, domain, service)
+        # is_volume_muted (0, 1 ; from False, True)
+        if nx_mut != '_':
+            nx_full, nx_lookup, data_type = nx_var_parse(nx_mut)
+            val = ent_state.attributes.get('is_volume_muted', False)
+            val = 1 if val else 0
+            nx_cmd_str = '{}={}'.format(nx_full, val)
+            nx_cmd(nx_cmd_str, domain, service)
+        #* STRING attributes - NB: Nextion Instructions need to use double quotes for text
+        # friendly_name (string NUM_NM_CHARS)
+        if nx_nm != '_':
+            nx_full, nx_lookup, data_type = nx_var_parse(nx_nm, 'txt')
+            val = ent_state.attributes.get('friendly_name', '')
+            val = val[:NUM_NM_CHARS]
+            nx_cmd_str = '{}="{}"'.format(nx_full, val)
+            nx_cmd(nx_cmd_str, domain, service)
+        # source (string NUM_SRC_CHARS)
+        if nx_src != '_':
+            nx_full, nx_lookup, data_type = nx_var_parse(nx_src, 'txt')
+            val = ent_state.attributes.get('source', '')
+            val = val[:NUM_SRC_CHARS]
+            nx_cmd_str = '{}="{}"'.format(nx_full, val)
+            nx_cmd(nx_cmd_str, domain, service)
+        # media_title (string NUM_TTL_CHARS)
+        if nx_ttl != '_':
+            nx_full, nx_lookup, data_type = nx_var_parse(nx_ttl, 'txt')
+            val = ent_state.attributes.get('media_title', '-')
+            val = val.replace('"',"'")[:NUM_TTL_CHARS]
+            nx_cmd_str = '{}="{}"'.format(nx_full, val)
+            nx_cmd(nx_cmd_str, domain, service)
+        # media_album_name (string NUM_ALB_CHARS)
+        if nx_alb != '_':
+            nx_full, nx_lookup, data_type = nx_var_parse(nx_alb, 'txt')
+            val = ent_state.attributes.get('media_album_name', '')
+            val = val.replace('"',"'")[:NUM_ALB_CHARS]
+            nx_cmd_str = '{}="{}"'.format(nx_full, val)
+            nx_cmd(nx_cmd_str, domain, service)
+        # media_artist (string NUM_ART_CHARS) - less frequently, 'media_album_artist' is also provided
+        if nx_art != '_':
+            nx_full, nx_lookup, data_type = nx_var_parse(nx_art, 'txt')
+            val = ent_state.attributes.get('media_artist', None)
+            if val is None:
+                val = ent_state.attributes.get('media_album_artist', '')
+            val = val[:50]
+            nx_cmd_str = '{}="{}"'.format(nx_full, val)
+            nx_cmd(nx_cmd_str, domain, service)
+
+    except ValueError as exptn:
+        err_msg = '{}\nNextion Handler failed within SET function:\n<{}> <{}>.'.format(exptn, 'setmp', '> <'.join(args_list))
+        logger.warning('nextion_handler.py ' + err_msg)
+        #!dbg
+        #hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
+        raise ValueError(err_msg)
+    return True
+
+
+
 #setntf NF.nNTFC t1.txt t2.txt 1
 def setntf(args_list, domain, service):
     '''setntf Nx_count (Nx_title) (Nx_msg) (n) (chars_title) (chars_msg)
@@ -584,8 +747,9 @@ def setntf(args_list, domain, service):
                     elif n < 1:
                         n = 1
                     entity_id = ntf_list[n - 1]
-                    title = hass.states.get(entity_id).attributes['title']
-                    message = hass.states.get(entity_id).attributes['message']
+                    ent_state = hass.states.get(entity_id)
+                    title = ent_state.attributes['title']
+                    message = ent_state.attributes['message'] + r'\r' + timedelta_to_str(dt_util.now(), ent_state.last_changed)
                 else:
                     title = 'NONE'
                     message = 'No Notifications'
@@ -596,15 +760,15 @@ def setntf(args_list, domain, service):
             # Notification title (.txt)
             if nx_t != '_':
                 nx_full, nx_lookup, data_type = nx_var_parse(nx_t, 'txt')
-                title = '\r\n'.join(title.split('\n'))  # Convert from HA linebreak (\n) to Nextion (\r\n)
-                new_value = title[:len_t]
+                title = r'\r'.join(title.split('\n'))  # Convert from HA linebreak (\n) to Nextion (\r)
+                new_value = title.replace('"',"'")[:len_t]
                 nx_cmd_str = '{}="{}"'.format(nx_full, new_value) # Nextion commands need double quotes for text
                 nx_cmd(nx_cmd_str, domain, service)
             # Notification message (.txt)
             if nx_m != '_':
                 nx_full, nx_lookup, data_type = nx_var_parse(nx_m, 'txt')
-                message = '\r\n'.join(message.split('\n'))  # Convert from HA linebreak (\n) to Nextion (\r\n)
-                new_value = message[:len_m]
+                message = r'\r'.join(message.split('\n'))  # Convert from HA linebreak (\n) to Nextion (\r)
+                new_value = message.replace('"',"'")[:len_m]
                 nx_cmd_str = '{}="{}"'.format(nx_full, new_value) # Nextion commands need double quotes for text
                 nx_cmd(nx_cmd_str, domain, service)
             # Notification count (.val)
@@ -627,7 +791,7 @@ def setdt(args_list, domain, service):
     '''setdt Nx (fmt)  (assign Nx the string of the current data-time, formatted as fmt).
     (Default fmt is r"%a %d/%m %Hh%M", e.g. "Sun 28/02 17h30".)
     '''
-    #! datetime.datetime.now() with strftime() not working
+    #! datetime.datetime.now() with strftime() not working in restricted Python env.
     FMT_DEFAULT = r"%a %d/%m %Hh%M"  # e.g. 'Sun 28/02 17h30'
     try:
         if len(args_list) > 0:
@@ -664,6 +828,687 @@ def setdt(args_list, domain, service):
 
 
 
+#! remove all '+=' etc. in_place_vars NOT supported in restricted ENV
+#* Widget setwd helper function
+def get_widget_info(entity_id, wd_dmn):
+    '''Get info required by widgets for entity e, with domain_code wd_dmn.
+    Returns:
+        wd_bst: boolean state of entity (as 0/1)
+        wd_info: a descriptive string for the state/attributes
+        wd_alt: addition descriptive text
+        wd_dmn: (modified to -1 if entity_id is not valid)
+    '''
+    DOMAIN_NUM_MASK = 127  # first 7 bits give unique code for entity domain 
+
+    #no_errors = True
+    wd_bst = 0
+    wd_info = ""
+    wd_alt = ""
+    domain_num = wd_dmn & DOMAIN_NUM_MASK
+
+#TODO: add meaningful info for each domain (e.g. Notifications) - this is a simple placeholder for now
+# 1	alarm_control_panel
+# 2	automation
+# 3	binary_sensor
+# 4	button
+# 5	calendar
+# 6	camera
+# 7	climate
+# 8	cover
+# 9	device_tracker
+# 10	fan
+# 11	geo_location
+# 12	group
+# 13	humidifier
+# 14	input_boolean
+# 15	input_datetime
+# 16	input_number
+# 17	input_select
+# 18	light
+# 19	lock
+# 20	media_player
+# 21	persistent_notification
+# 22	person
+# 23	remote
+# 24	scene
+# 25	script
+# 26	select
+# 27	sensor
+# 28	siren
+# 29	sun
+# 30	switch
+# 31	timer
+# 32	update
+# 33	vacuum
+# 34	water_heater
+# 35	weather
+# 36	zone
+
+    #* persistent_notifications - special case - DOES NOT SEND A VALID ENTITY
+    # (need to process the list for the entire domain instead).
+    if domain_num == 21:
+        try:
+            ntf_list = hass.states.entity_ids('persistent_notification')
+            ntf_cnt = len(ntf_list)
+            if ntf_cnt > 0:
+                entity_id = ntf_list[ntf_cnt - 1]  # newest
+                wd_info = hass.states.get(entity_id).attributes['title']
+                #message = hass.states.get(entity_id).attributes['message']
+                wd_alt = str(ntf_cnt)
+                wd_bst = 1
+            else:
+                wd_info = 'No Notifications'
+                wd_alt = '-'
+                wd_bst = 0
+        except:
+            wd_info = "Err reading Notifications"
+            wd_alt = '?'
+        return wd_bst, wd_info, wd_alt, wd_dmn
+
+    else:
+        # Get the state of entity_id and make sure it exists
+        try:
+            ent_state = hass.states.get(entity_id)
+            state = ent_state.state
+        except:
+            wd_dmn = -1
+            wd_info = '* {}'.format(entity_id)
+            wd_bst = 1
+            return wd_bst, wd_info, wd_alt, wd_dmn
+
+        #* Defaults (for all other domains WITHOUT customised output below)
+        wd_info = state.title()
+        wd_bst = 0 if (state in FALSE_STATES) or (state in INVALID_STATES) else 1  # default binary (0/1) state conversion
+
+        #* ---- Process Matches for Each Domain ---
+
+        #* lights
+        if(domain_num == 18):
+            try:
+                if wd_bst == 0:
+                    wd_alt = 'Off'
+                    wd_info = timedelta_to_str(dt_util.now(), ent_state.last_changed)
+                else:
+                    cm = ent_state.attributes['color_mode']
+                    if cm == 'onoff':
+                        wd_info = 'On (on/off light)'
+                    else:
+                        try:
+                            brightness = ent_state.attributes['brightness']
+                            brightness_str = '{}%'.format(int(brightness*100/255))
+                        except:
+                            brightness_str = '?%'
+                        if cm in ['brightness', 'white']:
+                            wd_info = '({} mode)'.format(cm.title())
+                            wd_alt = '{}'.format(brightness_str)
+                        elif cm == 'color_temp':
+                            ct_ = ent_state.attributes['color_temp']
+                            ct = int(float(ct_))
+                            if ct < 240:
+                                wd_info = 'Very cool white'
+                            elif ct < 290:
+                                wd_info = 'Cool white'
+                            elif ct < 350:
+                                wd_info = 'Neutral white'
+                            elif ct < 420:
+                                wd_info = 'Warm white'
+                            else:
+                                wd_info = 'Very warm white'
+                            #wd_info = '{}, {}'.format(wd_info, ct)
+                            wd_alt = '{}'.format(brightness_str)
+                        else:
+                            try:  # should be a color mode
+                                hue_, sat_ = ent_state.attributes['hs_color']
+                                hue = int(float(hue_))
+                                sat = int(float(sat_))
+                                if hue < 10:
+                                    wd_info = 'Red'
+                                elif hue < 45:
+                                    wd_info = 'Orange'
+                                elif hue < 80:
+                                    wd_info = 'Yellow'
+                                elif hue < 145:
+                                    wd_info = 'Green'
+                                elif hue < 200:
+                                    wd_info = 'Aqua'
+                                elif hue < 250:
+                                    wd_info = 'Blue'
+                                elif hue < 300:
+                                    wd_info = 'Purple'
+                                elif hue < 340:
+                                    wd_info = 'Pink'
+                                else:
+                                    wd_info = 'Red'
+                                if sat > 70:
+                                    wd_info = 'Bright ' + wd_info
+                                elif sat < 30:
+                                    wd_info = 'Slightly ' + wd_info
+                                #wd_info = '{}, {}'.format(wd_info, hue)
+                                wd_alt = '{}'.format(brightness_str)
+                            except:
+                                wd_info = '*On'
+                                wd_alt = hue_
+            except:
+                wd_info = 'Err light attributes'
+
+        #* media_players
+        elif(domain_num == 20): 
+            wd_alt = state.title()
+            wd_bst = 1 if state in ['on', 'idle', 'paused', 'playing'] else 0
+            ttl = ent_state.attributes.get('media_title', '')
+            src = ent_state.attributes.get('source', None)
+            vol = ent_state.attributes.get('volume_level', None)
+            muted = ent_state.attributes.get('is_volume_muted', '')
+            vol_str = int(vol * 100) if vol else '.'
+            if state == 'off':
+                wd_info = timedelta_to_str(dt_util.now(), ent_state.last_changed)
+            if ttl:
+                wd_info = ttl
+                if muted:
+                    vol_str = 'mt'
+                wd_alt = '{}:{}'.format(wd_alt[:5], vol_str)
+            else:
+                if src:
+                    if muted:
+                        wd_info = '{}, Muted:{}'.format(src, vol_str)
+                    else:
+                        wd_info = '{}, Vol:{}'.format(src, vol_str)
+                elif vol:
+                    if muted:
+                        wd_info = 'Muted {}'.format(vol_str)
+                    else:
+                        wd_info = 'Volume {}'.format(vol_str)
+
+        #* automations
+        elif(domain_num == 2):
+            if wd_bst:
+                wd_alt = 'Active'
+            else:
+                wd_alt = 'DISABLED'
+            curr = ent_state.attributes.get('current', 0)
+            wd_info = timedelta_to_str(dt_util.now(), ent_state.attributes.get('last_triggered', dt_util.now()))
+            wd_info = '({}) {}'.format(curr, wd_info)
+
+        #* binary sensors
+        #TODO: change on/off to match class (Dict -> [off_name, on_name])
+        #TODO: last_changed (ts or ago) - need dt_util to work!
+        elif(domain_num == 3): 
+            BIN_SENSOR_STATE_DICT = {
+                'battery': ['LOW', 'normal'],
+                'battery_charging': ['charging', 'OFF'],  # 'not charging']
+                'carbon_monoxide': ['CO', 'clear'],
+                'cold': ['COLD', 'normal'],
+                'connectivity': ['connected', 'OFF'],  #'disconnected']
+                'door': ['OPEN', 'closed'],
+                'garage_door': ['OPEN', 'closed'],
+                'gas': ['GAS', 'clear'],
+                'heat': ['HOT', 'normal'],
+                'light': ['LIGHT', 'off'],  #'no light']
+                'lock': ['UNLOCKED', 'locked'],
+                'moisture': ['WET', 'dry'],
+                'motion': ['MOTION', 'clear'],
+                'moving': ['MOVING', 'stopped'],
+                'occupancy': ['occupied', 'clear'],
+                'opening': ['OPEN', 'closed'],
+                'plug': ['plugged', 'OFF'],  #'unplugged']
+                'power': ['power', 'OFF'],
+                'presence': ['home', 'away'],
+                'problem': ['problem', 'OK'],
+                'running': ['running', 'OFF'],  # 'not running']
+                'safety': ['UNSAFE', 'safe'],
+                'smoke': ['SMOKE', 'clear'],
+                'sound': ['SOUND', 'clear'],
+                'tamper': ['TAMPER', 'clear'],
+                'update': ['UPDATE', 'none'],  #['update available, 'up-to-date']
+                'vibration': ['VIBRATION', 'clear'],
+                'window': ['OPEN', 'closed']
+            }
+            dev_class = ent_state.attributes.get('device_class', '')
+            #wd_alt = state.title()
+            wd_alt = BIN_SENSOR_STATE_DICT.get(dev_class, ('on', 'off'))[1 - wd_bst]
+            #wd_info = '  {} ({})'.format(state.title(), dev_class.title())
+            wd_info = timedelta_to_str(dt_util.now(), ent_state.last_changed)
+
+        #* button
+        elif(domain_num == 4):
+            wd_alt = '(Button)'
+            #wd_alt = state.title()
+            wd_info = timedelta_to_str(dt_util.now(), ent_state.last_changed)
+
+        #* device_trackers AND person
+        elif(domain_num in [9, 22]):
+            #TODO: distance from Home would be nice (but need to access Home lat, long)
+            # lat = ent_state.attributes.get('latitude', '')
+            # lon = ent_state.attributes.get('longitude', '')
+            # wd_info = '({:.3f}, {:.3f})'.format(lat, lon)
+            # td = dt_util.utcnow() - ent_state.last_changed #! returns UTC time, not local time
+            # wd_info = timedelta_to_str(td)
+            wd_info = timedelta_to_str(dt_util.utcnow(), ent_state.last_changed)  #! returns UTC time
+            wd_alt = state.title()
+            wd_bst = 1 if state in ['home', 'Home', 'HOME'] else 0
+
+        #* groups
+        elif(domain_num == 12):
+            #! CLUNKY! Get count of entity_id list (len() won't work!)
+            lent = ent_state.attributes.get('entity_id', '')
+            n = 0
+            for i in lent:
+                n = n + 1
+            wd_alt = '{} (x{})'.format(state.title(), n+1)
+            wd_info = timedelta_to_str(dt_util.now(), ent_state.last_changed)
+
+        #* input_booleans
+        elif(domain_num == 14):
+            if state in ['on', 'off']:
+                wd_alt = '{}(Inp)'.format(state.title())
+            else:
+                wd_alt = state.title()
+                #wd_bst = 0  #INVALID_STATES
+            wd_info = timedelta_to_str(dt_util.now(), ent_state.last_changed)
+
+        #* input_datetimes
+        elif(domain_num == 15):
+            ts = ent_state.attributes.get('timestamp', '')
+            #! need timestamp formatting (also for last changed)
+            #wd_info = '{}'.format(ts.strftime('%Y-%m-%dT')) #%H:%M:%S
+            #wd_info = '{}'.format(state)
+            wd_info = '{}'.format(state[:16])
+            wd_alt = '(Inp DT)'
+            wd_bst = 0  # users set threshold rules with YAML templates
+
+        # #* input_numbers
+        elif(domain_num == 16): 
+            unit = ent_state.attributes.get('unit_of_measurement', '')
+            mn = ent_state.attributes.get('min', '')
+            mx = ent_state.attributes.get('max', '')
+            #wd_info = 'Range: {} - {}'.format(mn, mx)
+            wd_info = '{} to {}'.format(mn, mx)
+            wd_alt = '{} {}'.format(state, unit)
+            wd_bst = 0  # users set threshold rules with YAML templates
+
+        #* person (22) - included with device_trackers (9)
+
+        #* scenes
+        elif(domain_num == 24):
+            # lent = ent_state.attributes.get('entity_id', '')
+            # wd_alt = list(lent).length_hint()  #! cannot get count of entity_id list to work
+            wd_info = timedelta_to_str(dt_util.now(), ent_state.last_changed)
+            wd_alt = '(Scene)'
+            td = dt_util.now() - ent_state.last_changed
+            wd_bst = 1 if (td.total_seconds() < 3600) else 0 #3600 = 1hr   #! Change based on timestamp relative to other Scenes?
+
+        #* scripts
+        elif(domain_num == 25):
+            # if wd_bst:
+            #     wd_info = 'Running Script'
+            # else:
+            #     wd_info = 'Inactive Script'
+            if wd_bst:
+                wd_alt = 'Running'
+            else:
+                wd_alt = 'zzz'
+            curr = ent_state.attributes.get('current', 0)
+            wd_info = timedelta_to_str(dt_util.now(),
+                    ent_state.attributes.get('last_triggered'))
+            wd_info = '({}) {}'.format(curr, wd_info)
+
+        #* sensors
+        elif(domain_num == 27): 
+            unit = ent_state.attributes.get('unit_of_measurement', '')
+            #dev_class = ent_state.attributes.get('device_class', '')
+            #wd_info = '  {} {} ({})'.format(state, unit, dev_class.title())
+            wd_info = '  {} {}'.format(state, unit)
+            wd_bst = 0  #! need to be able to set threshold rules in YAML
+
+        #* switches
+        #TODO: get ° (degree) symbol into Nextion fonts
+        elif(domain_num == 30):
+            temp = ent_state.attributes.get('temperature', '')
+            pwr = ent_state.attributes.get('power', '')
+            td_str = timedelta_to_str(dt_util.now(), ent_state.last_changed)
+            if wd_bst:
+                if temp:
+                    wd_info = '{}°C, {}'.format(temp, td_str)
+                else:
+                    wd_info = '{}'.format(td_str)
+                if pwr:
+                    wd_alt = '{:.1f} W'.format(pwr)
+                else:
+                    wd_alt = 'On (Sw)'
+            else:
+                wd_info = timedelta_to_str(dt_util.now(), ent_state.last_changed)
+                wd_alt = 'OFF (Sw)'
+
+        #* updates
+        elif(domain_num == 32): 
+            installed = ent_state.attributes.get('installed_version', '')
+            latest = ent_state.attributes.get('latest_version', '')
+            skipped = ent_state.attributes.get('skipped_version', None)
+            updating = ent_state.attributes.get('in_progress', None)
+            if updating:
+                wd_info = 'Updating {}'.format(installed, latest)
+                wd_alt = 'Busy'
+            elif wd_bst:
+                wd_info = '{}->{}'.format(installed, latest)
+                wd_alt = 'Skip?'
+            else:
+                if skipped:
+                    wd_alt = skipped
+                    wd_info = '{}(installed)'.format(installed)
+                else:
+                    wd_alt = 'Latest'
+                    wd_info = '{}(installed)'.format(installed)
+                    #wd_info = timedelta_to_str(dt_util.now(), ent_state.last_changed)
+
+        #* vacuums
+        elif(domain_num == 33): 
+            status = ent_state.attributes.get('status', '')
+            bat = ent_state.attributes.get('battery_level', '')
+            wd_info = '{},  {}'.format(state.title(), status)
+            wd_alt = '{} %'.format(bat)
+            wd_bst = 0 if state == ['docked'] else 1
+
+        #* weather
+        #TODO: better handling of weather icons (add popup page eventually?)
+        elif(domain_num == 35): 
+            temp = ent_state.attributes.get('temperature', '')
+            hum = ent_state.attributes.get('humidity', '')
+            press = ent_state.attributes.get('pressure', '')
+            #wd_info = '{} ({}%, {}hPa)'.format(state, hum, press)
+            wd_info = '{} ({}%)'.format(state.replace('-', ' ').title(), hum)
+            wd_alt = '{}°C'.format(temp) #! need ° in Nextion fonts
+            wd_bst = 0 # can set threshold rules in YAML
+
+        #! debug only
+        # else:
+        #     wd_bst = 1
+        #     wd_info = "XX"
+        #     domain_num = wd_dmn & DOMAIN_NUM_MASK
+        #     wd_alt = '*{}'.format(domain_num)
+
+    # --- get_widget_info() ---
+    return wd_bst, wd_info, wd_alt, wd_dmn
+
+
+
+#TODO: for WIDGET (initial featurs complete) @wd
+def setwd(args_list, domain, service):
+    '''setwd page_num_, start_wd, num_cards
+    (Updates the data on widget page page_num (numbered from 'W0') starting
+    with widget start_wd in card 0 and then the next num_cards widgets
+    for the remaining widget cards on the Nextion page.)
+
+    The list of WIDGETs specified in the 'widgets:' YAML of the calling automation.
+    Also updates wd_tot (the total number of widgets in the list), which the
+    Nextion needs to know which Widget pages it has enough data for to display.
+    '''
+
+    #* CONSTANTS
+    MAX_ICON_NUM = 167 # icon image size limited to this by max image size allowed by Nextion
+    BLANK_ICON = 47  # state 0=Blank, 1=Alert
+    ERROR_ICON = 47  # state 0=Blank, 1=Alert
+    DEFAULT_ICON = 0  # eye symbol, default for valid sensors in unknown domain
+
+    MAX_NAME_CHARS = 10
+    MAX_INFO_CHARS = 20
+    MAX_ALT_CHARS = 8
+
+    # Gives the Domain_code & default Icon_num (cropped from image pair) for each domain.
+    # Domain_code is bit encoded: Unique domain (bits 0..6),
+    #   (HA actions) Toggleable (bit7), logical toggleable (bit8), other HA action (bit9),
+    #   (Nx actions) other Nx action (bit10), Nx pop-up (bit11).
+    DICT_DOMAINS = {
+        'blank': (0, BLANK_ICON),
+        'alarm_control_panel': (257, 1),
+        'automation': (130, 2),
+        'binary_sensor': (3, 3),
+        'button': (4, 4),
+        'calendar': (5, 5),
+        'camera': (134, 6),
+        'climate': (135, 7),
+        'cover': (136, 8),
+        'device_tracker': (9, 9),
+        'fan': (138, 10),
+        'geo_location': (11, 11),
+        'group': (140, 12),
+        'humidifier': (141, 13),
+        'input_boolean': (142, 14),
+        'input_datetime': (15, 5),
+        'input_number': (16, 15),
+        'input_select': (17, 16),
+        'light': (2706, 17),
+        'lock': (275, 18),
+        'media_player': (660, 19),
+        'persistent_notification': (2069, 20),
+        'person': (22, 9),
+        'remote': (151, 21),
+        'scene': (24, 22),
+        'script': (153, 23),
+        'select': (26, 16),
+        'sensor': (27, 24),
+        'siren': (156, 25),
+        'sun': (29, 26),
+        'switch': (158, 27),
+        'timer': (287, 28),
+        'update': (32, 29),
+        'vacuum': (289, 30),
+        'water_heater': (34, 31),
+        'weather': (35, 26),
+        'zone': (36, 32)
+    }
+
+    #* Parse calling arguments
+    try:
+        if len(args_list) == 0:
+            #If called without arguments, just write the Global Widget settings to Nextion and SKIP Widget Page update
+            [page_num, start_wd, num_cards] = [0, 0, 0]  # assigned directly as integers: set to skip Page update (& only update Global vars)
+        elif len(args_list) == 3:
+            [page_num_, start_wd_, num_cards_] = args_list
+            try:
+                page_num = int(page_num_)
+                start_wd = int(start_wd_)
+                num_cards = int(num_cards_)
+            except:
+                #chars = 255
+                raise ValueError('Some arguements are not integers.')
+        else:
+            raise ValueError('Wrong number of items in arguments list.')
+    except ValueError as exptn:
+        err_msg = '{}\nNextion Handler failed within SET function:\n<{}> <{}>.'.format(exptn, 'setwd', '> <'.join(args_list))
+        logger.warning('nextion_handler.py ' + err_msg)
+        #hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
+        raise ValueError(err_msg)
+
+    #* Get list of PAGE Widgets (& their settings) from 'widgets:' YAML section
+    try:
+        WIDGETS_LIST = data.get('widgets')
+    except:
+        err_msg = 'Error trying to read "widgets:" list from YAML.'
+        #!
+        logger.warning('nextion_handler.py ' + err_msg)
+        raise ValueError(err_msg)
+    num_widgets = len(WIDGETS_LIST)  # This is written to Nextion as part of Global variables at the end
+
+    #* Get & Send data for each Widget card on page: Name, Icon, Domain_code, Boolean_status, Info status, Alt_text
+    card = 0
+    try:
+        pg_pfx = "W{}.".format(page_num)  # page prefix for Nextion page variable names
+
+        page_widgets = WIDGETS_LIST[start_wd: start_wd + num_cards]
+        # If there is at least 1 Widget for page, fill any shortfall cards with blanks
+        num_page_widgets = len(page_widgets)
+        if(0 < num_page_widgets < num_cards):
+            page_widgets.extend([None] * (num_cards - num_page_widgets))
+
+        #for card in range(0, 8):
+        for card, wd in enumerate(page_widgets):
+            # Defaults for 'blank' (& None) widgets
+            card_sfx = "{:02}".format(card)
+            entity_id = None
+            ent_domain = 'blank'
+            wd_dmn = 0  # domain code - byte encoded
+            wd_bst = 0  # icon state: inactive (0) / highlighted (0)
+            wd_icon_dft = BLANK_ICON
+            wd_name = ""  #"TEST" #""
+            wd_info = ""  #"Info" # descriptive info on state/attributes of entity
+            wd_alt = ""  #"AltX"  # optional extra info on entity
+
+            # Read YAML for entity_id, short_name, icon_number (for cropping)
+            if wd is None:
+                wd_name_yaml = None
+                wd_icon_yaml = None
+                wd_info_yaml = None
+                wd_alt_yaml = None
+                wd_bst_yaml = None
+
+            else:
+                # Get widget details from YAML automation config
+                # entity_id
+                try:
+                    entity_id = wd['entity']  # entity_id is REQUIRED - no default provided - will trigger exception if missing
+                except:
+                    err_msg = 'An "entity: ..." entry is missing for an item in the "widget:" list in the YAML automation config.'
+                    #raise ValueError(err_msg)
+                    #!
+                    logger.warning('nextion_handler.py ' + err_msg)
+                if entity_id == 'template':  # alternate name for blank - more logical in some use cases
+                    entity_id = 'blank'
+                # Domain part of entity_id
+                ent_domain = entity_id.split('.')[0]
+                # YAML icon
+                try:
+                    wd_icon_yaml = wd.get('icon', None)
+                    if wd_icon_yaml:
+                        wd_icon_yaml = int(wd_icon_yaml)
+                        if(wd_icon_yaml < 0 or wd_icon_yaml > MAX_ICON_NUM):
+                            wd_icon_yaml = ERROR_ICON  # None
+                except:
+                    #! Alert Icon provides error feedback to user
+                    wd_icon_yaml = ERROR_ICON
+                    wd_bst = 1
+                # YAML name
+                wd_name_yaml = wd.get('name', None)
+                # YAML info
+                wd_info_yaml = wd.get('info', None)
+                # YAML name
+                wd_alt_yaml = wd.get('alt', None)
+                # YAML boolean icon state (0/1)
+                wd_bst_yaml = wd.get('icon_state', None)
+
+                # Code & default icon for Domain
+                (wd_dmn, wd_icon_dft) = DICT_DOMAINS.get(ent_domain, (None, None))
+                if wd_dmn is None:
+                    if(len(entity_id.split('.'))==2):
+                        # A valid entity with unknown domain? - treat as generic sensor
+                        (wd_dmn, wd_icon_dft) = DICT_DOMAINS.get('sensor')
+                    else:
+                        # entity_id is invalid - treat as ERROR
+                        wd_dmn = -1
+                        wd_info = "<{}>".format(entity_id)
+
+                if entity_id == "blank":
+                    #TODO: Parsing '|'-delimited wd_name_yaml no longer required - REMOVE
+                    #Special case for templating: provide 'name:' as |-delimited args:
+                    # (booleanState(0/1)|Title|Alt|Info)
+                    if wd_name_yaml:
+                        try:
+                            bst_, wd_name, wd_alt, wd_info = (s.strip() for s in wd_name_yaml.split('|'))
+                            wd_bst = int(bst_)
+                        except:
+                            wd_name = wd_name_yaml
+                    else:
+                        wd_name = ""
+                elif wd_name_yaml:
+                    wd_name = wd_name_yaml
+                else:
+                    if ent_domain == 'persistent_notification':
+                        #NOTE notifications are a special case (only the domain needs to be valid, not the entity)
+                        wd_name = 'Notificatn'
+                    else:
+                        try:
+                            wd_name = hass.states.get(entity_id).attributes['friendly_name']
+                        except:
+                            # Placeholder name on error
+                            wd_dmn = -1
+                            wd_name = "Err"
+                            wd_info = '*{}*'.format(entity_id)
+
+            # Get entity data
+            if wd_dmn > 0:
+                wd_bst, wd_info, wd_alt, wd_dmn = get_widget_info(entity_id, wd_dmn)
+
+            # final info text
+            if wd_info_yaml:
+                wd_info = wd_info_yaml
+
+            # final alt text
+            if wd_alt_yaml:
+                wd_alt = wd_alt_yaml
+
+            # final icon state (unless overridden by error below)
+            if wd_bst_yaml:
+                if wd_bst_yaml in ['0', '1', 0, 1]:
+                    wd_bst = int(wd_bst_yaml)
+                elif wd_bst_yaml in [True, False]:
+                    wd_bst = 1 if wd_bst_yaml else 0
+                else:
+                    # Invalid icon state
+                    wd_icon = ERROR_ICON
+                    wd_bst = 1  # Use highlighted version of icon
+
+            # final icon
+            if wd_dmn < 0 or wd_icon_yaml == ERROR_ICON:
+                wd_icon = ERROR_ICON
+                wd_bst = 1  # Use highlighted version of icon
+            elif wd_icon_yaml:
+                wd_icon = wd_icon_yaml
+            elif wd_icon_dft:
+                wd_icon = wd_icon_dft
+            else:
+                wd_icon = DEFAULT_ICON
+
+            #* Send Widget data to its Card on Nextion page
+            # --- written to GLOBAL variables used by APPLY_VARS to update UI ---
+            # Domain code
+            nx_cmd_str = '{}{}{}.val={}'.format(pg_pfx, 'nDMN', card_sfx, wd_dmn)
+            nx_cmd(nx_cmd_str, domain, service)
+            # Icon
+            nx_cmd_str = '{}{}{}.val={}'.format(pg_pfx, 'nICN', card_sfx, wd_icon)
+            nx_cmd(nx_cmd_str, domain, service)
+            # Name
+            nx_cmd_str = '{}{}{}.txt="{}"'.format(pg_pfx, 'tNM', card_sfx, wd_name[:MAX_NAME_CHARS])
+            nx_cmd(nx_cmd_str, domain, service)
+            # Boolean status
+            nx_cmd_str = '{}{}{}.val={}'.format(pg_pfx, 'bST', card_sfx, wd_bst)
+            nx_cmd(nx_cmd_str, domain, service)
+            # --- directly written to LOCAL Text UI attribute ---
+            # Info status (descriptive string)  ° -> '\xB0'
+            wd_info = wd_info .replace('°', 'o')  #! Nextion has problem with 2-byte chars, send just the one byte
+            nx_cmd_str = '{}{}{}.txt="{}"'.format(pg_pfx, 'tINF', card_sfx, wd_info[:MAX_INFO_CHARS])
+            nx_cmd(nx_cmd_str, domain, service)
+            # Optional extra text
+            wd_alt = wd_alt.replace('°', 'o') # .encode('iso-8859-1')  # #! Nextion has problem with 2-byte chars, send just the one byte
+            nx_cmd_str = '{}{}{}.txt="{}"'.format(pg_pfx, 'tALT', card_sfx, wd_alt[:MAX_ALT_CHARS])
+            nx_cmd(nx_cmd_str, domain, service)
+
+
+        #* Write Global Nextion settings
+        nx_cmd_str = 'wd_tot={}'.format(num_widgets)
+        nx_cmd(nx_cmd_str, domain, service)
+
+    except ValueError as exptn:
+        #pass
+        # Log error message
+        err_msg = '{}\nError reading settings for Widget Card index *{}* (0=TL..BR) from YAML list.'.format(exptn, card)
+        logger.warning('nextion_handler.py ' + err_msg)
+        # raise ValueError(err_msg)
+
+    # --- End of setwd() ---
+    return True
+
+
+
+
 #_________________
 #* ACTION FUNCTIONS - perform an action in HA (don't do anything to Nx)
 
@@ -682,7 +1527,7 @@ def tgl(args_list, domain, service):
         # FULL entity required - a generic function across multiple types of entities
         if len(args_list) == 1:
             e = args_list[0]
-            entity_id, unused = get_entity_id_state(e, class_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
+            entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
             service_data = {'entity_id': entity_id}
             try:
                 hass.services.call(domain, service, service_data, False)
@@ -706,7 +1551,7 @@ def ton(args_list, domain, service):
         # FULL entity required - a generic function across multiple types of entities
         if len(args_list) == 1:
             e = args_list[0]
-            entity_id, unused = get_entity_id_state(e, class_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
+            entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
             service_data = {'entity_id': entity_id}
             try:
                 hass.services.call(domain, service, service_data, False)
@@ -730,7 +1575,7 @@ def tof(args_list, domain, service):
         # FULL entity required - a generic function across multiple types of entities
         if len(args_list) == 1:
             e = args_list[0]
-            entity_id, unused = get_entity_id_state(e, class_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
+            entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
             service_data = {'entity_id': entity_id}
             try:
                 hass.services.call(domain, service, service_data, False)
@@ -757,17 +1602,15 @@ def inps(args_list, domain, service):
     '''
     prefix = 'input_select.'
     domain = 'input_select'
-    service = 'set_value'
+    service = 'select_option'  #! service 'set_value' with service data 'option'  deprecated ~Mar 2022?
     try:
         if len(args_list) > 1:
             e = args_list[0]
             string = ' '.join(args_list[1:])  # reconstruct string if it was split by on spaces before
-            entity_id, unused = get_entity_id_state(e, class_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
-            #service_data = {'entity_id': entity_id, 'value': string }
+            entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
             service_data = {'entity_id': entity_id, 'option': string }
             try:
-                #hass.services.call('input_select', 'set_value', service_data, False) #! deprecated ~Mar 2022?
-                hass.services.call('input_select', 'select_option', service_data, False)
+                hass.services.call(domain, service, service_data, False)
             except:  # need HASS API docs to be explicit about the exception to catch here
                 raise ValueError('Failed HASS input_number service call.')
         else:
@@ -791,15 +1634,13 @@ def inpb(args_list, domain, service):
     try:
         if len(args_list) == 2:
             [e, b] = args_list
-            entity_id, unused = get_entity_id_state(e, class_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
-            #service_data = {'entity_id': entity_id, 'value': b != '0' }
+            entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
             if b != '0':  # treat any non-zero (string) value as True
                 service = 'turn_on'
             else:
                 service = 'turn_off'
             service_data = {'entity_id': entity_id}
             try:
-                #hass.services.call('input_boolean', 'set_value', service_data, False)
                 hass.services.call(domain, service, service_data, False)
             except:  # need HASS API docs to be explicit about the exception to catch here
                 raise ValueError('Failed HASS input_boolean service call.')
@@ -814,18 +1655,29 @@ def inpb(args_list, domain, service):
 
 
 def inpn(args_list, domain, service):
-    '''inpn E x (set value of input_number E to x)'''
+    '''inpn E (+/-)x(%) (set value of input_number E to x)'''
     prefix = 'input_number.'
     domain = 'input_number'
     service = 'set_value'
+    mult = 1
     try:
         if len(args_list) == 2:
-            [e, x] = args_list
-            entity_id, unused = get_entity_id_state(e, class_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
+            [e, x_] = args_list
+            entity_id, ent_state, state = get_entity_id_state(e, domain_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
+            if x_[-1:] == '%':
+                mult = 0.01
+                x_ = x_[:-1]
             try:
-                service_data = {'entity_id': entity_id, 'value': float(x) }
+                x1 = float(state)
+                x2 = float(x_)
             except ValueError:
-                raise ValueError('Value provided is not a valid float.')
+                raise ValueError('Value provided (or entity state) is not a valid float.')
+            if x_[0] in ['+', '-']:
+                mn = ent_state.attributes.get('min', '')
+                mx = ent_state.attributes.get('max', '')
+                span = mx - mn
+                x2 = x1 + x2 * span * mult
+            service_data = {'entity_id': entity_id, 'value': x2 }
             try:
                 hass.services.call(domain, service, service_data, False)
             except:  # need HASS API docs to be explicit about the exception to catch here
@@ -839,7 +1691,7 @@ def inpn(args_list, domain, service):
         raise ValueError(err_msg)
     return True
 
-
+#! deprecated v0.6 - use conslidated 'lt act E args' instead
 def lt_brt(args_list, domain, service):
     '''lt_brt E x (set brightness percent of light E to x (0..100))'''
     prefix = 'light.'
@@ -848,36 +1700,9 @@ def lt_brt(args_list, domain, service):
     try:
         if len(args_list) == 2:
             [e, x] = args_list
-            entity_id, unused = get_entity_id_state(e, class_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
+            entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
             try:
                 service_data = {'entity_id': entity_id, 'brightness_pct': int(x) }
-            except ValueError:
-                raise ValueError('Value provided is not a valid integer.')
-            try:
-                hass.services.call(domain, service, service_data, False)
-            except:  # need HASS API docs to be explicit about the exception to catch here
-                raise ValueError('Failed HASS service call {}.{}.'.format(domain, service))
-        else:
-            raise ValueError('Wrong number of items in arguments list.')
-    except ValueError as exptn:
-        err_msg = '{}\nNextion Handler failed within ACTION function:\n<{}> <{}>.'.format(exptn, 'lt_pct', '> <'.join(args_list))
-        logger.warning('nextion_handler.py ' + err_msg)
-        #hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
-        raise ValueError(err_msg)
-    return True
-
-
-def lt_brtv(args_list, domain, service):
-    '''lt_brtv E x (set brightness value of light E to x(0..255))'''
-    prefix = 'light.'
-    domain = 'light'
-    service = 'turn_on'
-    try:
-        if len(args_list) == 2:
-            [e, x] = args_list
-            entity_id, unused = get_entity_id_state(e, class_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
-            try:
-                service_data = {'entity_id': entity_id, 'brightness': int(x) }  #! brightness
             except ValueError:
                 raise ValueError('Value provided is not a valid integer.')
             try:
@@ -893,7 +1718,34 @@ def lt_brtv(args_list, domain, service):
         raise ValueError(err_msg)
     return True
 
+#! deprecated v0.6 - use conslidated 'lt act E args' instead
+def lt_brtv(args_list, domain, service):
+    '''lt_brtv E x (set brightness value of light E to x(0..255))'''
+    prefix = 'light.'
+    domain = 'light'
+    service = 'turn_on'
+    try:
+        if len(args_list) == 2:
+            [e, x] = args_list
+            entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
+            try:
+                service_data = {'entity_id': entity_id, 'brightness': int(x) }  #! brightness
+            except ValueError:
+                raise ValueError('Value provided is not a valid integer.')
+            try:
+                hass.services.call(domain, service, service_data, False)
+            except:  # need HASS API docs to be explicit about the exception to catch here
+                raise ValueError('Failed HASS service call {}.{}.'.format(domain, service))
+        else:
+            raise ValueError('Wrong number of items in arguments list.')
+    except ValueError as exptn:
+        err_msg = '{}\nNextion Handler failed within ACTION function:\n<{}> <{}>.'.format(exptn, 'lt_brtv', '> <'.join(args_list))
+        logger.warning('nextion_handler.py ' + err_msg)
+        #hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
+        raise ValueError(err_msg)
+    return True
 
+#! deprecated v0.6 - use conslidated 'lt act E args' instead
 def lt_ct(args_list, domain, service):
     '''lt_ct E x (set colour temperature of light E to x mireds)'''
     prefix = 'light.'
@@ -905,7 +1757,7 @@ def lt_ct(args_list, domain, service):
     try:
         if len(args_list) == 2:
             [e, x] = args_list
-            entity_id, unused = get_entity_id_state(e, class_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
+            entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
             try:
                 service_data = {'entity_id': entity_id, 'color_temp': int(x) }
             except ValueError:
@@ -923,7 +1775,7 @@ def lt_ct(args_list, domain, service):
         raise ValueError(err_msg)
     return True
 
-
+#! deprecated v0.6 - use conslidated 'lt act E args' instead
 def lt_rgb(args_list, domain, service):
     '''lt_rgb E r g b (set colour of light E to RGB = r, g, b)'''
     prefix = 'light.'
@@ -932,7 +1784,7 @@ def lt_rgb(args_list, domain, service):
     try:
         if len(args_list) == 4:
             [e, r, g, b] = args_list
-            entity_id, unused = get_entity_id_state(e, class_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
+            entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
             try:
                 service_data = {'entity_id': entity_id, 'rgb_color': [int(r), int(g), int(b)] }
             except ValueError:
@@ -950,7 +1802,7 @@ def lt_rgb(args_list, domain, service):
         raise ValueError(err_msg)
     return True
 
-
+#! deprecated v0.6 - use conslidated 'lt act E args' instead
 def lt_hs(args_list, domain, service):
     '''lt_hs E h s (set colour of light E to Hue = h, Saturation = s)'''
     prefix = 'light.'
@@ -959,7 +1811,7 @@ def lt_hs(args_list, domain, service):
     try:
         if len(args_list) == 3:
             [e, h, s] = args_list
-            entity_id, unused = get_entity_id_state(e, class_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
+            entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
             try:
                 service_data = {'entity_id': entity_id, 'hs_color': [float(h), float(s)] }
             except ValueError:
@@ -977,20 +1829,20 @@ def lt_hs(args_list, domain, service):
         raise ValueError(err_msg)
     return True
 
-
+#! deprecated v0.6 - use conslidated 'lt act E args' instead
 def lt_cw(args_list, domain, service):
     '''lt_cw E dx dy r (set color of light E to Color-Wheel location dx, dy from centre of circle radius r)
     Assumes a Home-Assistant-style color-wheel with red (hue 0) at 3 o'clock, increasing CLOCKWISE to 360.
     (CLOCKWISE accounts for screen y increasing downwards, which reverses angle of Cartesian ArcTan.)
     '''
-    MAX_R_MULT = 120  # ignore co-ordinates outside the radius of color wheel by this % factor
+    MAX_R_MULT = 130  # ignore co-ordinates outside the radius of color wheel by this % factor
     prefix = 'light.'
     domain = 'light'
     service = 'turn_on'
     try:
         if len(args_list) == 4:
             [e, dx_, dy_, r_] = args_list
-            entity_id, unused = get_entity_id_state(e, class_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
+            entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
             try:
                 # Sign of dy is implictly changed (Screen vs Cartesian y co-ordinate) which reverses the Cartesian arctan angle from ANTICLOCKWISE to CLOCKWISE (relative to 3 o'clock)
                 [dx, dy, r] = [float(dx_), float(dy_), float(r_)]
@@ -1028,7 +1880,7 @@ def lt_wt(args_list, domain, service):
         if len(args_list) == 1:
             #args_list.extend(['_'] * 8)  # fill in for missing optional parameters
             e = args_list[0]
-            entity_id, unused = get_entity_id_state(e, class_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
+            entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
             try:
                 # get list of light's supported modes
                 sm = hass.states.get(entity_id).attributes['supported_color_modes']
@@ -1065,6 +1917,203 @@ def lt_wt(args_list, domain, service):
 
 
 
+#@lt
+#TODO work in progress: lt ATTRIBUTE version
+def lt(args_list, domain, service):
+    '''lt act E (arg1) (arg2) (arg3) (call action with code 'act' for lt E)
+    action/service options:
+        (turn_on, turn_off, toggle: use generic ton, tof, tgl instead)
+        lt brt E x (set brightness percent of light E to x (0..100))
+        lt brt E +/-x (increase/decrease brightness percent of light E by x (0..100))
+        lt brtv E x (set brightness value of light E to x(0..255))
+        lt ct E x (set colour temperature of light E to x mireds)
+        lt rgb E r g b (set colour of light E to RGB = r, g, b)
+        lt hs E h s (set colour of light E to Hue = h, Saturation = s)
+        lt hct E +/-x (adjust the hue or ct of light E by x%, based on current light mode)
+        lt cw E dx dy r (set color of light E to Color-Wheel location dx, dy from centre of circle radius r)
+            Assumes a Home-Assistant-style color-wheel with red (hue 0) at 3 o'clock, increasing CLOCKWISE to 360.
+            (CLOCKWISE accounts for screen y increasing downwards, which reverses angle of Cartesian ArcTan.)
+        lt wt E (set light E to a supported white/color_temp mode).
+            (Otherwise just try to turn the light on.)
+    '''
+    MAX_R_MULT = 130  # ignore co-ordinates outside the radius of color wheel by this % factor
+
+    prefix = 'light.'
+    domain = 'light'
+    service = None  # assigned based on 'act' code
+    #wrong_num_args = False
+    transfer_err_msg = ''  # Allows exception messages to be raised & passed upwards without being overwritten by a higher level exception
+    skip_service_call = False  # give 'act' processing below a way to skip if required
+
+    # set the service & service_data for the hass.service call
+    try:
+        num_args = len(args_list)
+        if num_args == 2:
+            # Action that reqquire no other args (e.g., call HA services with NO service_data (just entity_id))
+            # e = args_list[0]
+            # act = args_list[1]
+            [act, e] = args_list  #[:2]
+            entity_id, ent_state = get_entity_id_state(e, domain_prefix=prefix)[:2]  # will raise exception if it can't translate e to valid entity_id
+            service_data = {'entity_id': entity_id}  # the same for all services below (that have no other arguements)
+            if act == 'wt':
+                service = 'turn_on'
+                sm = ent_state.attributes.get('supported_color_modes', 'onoff')
+                if 'color_temp' in sm:
+                    ct = ent_state.attributes.get('color_temperature', 370)
+                    service_data = {'entity_id': entity_id, 'color_temp': int(ct) }
+                elif 'white' in sm:
+                    brt = ent_state.attributes.get('brightness', 150)
+                    service_data = {'entity_id': entity_id, 'white': int(brt) }
+                else:
+                    service_data = {'entity_id': entity_id}
+
+            #End of  valid act codes
+            else:
+                transfer_err_msg = 'The specified ACTION CODE is not valid.'
+
+        elif 3 <= num_args <=  5:
+            # services with 1 to 5 args (together with e and act)
+            args_list.extend(['_']*3)  # extend list with '_'s to indicate potential unassigned/default values
+            (act, e, x_, y_, z_) = args_list[:5]
+            #(e, act, x_) = args_list[:3]
+            entity_id, ent_state, state = get_entity_id_state(e, domain_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
+            try:
+                # brighness (pct & val)
+                if act == 'brt':
+                    service = 'turn_on'
+                    x = int(x_)
+                    if x_[0] == '+':
+                        if state == 'off':
+                            x = 100  # turn on to max brightness
+                        else:
+                            x = int(ent_state.attributes.get('brightness', 0)/2.55 + x)
+                            if x > 100:
+                                x = 100
+                    elif x_[0] == '-':
+                        if state == 'off':
+                            x = 15  # turn on to low brightness
+                        else:
+                            x = int(ent_state.attributes.get('brightness', 0)/2.55 + x)
+                            if x < 5:
+                                x = 5  # don't dim to completely off
+                    service_data = {'entity_id': entity_id, 'brightness_pct': x }
+                elif act == 'brtv':
+                    service = 'turn_on'
+                    x = int(x_)
+                    if x_[0] == '+':
+                        x = int(ent_state.attributes.get('brightness', 0)) + x
+                        if x > 255:
+                            x = 255
+                    elif x_[0] == '-':
+                        x = int(ent_state.attributes.get('brightness', 0)) + x
+                        if x < 10:
+                            x = 10  # don't dim to completely off
+                    service_data = {'entity_id': entity_id, 'brightness': int(x_) }
+                # color_temp
+                elif act == 'ct':
+                    service = 'turn_on'
+                    x = int(x_)
+                    if x_[0] == '+':
+                        x = int(ent_state.attributes.get('color_temp', 370)) + x
+                        if x > ent_state.attributes.get('max_mireds', 500):
+                            x = ent_state.attributes.get('max_mireds', 500)
+                    elif x_[0] == '-':
+                        x = int(ent_state.attributes.get('color_temp', 0)) + x
+                        if x < ent_state.attributes.get('min_mireds', 153):
+                            x = ent_state.attributes.get('min_mireds', 153)
+                    service_data = {'entity_id': entity_id, 'color_temp': x }
+                # color (rgb, hs, cw)
+                elif act == 'rgb':
+                    service = 'turn_on'
+                    service_data = {'entity_id': entity_id, 'rgb_color': [int(x_), int(y_), int(z_)] }
+                elif act == 'hs':
+                    service = 'turn_on'
+                    x = float(x_)
+                    y = float(y_)
+                    h, s = ent_state.attributes.get('hs_color', (0, 50))
+                    if x_[0] in ['+', '-']:
+                        h = h + x
+                    else:
+                        h = x
+                    h = h % 360
+                    # if h > 360:
+                    #     h = h - 360
+                    # elif h < 0:
+                    #     h = h + 360
+                    if y_[0] in ['+', '-']:
+                        s = s + y
+                    else:
+                        s = y
+                    if s > 100:
+                        s = 100
+                    elif s < 0:
+                        s = 0
+                    service_data = {'entity_id': entity_id, 'hs_color': [h, s] }
+                elif act == 'hct':
+                    # Percent adjustment to hue OR ct, depending on current (& supported) light mode.
+                    service = 'turn_on'
+                    x = float(x_)
+                    cm = ent_state.attributes.get('color_mode', None)
+                    if cm == 'color_temp':
+                        ct = ent_state.attributes.get('color_temp', 370)
+                        ct2 = int(ct + x * 3.47)  # x% of 347 mired span (153 .. 500)
+                        if ct2 > ent_state.attributes.get('max_mireds', 500):
+                            ct2 = ent_state.attributes.get('max_mireds', 500)
+                        if ct2 < ent_state.attributes.get('min_mireds', 153):
+                            ct2 = ent_state.attributes.get('min_mireds', 153)
+                        service_data = {'entity_id': entity_id, 'color_temp': ct2 }
+                    else:
+                        h, s = ent_state.attributes.get('hs_color', (None, None))
+                        if h:
+                            h2 = h + x * 3.6  # x% of 360 hue span
+                            #!
+                            #h2 = h + 180
+                            h2 = h2 % 360
+                            service_data = {'entity_id': entity_id, 'hs_color': [h2, s] }
+                        else:
+                            skip_service_call = True
+                elif act == 'cw':
+                    service = 'turn_on'
+                    # Sign of dy is implictly changed (Screen vs Cartesian y co-ordinate) which reverses the Cartesian arctan angle from ANTICLOCKWISE to CLOCKWISE (relative to 3 o'clock)
+                    [dx, dy, r] = [float(x_), float(y_), float(z_)]
+                    sat = int(100 * math.sqrt(dx*dx + dy*dy)/r)
+                    if sat <= MAX_R_MULT:
+                        if sat > 100:
+                            sat = 100
+                        hue = int(math.atan2(dy, dx)*180/math.pi)
+                        if hue < 0:
+                            hue = hue + 360
+                        service_data = {'entity_id': entity_id, 'hs_color': [hue, sat] }
+                    else:
+                        skip_service_call = True
+
+                #End of  valid act codes
+                else:
+                    transfer_err_msg = 'The specified ACTION CODE is not valid.'
+            except:
+                transfer_err_msg = 'The specified argumentss are not of the valid TYPE(S).'
+        else:
+            transfer_err_msg = 'Wrong NUMBER of argumentss.'
+
+        if transfer_err_msg:
+            raise ValueError(transfer_err_msg)
+
+        # make the requested service call (with the service & service_data set above)
+        if not skip_service_call:
+            try:
+                hass.services.call(domain, service, service_data, False)
+            except:  # need HASS API docs to be explicit about the exception to catch here
+                raise ValueError('Failed HASS service call {}.{}.'.format(domain, service))
+
+    except ValueError as exptn:
+        err_msg = '{}\nNextion Handler failed within ACTION function:\n<{}> <{}>.'.format(exptn, 'lt', '> <'.join(args_list))
+        logger.warning('nextion_handler.py ' + err_msg)
+        #hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
+        raise ValueError(err_msg)
+    return True
+
+
+
 def scn(args_list, domain, service):
     '''scn E (set scenario E)'''
     prefix = 'scene.'
@@ -1073,7 +2122,7 @@ def scn(args_list, domain, service):
     try:
         if len(args_list) == 1:
             e = args_list[0]
-            entity_id, state = get_entity_id_state(e, class_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
+            entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
             try:
                 hass.services.call('scene', 'turn_on', {'entity_id': entity_id}, False)
             except:  # need HASS API docs to be explicit about the exception to catch here
@@ -1092,7 +2141,7 @@ def scpt(args_list, domain, service):
     '''scpt E (t) (call script E: if t==off, turn_off instead)'''
     prefix = 'script.'
     domain = 'script'
-    service = 'turn_on'  # default: if t=='off', changed to 'turn_off'
+    service = 'turn_on'  # << default: if t=='off', 'turn_off' instead
     try:
         if len(args_list) in [1, 2]:
             if len(args_list) == 1:
@@ -1101,7 +2150,7 @@ def scpt(args_list, domain, service):
                 [e, t] = args_list
                 if t == 'off':
                     service = 'turn_off'
-            entity_id, unused = get_entity_id_state(e, class_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
+            entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
             service_data = {'entity_id': entity_id}
             try:
                 hass.services.call(domain, service, service_data, False)
@@ -1111,6 +2160,136 @@ def scpt(args_list, domain, service):
             raise ValueError('Wrong number of items in arguments list.')
     except ValueError as exptn:
         err_msg = '{}\nNextion Handler failed within ACTION function:\n<{}> <{}>.'.format(exptn, 'scpt', '> <'.join(args_list))
+        logger.warning('nextion_handler.py ' + err_msg)
+        #hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
+        raise ValueError(err_msg)
+    return True
+
+
+#@mp
+#! Need to be able to handle text args with SPACES (e.g. sources "Live TV")
+#TODO work in progress: MEDIA PLAYER ACT
+def mp(args_list, domain, service):
+    '''mp act E (arg1) (arg2) (call action/'service' with code 'act' for media_player E)
+    action/service options:
+        (turn_on, turn_off, toggle: use generic ton, tof, tgl instead)
+        mp pp E (media_play_pause media_player E)
+        mp ply E (media_play media_player E)
+        mp ps E (media_pause media_player E)
+        mp stp E (media_stop media_player E)
+        mp nxt E (media_next_track media_player E)
+        mp prv E (media_previous_track media_player E)
+        mp v+ E (volume_up media_player E - increments are player-dependent?)
+        mp v- E (volume_down media_player E)
+
+        mp vol E x (volume_set media_player E to x (0..100))
+        mp mut E x (volume_mute media_player E to x (0/1), or toggle i x<0 )
+        mp sk E x (media_seek media_player E to position x (seconds, player dependent))
+        mp pm E x y (play_media x y on media_player E)
+            x = media_content_id: id is player-dependent;
+            y = media_content_type: in [music, tvshow, video, episode, channel, playlist]
+        mp src E x (select_source x (player dependent) for media_player E)   #! need to handle spaces
+    '''
+    # Service options deemed unsuitable to include in a Nextion UI: 
+    # clear_playlist, shuffle_set, repeat_set, play_media, select_sound_mode, join, unjoin
+
+    prefix = 'media_player.'
+    domain = 'media_player'
+    service = None  # assigned based on 'act' code
+    transfer_err_msg = ''
+    skip_service_call = False  # give 'act' processing below a way to skip if required
+
+    try:
+        # set the service & service_data for the hass.service call
+        if len(args_list) == 2:
+            # services with NO arguements (just entity_id)
+            # (turn_on, turn_off, toggle)
+            # pp, ply, ps, stp: media_play_pause, media_play, media_pause, media_stop,
+            # nxt, prv: media_next_track, media_previous_track, clear_playlist
+            # v+, v-: volume_up, volume_down  (fixed vol increments - player-dependent?)
+            act, e = args_list
+            entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
+            service_data = {'entity_id': entity_id}  # the same for all services below (that have no other arguements)
+            if act == 'pp':
+                service = 'media_play_pause'
+            elif act == 'ply':
+                service = 'media_play'
+            elif act == 'ps':
+                service = 'media_pause'
+            elif act == 'stp':
+                service = 'media_stop'
+            elif act == 'nxt':
+                service = 'media_next_track'
+            elif act == 'prv':
+                service = 'media_previous_track'
+            elif act == 'v+':
+                service = 'volume_up'
+            elif act == 'v-':
+                service = 'volume_down'
+            #End of  valid act codes
+            else:
+                transfer_err_msg = 'The specified ACTION CODE is not valid.'
+
+        elif len(args_list) > 2:
+            # services with 1+ arguements (in addition to entity_id):
+            # vol: volume_set(volume_level: 0..1 float)
+            # mut: volume_mute(is_volume_muted: True/False), media_play_pause,
+            # sk: media_player.media_seek(seek_position: position - player-dependent)
+            # pm: media_player.play_media(media_content_id: id - player-dependent; media_content_type: [music, tvshow, video, episode, channel or playlist])
+            # src: media_player.select_source(source: source - p-d)
+
+            args_list_ext = args_list + ['_']*3  # extend COPY of list with '_'s to indicate potential unassigned/default values
+            act, e, x_, y_, z_ = args_list_ext[:5]
+            entity_id, ent_state, state = get_entity_id_state(e, domain_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
+            try:
+                if act == 'vol':
+                    service = 'volume_set'
+                    service_data = {'entity_id': entity_id, 'volume_level': float(x_)}
+                elif act == 'mut':
+                    service = 'volume_mute'
+                    muted = ent_state.attributes.get('is_volume_muted', None)
+                    if muted is None:
+                        #entity cannot be muted (in its current state)
+                        skip_service_call = True
+                    else:
+                        if int(x_) < 0:
+                            set_mute = not muted  # toggle
+                        else:
+                            set_mute = False if x_[0] in ['0', 'F'] else True
+                        service_data = {'entity_id': entity_id, 'is_volume_muted': set_mute}
+                elif act == 'sk':
+                    service = 'media_seek'
+                    service_data = {'entity_id': entity_id, 'seek_position': float(x_)}
+                elif act == 'pm':
+                    service = 'play_media'
+                    service_data = {'entity_id': entity_id, 'media_content_id': x_, 'media_content_type': y_}
+                elif act == 'src':
+                    #! Fixed? x_ = need to rejoin args BUT without extra '_' added above
+                    x_ = ' '.join(args_list[2:])
+                    service = 'select_source'
+                    service_data = {'entity_id': entity_id, 'source': x_}
+                #End of  valid act codes
+                else:
+                    transfer_err_msg = 'The specified ACTION CODE is not valid.'
+            except:
+                transfer_err_msg = 'The specified ARGs are not of the valid type(s).'
+        else:
+            transfer_err_msg = 'Wrong NUMBER of items in arguments list.'
+
+
+        if transfer_err_msg:
+            raise ValueError(transfer_err_msg)
+
+        if not skip_service_call:
+            # make the requested service call (with the service & service_data set above)
+            try:
+                hass.services.call(domain, service, service_data, False)
+            except:  # need HASS API docs to be explicit about the exception to catch here
+                raise ValueError('Failed HASS service call {}.{}.'.format(domain, service))
+
+
+    except ValueError as exptn:
+        err_msg = '{}\nNextion Handler failed within ACTION function:\n<{}> <{}>.'.format(exptn, 'mp', '> <'.join(args_list))
         logger.warning('nextion_handler.py ' + err_msg)
         #hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
@@ -1132,7 +2311,7 @@ def say(args_list, domain, service):
         if len(args_list) > 1:
             e = args_list[0]
             string = ' '.join(args_list[1:])  # reconstruct string if it was split by on spaces before
-            entity_id, unused = get_entity_id_state(e, class_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
+            entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
             service_data = {'entity_id': entity_id, 'message': string }
             try:
                 hass.services.call(domain, service, service_data, False)
@@ -1254,98 +2433,164 @@ def sub(args_list, domain, service):
 
 
 
-#TODO: for WIDGET (incomplete) @wd
-def configure_widgets(args_list, domain, service):
-    '''Configures Nextion to use the list of WIDGETs specified in the 'widgets:'
-    YAML of the calling automation.
-    This will write to a set of Nextion variables (widget, page & global) that
-    will configure special 'Widget-Template HMIs' to use the selected entities. 
+#TODO: Widget action processing (initial feature set complete).
+def wact(args_list, domain, service):
+    '''wact wd_pg wd_num wd_dmn card_seg gest
+    (Process the touch event with gesture_type, 'gest', on segment (quadrant)
+    'seg' of the card for widget 'wd_num' (absolute index in 'widget:' list)
+    with domain code 'wd_dmn' on widget page (Wx where x = wd_pg).)
     '''
-    #* Function CONSTANTS
-    WIDGETS_PER_PAGE = 6
-    MAX_PAGES = 3
-    # Dict to map HA entity classes to NX widget types
-    # NX grouped types (for entity classes that do not have their own separate type):
-    #  TG: TOGGLE (switch, input_boolean, automation)
-    #  ST: STATE (only shows the HA state of the entity - no actions)
-    CLASS_TO_TYPE_DICT = {
-        'light': 'LT',
-        'switch': 'TG',
-        'input_boolean': 'TG',
-        'automation': 'TG',
-        'scene':  'SC',
-        'script': 'SP',
-        #---- not supported yet --- (NX will treat as ST)
-        'input_number': 'IN',
-        'media_player': 'MP',
-        'weather': 'WT',
-        'input_select': 'IS',
-        #--- status ---
-        'sensor': 'ST',
-        'binary_sensor': 'ST',
-        'DEFAULT': 'ST'  # NX scripts should always default to treating unresolved entities as simple 'STATE' providers
-    }
-    #TODO Dict to map NX widget types (defined above) to icons (NX picc numbers? Paired? Where ENABLED icon = DISABLE icon num +1?)
-    TYPE_TO_ICON_DICT = {'LT': 0, 'TG': 0}
+    TOGGLE_MASK = 384  # sum of individual toggle masks
+    DIRECT_TOGGLE_MASK = 128  # indicates the domain has an actual 'toggle' service
+    LOGICAL_TOGGLE_MASK = 256  # can effectively be toggled, but NOT directly with 'hass.toggle'
+    DOMAIN_NUM_MASK = 127  # first 7 bits give unique code for entity domain 
 
-    #* Get list of Widgets (& their settings) from 'widgets:' YAML section
-    try:
-        WIDGETS_LIST = data.get('widgets')
-    except:
-        # Log error message
-        err_msg = 'Error trying get "widgets:" list from YAML for calling automation.'
+    # nx_cmd_str = 'tINF04.txt="{}"'.format(','.join(args_list))
+    # nx_cmd(nx_cmd_str, domain, service)
+
+    if len(args_list) == 5:
+        try:
+            wd_pg, wd_num, wd_dmn, card_seg, gest_type = [int(i) for i in args_list]
+            e = '@{}'.format(wd_num)  # widget '@' index for entity_id
+            entity_id, ent_state, state = get_entity_id_state(e)
+            domain_num = wd_dmn & DOMAIN_NUM_MASK
+        except:
+            err_msg = '{}\nNextion Handler, problem parsing arguments in WIDGET function:\n<{}> <{}>.'.format(exptn, 'wact', '> <'.join(args_list))
+            logger.warning('nextion_handler.py ' + err_msg)
+            #hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
+            raise ValueError(err_msg)
+    else:
+        err_msg = 'Nextion Handler, wrong number of arguments in WIDGET function:\n<{}> <{}>.'.format('wact', '> <'.join(args_list))
         logger.warning('nextion_handler.py ' + err_msg)
-    num_widets = min(len(WIDGETS_LIST), MAX_PAGES * WIDGETS_PER_PAGE)
-    num_pages = math.ceil(num_widgets / WIDGETS_PER_PAGE)
-    n = 0
-    try:
-        set_cmds = []
-        for w, n in enumerate(WIDGETS_LIST):
-            current_page_num = math.ceil(n/WIDGETS_PER_PAGE) - 1  # pages numbered from 0 .. (num_pages - 1)
-            current_page_name = 'M{}'.format(current_page_num)  # NX template widget pages labelled 'M0'...
-            entity_id, wd_type, wd_name, icon = None, None, None
-            #TODO:
-            # Read YAML for entity_id, short_name, icon
-            wd_ent = WIDGETS_LIST[0]['entity_id']  # entity_id is REQUIRED - no default provided - will trigger exception if missing
-            wd_name = WIDGETS_LIST[0].get('short_name', None)
-            wd_icon = WIDGETS_LIST[0].get('icon', None)
-            # Get name from entity friendly_name if not provided in YAML
-            if wd_name is None:
-                #TODO get friendly_name from HA instead - TEST
-                try:
-                    wd_name = hass.states.get(entity_id).attributes['friendly_name']
-                except:
-                    # Placeholder name on error
-                    wd_name = 'Widget {}'.format(n+1)
-            # HA Entity class, NX Widget Type, and NX icon
-            ent_class = entity_id.split[0]
-            wd_type = CLASS_TO_TYPE_DICT.get(ent_class, 'ST')
-            if wd_icon is None:
-                wd_icon = TYPE_TO_ICON_DICT['wd_type']
-            #TODO: write widget settings to NX PAGE.Variable.val/txt
-            #...
-            #TODO: create SET NhCmd for current widget - add to list for current page (write variables here or later)
-            set_cmd = ''  #TODO set cmd for current widget
-            set_cmds_list += setcmd  # build list of SET cmds for later processing  #! '+=' not supported?
-    except:
-        pass
-        # Log error message
-        err_msg = 'Error reading settings for Widget number *{}* in YAML list.'.format(n+1)
-        logger.warning('nextion_handler.py ' + err_msg)
-        # raise ValueError(err_msg)  #! may need to debug before trapping such a large block
+        #hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
+        raise ValueError(err_msg)
 
-    #TODO: Write NX settings for each page
-    for p in num_pages:
-        # Need to create and write list of HA_SET commands (for NX to be able to fetch all the data it needs)
-        pass
+    # toggles
+    if card_seg == 0 and gest_type == 91 and (wd_dmn & DIRECT_TOGGLE_MASK):  # Top Left 'Icon' quadrant
+        tgl([e], domain, service)
 
-    #TODO: Write Global NX settings
-    # page 0 # Change to starting 'main' UI page (which should trigger a page update & refresh with the provided HA_SET 1..5 commands)
-    # set 'config_done=1' 
+    # light
+    elif domain_num == 18:
+        if card_seg == 0:    #TL
+            if gest_type > 91:
+                tof([e], domain, service)
+        elif card_seg == 1:  #TR
+            if gest_type > 91:
+                lt(['wt', e], domain, service)
+        elif card_seg == 2:  #BL
+            if gest_type == 91:
+                lt(['brt', e, '-20'], domain, service)
+            elif gest_type > 91:
+                lt(['hct', e, '-20'], domain, service)
+        elif card_seg == 3:  #BR
+            if gest_type == 91:
+                lt(['brt', e, '+20'], domain, service)
+            elif gest_type > 91:
+                lt(['hct', e, '+20'], domain, service)
 
+    # media_player
+    elif domain_num == 20:
+        if card_seg == 0:    #TL
+            if gest_type > 91:
+                mp(['pp', e], domain, service) # toggle play-pause
+        elif card_seg == 1:  #TR
+            #TODO: pop-up card will use short tap TR
+            # if gest_type > 91:
+            #     mp(['mut', e, '-1'], domain, service) # toggle mute
+            mp(['mut', e, '-1'], domain, service) # toggle mute
+        elif card_seg == 2:  #BL
+            if gest_type == 91:
+                mp(['v-', e], domain, service) # step volume up
+            elif gest_type > 91:
+                mp(['prv', e], domain, service) # previous track
+        elif card_seg == 3:  #BR
+            if gest_type == 91:
+                mp(['v+', e], domain, service) # step volume down
+            elif gest_type > 91:
+                mp(['nxt', e], domain, service) # next track
+
+    # automation
+    elif domain_num == 2:
+        if gest_type == 91:  # short press anywhere
+            service = 'toggle'
+        else:  # long(+) press anywhere
+            service = 'trigger'
+        hass.services.call('automation', service, {'entity_id': entity_id}, False)
+
+    # button
+    elif domain_num == 4:
+        # all presses
+        hass.services.call('button', 'press', {'entity_id': entity_id}, False)
+
+    # input number
+    elif domain_num == 16:
+        if card_seg in [0, 2]:    #LHS
+            if gest_type == 91:  # short press
+                adjustment = '-5%'
+            else: # long press
+                adjustment = '-20%'
+        else: # RHS
+            if gest_type == 91:  # short press
+                adjustment = '+5%'
+            else: # long press
+                adjustment = '+20%'
+        inpn([entity_id, adjustment], domain, service)
+
+    # scene
+    elif domain_num == 24:
+        # all presses
+        hass.services.call('scene', 'turn_on', {'entity_id': entity_id}, False)
+
+    # script
+    elif domain_num == 25:
+        if gest_type == 91:  # short press anywhere
+            service = 'toggle'
+        else:  # long(+) press anywhere
+            service = 'turn_off'
+        hass.services.call('script', service, {'entity_id': entity_id}, False)
+
+    # switch
+    elif domain_num == 30:
+        if gest_type == 91:  # short press anywhere
+            service = 'toggle'
+        else:  # long(+) press anywhere
+            service = 'turn_off'
+        hass.services.call('switch', service, {'entity_id': entity_id}, False)
+
+    # update
+    elif domain_num == 32:
+        if card_seg in [0, 2]:    #LHS
+            if gest_type == 91:  # short press anywhere
+                service = 'install'
+        else: # RHS
+            if gest_type == 91:  # short press
+                service = 'skip'
+            else:  # long(+)
+                service = 'clear_skipped'
+        hass.services.call('update', service, {'entity_id': entity_id}, False)
+
+    # vacuum - too many brand-specific services & sensor values to do much more generically
+    elif domain_num == 33:
+        if card_seg in [0, 2]:    #LHS
+            if gest_type == 91:  # short
+                if state == 'cleaning':
+                    # '.turn_on' For the Xiaomi Vacuum, Roomba, and Neato use '.start' instead.
+                    l_service = ['stop', 'turn_off']
+                else:
+                    l_service = ['start', 'turn_on']
+            else:   # long(+)
+                l_service = ['return_to_base']
+        else: # RHS
+            if gest_type == 91:  # short press
+                l_service = ['locate']
+                #l_service = ['stop']
+            else:  # long(+)
+                l_service = ['clean_spot']
+        for service in l_service:
+            hass.services.call('vacuum', service, {'entity_id': entity_id}, False)
+
+    # --- wact() ---
     return True
-
-
 
 
 
@@ -1388,6 +2633,8 @@ FUNC_DICT ={
     'setlt': setlt,
     'setntf': setntf,
     'setdt': setdt,
+    'setmp': setmp,
+    'setwd': setwd,
     #* ACTION functions
     # Actions where entity_id class needs to be provided (but $alias preferred)
     'tgl': tgl,
@@ -1398,20 +2645,26 @@ FUNC_DICT ={
     'inpb': inpb,
     'inpn': inpn,
     'scn': scn,
-    'scpt': scpt,  
+    'scpt': scpt,
+    'lt': lt,  #! lt_* functions below are deprecated and incorporated into consolidated lt
     'lt_brt': lt_brt,
+    'lt_brtp': lt_brt,  # alernative option for lt_brt (percent 0..100)
+    'lt_pct': lt_brt,  #* alernative option for lt_brt (percent 0..100)
+    'lt_brtv': lt_brtv,  # brightness VALUE (percent 0..255)
     'lt_ct': lt_ct,
     'lt_rgb': lt_rgb,
     'lt_hs': lt_hs,
     'lt_cw': lt_cw,
     'lt_wt': lt_wt,
+    'mp': mp,
     # Info Actions
     'say': say,
     'ntf': ntf,
     'ntfx': ntfx,
-    #* CONTROL functions (unusual behaviour to break out of, control, or modify nested loops)
-    'sub': sub,
-    'configure_widgets': configure_widgets  #TODO: incomplete
+    #! Widget UI
+    'wact': wact,
+    #* CONTROL functions
+    'sub': sub
 }
 
 
@@ -1474,7 +2727,7 @@ try:
     #* Get the value of the TRIGGER (that triggered this script and indicates the type of response required)
     try:
         trig_ent = data.get('trig_val')
-        trig_val = int(float(hass.states.get(trig_ent).state))  #! Python cannot convert the state of ESPhome's integer sensor format (string '-1.00') directly to int
+        trig_val = int(float(hass.states.get(trig_ent).state))  #! Python cannot convert the state of ESPhome's integer _default_ sensor format (string '-1.00') directly to int (Testing reducing ESPHome dp to 0 for this sensor?)
     except:
         # If it is not an entity, see if it is a directly specified int (to allow 'forced' automation overrides)
         try:
@@ -1482,7 +2735,10 @@ try:
         except:
             continue_script = False
             raise ValueError('Provided trig_val is neither a valid entity_id nor an integer: ent: <{}>, value: <{}>.'.format(trig_ent, trig_str))
-        if trig_val is None:
+        if trig_val == "":
+            continue_script = False
+            # no exception for ocassional problems of sending empty string
+        elif trig_val is None:
             continue_script = False
             raise ValueError('Provided trig_val is neither a valid entity_id nor an integer: ent: <{}>, value: <{}>.'.format(trig_ent, trig_str))
 
