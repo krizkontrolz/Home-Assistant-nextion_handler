@@ -17,7 +17,7 @@ The Widgets currently provide sufficient functionality for most of the every-day
 * 🔹 read and dismiss HA notifications;
 * 🔹 change NSPanel settings (including managing the linking/unlinking of NSPanel physical buttons to their respective relays).
   
-🚧 The details of how information is displayed will continue to be fine tuned, and new functionality will be added as the supported capabilities of the underlying [Nextion Hanlder](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/HA_NEXTION_HANDLER_INSTRUCTIONS.md) are being developed and expanded. 🚧
+The details of how information is displayed will continue to be fine tuned, and new functionality will be added as the supported capabilities of the underlying [Nextion Hanlder](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/HA_NEXTION_HANDLER_INSTRUCTIONS.md) are being developed and expanded.
 
   
 </details>
@@ -38,18 +38,18 @@ The Widgets currently provide sufficient functionality for most of the every-day
   
   
 ### Installation steps
-(HMI is only available for US NSPanels only at this stage)
+(Nextion UI TFT is only available for US NSPanels only at this stage.)
   
 *🔹 Flashing the ESPHome YAML template:
   * Download a copy of the template `ESPHome_Nextion_Handler_template.yaml` configuration file and fill in your details from your backup configuration into the `substitutions:` section at the top of the file.  (Leaving `ha_prefix: nsp1` will make the automation template easier later on.)
   * Validate the file before installing it to the NSPanel (from the ESPHome addon page in Home Assistant ).
-  * Once the ESPHome installation is complete, the NSPanel device page in HA to make sure the entities are showing up properly.  If you changed `ha_prefix: nsp1` (above), you will later need to get the enitity_ids for `Trigger`, `HA Act`, `HA Set1 & 2` (from the device page), and `ESPHome: nsp1_send_command` (from `Developer Tools | SERVICES`).  And you will use the `TFT upload button` to flash the Nextion TFT UI file.
+  * Once the ESPHome installation is complete, check the NSPanel device page in HA to make sure the entities are showing up properly.  If you changed `ha_prefix: nsp1` (above), you will later need to get the enitity_ids for `Trigger`, `HA Act`, `HA Set1 & 2` (from the device page), and `ESPHome: nsp1_send_command` (from `Developer Tools | SERVICES`).  And you will use the `TFT upload button` to flash the Nextion TFT UI file.
 
 *🔹 Home Assistant python script:
   * Copy the downloaded `nextion_handler.py` script into the `<config>/python_scripts/` folder of your Home Assistant device.
   * If you have never used Python scripts in Home Assistant before, you will have to add a line `python_script:` to your `configuration.yaml`.  ([See HA page on Python scripts](https://www.home-assistant.io/integrations/python_script/).)
   * Add the automation template from the `HA_automation.yaml` file to your own HA configuration (editing the NSPanel entity_ids to match those you noted above if you set a prefix other than `nsp1`).
-  * In the `widgets:` section of the automation, add one of your own entities to the list as `  - entity: light.kitchen` to get started.  Start with just one to make sure the installation worked.  You can edit these whenever you want, then `reload automations` for HA to recognise the changes.  Some suggestions are already in the template, commented out, for you to replace with your own entities later on.
+  * In the `widgets:` section of the automation, add one of your own entities to the list as `  - entity: light.kitchen` (for example) to get started.  Start with just one to make sure the installation worked.  You can edit the `widget:` list whenever you want, then `reload automations` for HA to recognise the changes.  Some suggestions are already in the template, commented out, for you to replace with your own entities later on.  (If you get an entity configuration wrong, you can usually recoginise this as the first widget on a page that fails to load information properly.) 
 
 *🔹 Nextion Widget UI TFT file:
   * Copy the downloaded `Widget UI TFT file` into the location you specified in the `tft_url` of your ESPHome configuration, and rename it to match the filename you set.  Then press the `TFT upload button` on the NSPanel's device page in Home Assistant (that you located before).
@@ -112,7 +112,7 @@ Popup pages provide additional detail and control, particularly where generic Wi
  The device will provide audible feedback with:
     * 🎵 a beep (after ~3 seconds) to let you know you when to release the button to cause an 'override' relay toggle;
     * 🎶 rising notes (after ~6 seconds) when you LINK the button to its relay;
-    * 🎶 descending notes (after ~6 seconds) when you UNLINK the button to its relay.
+    * 🎶 descending notes (after ~6 seconds) when you UNLINK the button from its relay.
 
   
 Be conservative with the update settings initially, then tweak them when your configuration is working well.  There is a trade-off between how fast and frequently you initiated data updates after a touch interaction, and how responsive the NSPanel will be to multiple successive touch interactions (such as multiple taps for triggerig quick increase/decrease step changes to light brightness).  
