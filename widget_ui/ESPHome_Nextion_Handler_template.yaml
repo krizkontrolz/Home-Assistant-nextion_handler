@@ -66,7 +66,7 @@
   # 'COMPONENTS' are UI elements and have multiple attributes (aside from just .val or .txt).
   # 'VARIABLES' are just a single .val or .txt value.
   #    Global Progam.s variables are 32-bit int only (without a .val or .txt extension) (e.g. 'TRIGGER', 'esp_wifi').
-  #    Page '(X) Variables' can be either .val or .txt, and either local or global (e.g. 'CFG.HA_ACT.txt')
+  #    Page '(X) Variables' can be either .val or .txt, and either local or global (e.g. 'CFG.HAact.txt')
   #----------------------------------------
   
   
@@ -184,9 +184,6 @@
     #   The strings are manually configured by the user on each page.
     #   The strings are sent by the PostInitialize Event on each page.
     #   (A list of HA_Set strings is used to allow sending messages larger than 255 chars (an HA limit on string sensors).)
-    # NB: Nextion strings DO NOT ALLOW correctly specifiying the source of Nextion data as VARIABLEs (have to use 'component_name:'),
-    #     OR correctly using the same name as the Nextion variable (some chars, such as '_' are not accepted in ESPHome).
-    #     ==> Have to remove '_' from Nextion variable names and specify them against 'component_name:' below instead. 
     - platform: nextion
       component_name: HaSet1     # name used in Nextion write instructions (remove underscores - can be different from the Nextion variable itself).
       name: $ha_prefix HA Set1  # used for entity_id in HA (spaces will be converted to '_', can't use '_' directly).
@@ -279,7 +276,6 @@
         - ON for at least 6s  
         then:
           - switch.toggle: couple_relay_1
-          #- rtttl.play: "doodle-dah:d=8,o=5,b=250:d#6,a#,d#6"  # confirmation sound
           - if:
               condition:
               - switch.is_on: couple_relay_1
@@ -316,7 +312,6 @@
         - ON for at least 6s  
         then:
           - switch.toggle: couple_relay_2
-          #- rtttl.play: "doodle-dah:d=8,o=5,b=250:d#6,a#,d#6"  # confirmation sound
           - if:
               condition:
               - switch.is_on: couple_relay_2
