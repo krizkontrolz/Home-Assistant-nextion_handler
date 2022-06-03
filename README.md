@@ -1,20 +1,19 @@
 # Home Assistant Nextion Handler
-(_Version 0.5; Last updated: 2022-05-30_)
-
-**🚧 documenting feature update in progress 🚧**
+(_Version 0.6; Last updated: 2022-06-03_)  
+**🎺 Widget UI v06_2022-06-03 files now uploaded, with installation instructions.**
 
 'Nextion Handler' allows you to use a Nextion touch screen device (NSPanels in particular) to interact with Home Assistant (HA).  It uses a supporting Python script in Home Assitant to interpret and respond to instructions programmed into the Nextion device.  You can either use the full framework to create your own fully customised UIs in the Nextion Editor, or you can use specially pre-compiled files that don't require any programing and just some very basic configuration (or you can mix the two).
 
 
 ## Widget UI
-There is now an ultra easy way to connect your NSPanel device to Home Assistant that doesn't require any programming or complex configuring.  The new Widget UI blends elements of the original NSPanel widgets, the Home Assistant 'glance' cards, and some of the graphical and functional aspects of Mushroom cards and Minimalist UI (popular UI mods for HA).  After installation, customising your Widgets is as simple as setting up an HA glance card - you simply provide a list of entities (and optionally a name and icon to go with them).  The Widget UI uses a group of pages tiled with a set of adaptable generic cards that are populated sequentially with information from your list of HA entities.  The information displayed adapts to the type of entity being displayed so that it shows useful information from a range of attributes specific to that type of entity, not just its 'state', as in the example below.
+There is now an ultra easy way to connect your NSPanel device to Home Assistant that doesn't require any programming or complex configuring.  The new Widget UI blends elements of the original NSPanel widgets, the Home Assistant 'glance' cards, and some of the graphical and functional aspects of Mushroom cards and Minimalist UI (popular UI mods for HA).  After installation, customising your Widgets is as simple as setting up an HA glance card - you simply provide a list of entities (and optionally a name and icon to go with them).  The Widget UI uses a group of pages tiled with a set of adaptable generic cards that are populated sequentially with information from your list of HA entities.  The information displayed and tap interactions adapt to the type of entity being displayed so that it shows useful information from a range of attributes specific to that type of entity, not just its 'state', as in the example below.
 
 The Widget UI uses:
 * 🔹 an ESPHome template (flashed to Nextion's  ESP32 chip);
 * 🔹 an HA Python script (placed in your `/python_scripts` folder and configured with a YAML automation template);
 * 🔹 a precompiled 'TFT' Nextion UI file (that you upload to the Nextion UI chip).
 
-Further details for the Widget UI, including current development status and installation instructions, [see the `widget_ui` folder](/widget_ui). 
+Further details for the Widget UI, including installation instructions and list of current features, [see the `widget_ui` folder](/widget_ui). 
 
 **Demo page for Widget UI showing some of the different types of entity cards.**  
   
@@ -24,7 +23,7 @@ Further details for the Widget UI, including current development status and inst
 ---
 
 ## Full Nextion Handler instruction set
-If you want full control of how your Nextion UI looks and interacts with HA, then you can use the full Nextion Handler framework (that the Widget UI is based on) and include its instructions in your own  Nextion HMI files.  Full details of the this framework, and the instruction set it makes available to program HA interactions into your HMI files, are documented [in HA_NEXTION_HANDLER_INSTRUCTIONS.md](/HA_NEXTION_HANDLER_INSTRUCTIONS.md).  
+If you want full control of how your Nextion UI looks and interacts with HA, then you can use the full Nextion Handler framework (that the Widget UI is based on) and include its instructions in your own  Nextion HMI files.  Full details of the this framework, and the instruction set it makes available to program HA interactions into your HMI files, are documented [in HA_NEXTION_HANDLER_INSTRUCTIONS.md](/HA_NEXTION_HANDLER_INSTRUCTIONS.md).  The are also resources below to assist with building attractive and effective user interfaces for your project - some of these will be useful to those designing graphics and touch interactions in their own HMI projects (not just on NSPanels or using Nextion Handler). 
 
 **Screnshot examples of some pages in a customised Nextion Handler UI:**  
   
@@ -33,15 +32,16 @@ If you want full control of how your Nextion UI looks and interacts with HA, the
 
 ---
 
-## Nextion Touch UI Tips, Tricks & Traps
-Some tips related to **[programing the touch interaction functionality](/Tips_and_Tricks)** of UIs may be useful to others programing Nextion devices (more generally than this project).  Those folders includes HMI code and examples for robust gestures, circular sliders, and geometric functions.
-
----
-
 ## Graphical UI design for HMIs
-Some tips and information for **[designing graphical components of UIs](/UI_Design)** for small displays like the NSPanel may also be more widely useful for others programming HMI interfaces.  The folders includes template vector graphics files (that can easily be adapted to other projects) and example HMI files using these designs.  It has very detailed design rules and SVG templates for an adaption of the popular Minimilist UI style (as used in the screenshot above) that anyone, with a little patience, can follow to create high quality UIs for their HMIs (even if they aren't particularly creative).
+The **[UI_Design folder](/UI_Design)** has information to help design beautiful graphics for your HMI projects (and working around some of the flaws/limitations of Nextion displays).  There are **very detailed design rules for the Minimalist-style design** (as shown above) that allow _**anyone, with a bit of patience to methodically apply and adapt the rules, to create stunning graphics for their displays.**_  There are template vector graphics files that include a set of prebuilt modular UI components, that can be snapped together to design a screen page, together with full examples.
 
 ---
+
+## Nextion Touch UI Tips, Tricks & Traps
+The **[Tips_and_Tricks folder](/Tips_and_Tricks)** has guides and example files for enhancing the built-in capabilities of Nextion displays with more advanced processing of touch gestures and interactions. This includes HMI code and examples for robust gestures, circular sliders, and geometric functions.
+
+---
+
 
 ## Credits & Related Resources:
 
