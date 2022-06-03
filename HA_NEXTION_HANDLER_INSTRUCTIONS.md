@@ -1,5 +1,5 @@
 # Home Assistant Nextion Handler framework
-(_Version 0.5; Last updated: 2022-05-25_)
+(_Version 0.6; Last updated: 2022-06-03_)
 
 Nextion Handler allows you to program a Nextion touch screen device (NSPanels in particular) to interact with Home Assistant (HA) **without having to do any coding in ESPHome YAML or Home Assistant automations**.  It uses a supporting Python script (to handle '**command_strings**' that you program into your HMI files) together with some boilerplate code (that does the routine parts of executing your programmed commands).
 
@@ -180,17 +180,17 @@ You assign ACTION commands to the `HA_ACT` string in your Nextion Editor 'events
 
 🔻 `inpn E x` (set value of input_number `E` to `x`).
 
-🔻 `lt_brt E x` (set brightness percent of light `E` to `x` (0..100)).
+🔻 `lt brt E x` (set brightness percent of light `E` to `x` (0..100)).
 
-🔻 `lt_brtv E x` (set brightness value of light `E` to `x` (0..255)).
+🔻 `lt brtv E x` (set brightness value of light `E` to `x` (0..255)).
 
-🔻 `lt_ct E x` (set colour temperature of light `E` to `x` mireds).
+🔻 `lt ct E x` (set colour temperature of light `E` to `x` mireds).
 
-🔻 `lt_rgb E r g b` (set colour of light `E` to RGB = `r`, `g`, `b`).
+🔻 `lt rgb E r g b` (set colour of light `E` to RGB = `r`, `g`, `b`).
 
-🔻 `lt_hs E h s` (set colour of light `E` to Hue = `h`, Saturation = `s`).
+🔻 `lt hs E h s` (set colour of light `E` to Hue = `h`, Saturation = `s`).
 
-🔻 `lt_cw E dx dy r` (set color of light `E` to Color-Wheel location `dx`, `dy` from centre of wheel radius `r`).
+🔻 `lt cw E dx dy r` (set color of light `E` to Color-Wheel location `dx`, `dy` from centre of wheel radius `r`).
 
 <details>
   <summary>more (color wheel example) ...</summary>
@@ -621,20 +621,22 @@ click APPLY_VARS,1
 A template ESPHome YAML configuration is provided in the repository (where you just have to fill in the variables in the `substitutions:` section at the top of the file, shown in the YAML extract below).  The main components that you need to add to your ESPHome YAML configuration are shown below (and are marked with `***nextion_handler requirement***` throughout the full version of the template).
 
 ```YAML
-# Nextion Handler template for ESPHome (v0.5.002)
+# v0.6_2022-06-03
 #----------------------------------------
 #* DEVICE/USER-SPECIFIC DETAILS (customize for each of your own Nextion Devices).
 #! BACKUP YOUR ORIGINAL ESPHome YAML config for your device.
-#! GET THE PASSWORDS etc from that config & enter them in the 'substitutions:' below:
+#! GET THE name, passwords etc from that config & enter them in the 'substitutions:' below:
 substitutions:
-  ota_password: "from flashing initial config"
-  fallback_ap_password: "from flashing initial config"
-  short_name: nsp1   #from your initial  config    # prefixed to HA entity_ids (to make them unique for each device)
-  long_name: My NSPanel                            # descriptive name
-  tft_url: !secret nsp1_tft_url                    # path, including filename, where you put TFT files
-  wifi_ssid: !secret wifi_ssid                     # your home wifi
+  ota_password: "from flashing initial config"     #<< replace with the one from you own device
+  fallback_ap_password: "from initial config"
+  esp_net_name: "from-config"                      # MUST MATCH your initial config (do not use '_', use '-' instead). (Sets device local network name & part of fallback AP name).
+  esp_comment: NSPanel 1                           # descriptive name (only used for description in ESPHome Dashboard).
+  ha_prefix: nsp1                                  # prefixed to HA entity_ids to make them unique (do not use '-' or spaces, use '_' instead: OPPOSITE of 'esp_net_name').
+  tft_url: !secret nsp1_tft_url                    # path, including filename, where you put TFT file created in the Nextion Editor: e.g, "https://MY_URL:8123/local/nsp1.tft" if you put the file in the in the "/config/www/" folder of your HA device.
+  wifi_ssid: !secret wifi_ssid                     # your home WiFi credentials.
   wifi_password: !secret wifi_password
-#----------------------------------------
+#  encr_key: "H0000000000000000000000000000000000000000000"  # Generate your own key here: https://esphome.io/components/api.html#configuration-variables (and uncomment the api: encrytion: key: "...") section below if you want encrypted HA communications.
+#----------------------------------------          # No editing of the YAML below is required to use Nextion Handler.
 
 # Enable Home Assistant API.
 api:
@@ -666,15 +668,6 @@ text_sensor:
   - platform: nextion
     name: $short_name HA Set2
     component_name: HaSet2
-  - platform: nextion
-    name: $short_name HA Set3
-    component_name: HaSet3
-  - platform: nextion
-    name: $short_name HA Set4
-    component_name: HaSet4
-  - platform: nextion
-    name: $short_name HA Set5
-    component_name: HaSet5
 
 sensor:
   #***nextion_handler requirement***
@@ -718,7 +711,7 @@ The example dictionary matches the irrigation page used in the CUSTOMIZABLE exam
 Aliases are convenient because _a)_ they save you having to switch back & forth between the Nextion Editor & HA, _b)_ the alias is typically based on the name of the Nextion (global) variable it is associated with, _c)_ they save you having to reflash the Nextion TFT each time you fix a typo in an entity_id, _d)_ you enter the entity_ids in the HA YAML editor (where autocompletion helps avoid typos in the first place), and _e)_ they make the command_strings shorter for more efficient management with the resource contraints of Nextion devices.
 
 ```YAML
-#  Nextion Handler service automation template (v0.5.002)
+#  Nextion Handler service automation template (v0.6)
 # (Replace NSP entity_ids with your own; Build the 'alias:' dictionary to match your own HMI project)
 #  - handles everything coming from and going back to a Nextion device.
 - alias: "NSPanel 1 Nextion Handler"
@@ -811,21 +804,6 @@ cards:
       {%- endfor %}
       HA_Set2 ---------------
       {%- set s = states('sensor.'+DEVICE+'_ha_set2').replace('\r','').replace(',','\n') %}
-      {%- for i in s.split('\n') %}
-        <{{i}}>
-      {%- endfor %}
-      HA_Set3 ---------------
-      {%- set s = states('sensor.'+DEVICE+'_ha_set3').replace('\r','').replace(',','\n') %}
-      {%- for i in s.split('\n') %}
-        <{{i}}>
-      {%- endfor %}
-      HA_Set4 ---------------
-      {%- set s = states('sensor.'+DEVICE+'_ha_set4').replace('\r','').replace(',','\n') %}
-      {%- for i in s.split('\n') %}
-        <{{i}}>
-      {%- endfor %}
-      HA_Set5 ---------------
-      {%- set s = states('sensor.'+DEVICE+'_ha_set5').replace('\r','').replace(',','\n') %}
       {%- for i in s.split('\n') %}
         <{{i}}>
       {%- endfor %}
