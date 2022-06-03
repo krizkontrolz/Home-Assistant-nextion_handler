@@ -1,5 +1,5 @@
 #* Add this to your Home Assistant automations.yaml file
-# If you changed the 'ha_prefix:' from 'nsp1' in the 'substitutions:' your ESPHome config, then edit below to match.
+# If you changed the 'ha_prefix:' from 'nsp1' in the 'substitutions:' of your ESPHome config, then edit below to match.
 # Otherwise you should only need to enter your list of entities in the 'widgets:' section below.
 
 # NSPanel Widget UI config (v0.6_2022-06-03)
@@ -8,13 +8,13 @@
   max: 10
   trigger:
     - platform: state
-      entity_id: sensor.nsp1_trigger # << TRIGGER - state changes are sent from Nx when it needs this script to do something.
+      entity_id: sensor.nsp1_trigger # << TRIGGER - state changes are sent from Nx to signal this script should do something.
   action:
     - service: python_script.nextion_handler
       data:
         trig_val: sensor.nsp1_trigger # << TRIGGER (same as above).
         nx_cmd_service: esphome.nsp1_send_command # << ESPhome service for sending Nextion Instructions to NSPanel.
-        action_cmds:                         # << Widget interactions send ACTION commands here.
+        action_cmds:                         # << Widget touch interactions send ACTION commands here.
           - sensor.nsp1_ha_act
         update_cmds:                         # << Widget pages specify what data updates they want here.
           - sensor.nsp1_ha_set1
@@ -31,12 +31,12 @@
             alt: "Custom"
             info: "Template this text"
           #*** Edit for your own devices
-          - entity: light.kitchen_lights         # replace with your own light
+          - entity: light.kitchen_lights         # replace with your own light to start
             name: Kitchen
             icon: 50                             # see icon index
           - entity: update.home_assistant_core_update
             name: HA Core
-          #*** Some other suggestions - edit to match your own entities 
+          #*** Some other suggestions - edit to match your own entities (after testing a single entity first)
           # - entity: sensor.gdacs
           #   icon: 40
           #   icon_state: "{{ states.sensor.gdacs.state|int > 1 }}"
