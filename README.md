@@ -23,7 +23,7 @@ Further details for the Widget UI, including installation instructions and list 
 ---
 
 ## Full Nextion Handler instruction set
-If you want full control of how your Nextion UI looks and interacts with HA, then you can use the full Nextion Handler framework (that the Widget UI is based on) and include its instructions in your own  Nextion HMI files.  Full details of the this framework, and the instruction set it makes available to program HA interactions into your HMI files, are documented [in HA_NEXTION_HANDLER_INSTRUCTIONS.md](/HA_NEXTION_HANDLER_INSTRUCTIONS.md).  The are also resources below to assist with building attractive and effective user interfaces for your project - some of these will be useful to those designing graphics and touch interactions in their own HMI projects (not just on NSPanels or using Nextion Handler). 
+If you want full control of how your Nextion UI looks and interacts with HA, then you can use the full Nextion Handler framework (that the Widget UI is based on) and include its instructions in your own  Nextion HMI files.  Full details of the this framework, and the instruction set it makes available to program HA interactions into your HMI files, are documented [in HA_NEXTION_HANDLER_INSTRUCTIONS.md](/HA_NEXTION_HANDLER_INSTRUCTIONS.md).  There are also resources below to assist with building attractive and effective user interfaces for your project - some of these will be useful to those designing graphics and touch interactions in their own HMI projects (not just on NSPanels or using Nextion Handler). 
 
 **Screnshot examples of some pages in a customised Nextion Handler UI:**  
   
@@ -33,12 +33,12 @@ If you want full control of how your Nextion UI looks and interacts with HA, the
 ---
 
 ## Graphical UI design for HMIs
-The **[UI_Design folder](/UI_Design)** has information to help design beautiful graphics for your HMI projects (and working around some of the flaws/limitations of Nextion displays).  There are **very detailed design rules for the Minimalist-style design** (as shown above) that allow _**anyone, with a bit of patience to methodically apply and adapt the rules, to create stunning graphics for their displays.**_  There are template vector graphics files that include a set of prebuilt modular UI components, that can be snapped together to design a screen page, together with full examples.
+The **[UI_Design](/UI_Design) folder** has information to help design beautiful graphics for your HMI projects (and working around some of the flaws/limitations of Nextion displays).  A set of **very detailed design rules for the Minimalist-style design** (as shown above) allow _**anyone, with a bit of patience, to create stunning graphics for their displays by methodically applying and adapting the rules.**_  Template vector graphics files include a set of prebuilt modular UI components, that can be snapped together to design a UI page, together with example pages built with these components.
 
 ---
 
 ## Nextion Touch UI Tips, Tricks & Traps
-The **[Tips_and_Tricks folder](/Tips_and_Tricks)** has guides and example files for enhancing the built-in capabilities of Nextion displays with more advanced processing of touch gestures and interactions. This includes HMI code and examples for robust gestures, circular sliders, and geometric functions.
+The **[Tips_and_Tricks](/Tips_and_Tricks) folder** has guides and example files for enhancing the built-in capabilities of Nextion displays with more advanced processing of touch gestures and interactions. This includes HMI code and examples for robust gestures, circular sliders, and geometric functions.
 
 ---
 
