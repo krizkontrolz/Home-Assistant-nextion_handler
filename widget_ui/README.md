@@ -263,12 +263,12 @@ _(I will likely add the ability to customise the actions that are triggered by e
   
   
 ## Icons (with Index Image)
-A currated set of icons is used on the cards.  These are paired, with icons and coloring already formatted to [follow the Minimilist Design UI standards](/UI_Design/Minimalist/).  A default icon will allocated based on the entity type (domain and class).  But you set a different one in your `widgets:` list you by specifying the _number_ (not name) of the icon you want from the index below. (Default icons are in the first 6 rows.)  
+A currated set of icons is used on the cards.  These are paired (for off/unhighlighted and on/highlighted states), with icons and coloring already formatted to [follow the Minimilist Design UI standards](/UI_Design/Minimalist/).  A default icon will be allocated based on the entity type (domain and class).  But you can set a different one in your `widgets:` list by specifying the _number_ (not name) of the icon you want from the index below. (Default, automatically assigned, icons are in the first 6 rows.)  You can also use templating to dynamically change the `icon:` and the `icon_state:` in your your `widget:` list configuration.
   
 <details>
   <summary>▶️ show Icon Index ...</summary>
 
- **Index of numbering for available icon choices.**  Icons are paired - the off/unhighlighted state is on the left and the on/highlighted version is on the right.  
+ **Index numbers for available icon choices.**  Icons are paired - the off/unhighlighted state is on the left and the on/highlighted version is on the right.  Use the index number of the icon you want in the `icon:` setting of each `- entity:` in your `widget:` list (or omit this setting to accept the default for that entity type).  **Icon 47** is used in its unhighlighted state to blank out the icon area on 'blank' cards, and it is used in its highlighted state as the ❗ _error symbol_ to give users feedback that they need to fix a problem with their `widget:` config for that entity.
    
  ![Widget UI Icon index](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/widget_ui/Widget_Icons_Index.png "Icon numbering index")
 
