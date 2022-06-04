@@ -877,5 +877,6 @@ Details ...
   [Nextion Instruction Set](https://nextion.tech/instruction-set/),
   [Blog examples](https://nextion.tech/blogs/).
 * Unofficial Nextion [user forum](https://unofficialnextion.com/).
+* [Full Nextion Instruction Set](https://github.com/UNUF/nxt-doc/blob/main/Protocols/Full%20Instruction%20Set.md#readme) (unofficial).
 ------------------------------------------------------------------------------
 
