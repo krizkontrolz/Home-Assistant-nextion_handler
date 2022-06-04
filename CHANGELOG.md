@@ -9,6 +9,7 @@
 - 🔸 Improved 'Minimalist'-style graphical UI (with separate documentation folder, detailed design rules and SVG templates).
 - 🔸 SET & ACT NH commands for media_players: `setmp` and `mp`.
 - 🔸 Many ACT commands will now take _detla_ (specified by `+`/`-` prefix and optional `%` suffix) values to allow easier increase/decrease controls (light brightness, volume etc.)
+- 🔆 Lots of improvements to the ESPHome configuration making ESP32 peripherals more directly accessible to the Nextion display (and your HMI code) _without_ the need for a WiFi connection or Home Assistant.  Most importantly, this means there is _always_ a way to control relays (link/unlink and overrride toggle) independently of Home Assistant.
 
 ### Changed
 
