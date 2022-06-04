@@ -1,4 +1,4 @@
-# Widget UI
+# ✴️ Widget UI
 (_Last updated 2022/06/03_)  
 **🎺 v06_2022-06-03 files now uploaded and ready to install.**
 
@@ -108,14 +108,14 @@ Popup pages provide additional detail and control, particularly where generic Wi
   * Fast repeats: the number of times that data updates are requested after a touch action is triggered.  This addresses the issue that some states in HA can update very quickly after a service call, whereas others can have substantial lag (e.g., garage doors, some types of lights).
   * Fast slowdown: the amount by which fast repeats are progressively slowed down.  This amount of time is added to each subsequent repeat.
   * Status information: Small text below the title bar shows the number of widgets read from the YAML configuration, and the version number of the TFT file.  The WiFi status and signal strength are indicated in the top right corner.  
-  * **🔸 (Un)Linking or NSPanel buttons to relays.**  This linking _**can  also be done in Home Assistant**_ via the UI switches that ESPHome creates  _**or by holding down one of the buttons for ~6 seconds**_ to link/unlink it from its respective relay.  When linked, pushing the physical NSPanel buttons will toggle their respective relays (as with the original firmware).  When unlinked, you can use the buttons to trigger other automations in Home Assistant.  Even when unlinked, holding a button for 3 to 5 seconds will still toggle the relays (so that there is always a way to turn the relay off).  
+  * **🔸 Linking/Unlinking of NSPanel physical buttons to relays.**  This linking _**can  also be done in Home Assistant**_ via the UI switches that ESPHome creates  _**or by holding down one of the buttons for ~6 seconds**_ to link/unlink it from its respective relay.  When linked, pushing the physical NSPanel buttons will toggle their respective relays (as with the original firmware).  When unlinked, you can use the buttons to trigger other automations in Home Assistant.  Even when unlinked, holding a button for 3 to 5 seconds will still toggle the relays (so that there is always a way to turn the relay off).  
  The device will provide audible feedback with:
     * 🎵 a beep (after ~3 seconds) to let you know you when to release the button to cause an 'override' relay toggle;
     * 🎶 rising notes (after ~6 seconds) when you LINK the button to its relay;
     * 🎶 descending notes (after ~6 seconds) when you UNLINK the button from its relay.
 
   
-Be conservative with the update settings initially, then tweak them when your configuration is working well.  There is a trade-off between how fast and frequently you initiated data updates after a touch interaction, and how responsive the NSPanel will be to multiple successive touch interactions (such as multiple taps for triggerig quick increase/decrease step changes to light brightness).  
+Be conservative with the update settings initially, then tweak them when your configuration is working well.  There is a trade-off between how fast and frequently you initiate data updates after a touch interaction, and how responsive the NSPanel will be to multiple successive touch interactions (such as multiple taps for triggerig quick increase/decrease step changes to light brightness).  
   
 * **🔹 Light Popup -** provides full control of light settings:
   * Available controls are enabled/disabled according to the capabilities of the currently selected light (once that data has been received from HA).
