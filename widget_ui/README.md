@@ -104,7 +104,7 @@ Popup pages provide additional detail and control, particularly where generic Wi
   * Brightness max: the standard brightness that the display will revert to on any interaction.
   * Brightness min: the lowest brightness that the screen will gradually dim to before blacking out.
   * Update interval: the time inteval between NSPanel requests for refreshed page data from the Home Assistant Nextion Handler.
-  * Sleep time: the time until the scree is blacked out.
+  * Sleep time: the time until the screen is blacked out.
   * Fast repeats: the number of times that data updates are requested after a touch action is triggered.  This addresses the issue that some states in HA can update very quickly after a service call, whereas others can have substantial lag (e.g., garage doors, some types of lights).
   * Fast slowdown: the amount by which fast repeats are progressively slowed down.  This amount of time is added to each subsequent repeat.
   * Status information: Small text below the title bar shows the number of widgets read from the YAML configuration, and the version number of the TFT file.  The WiFi status and signal strength are indicated in the top right corner.  
@@ -124,9 +124,9 @@ Be conservative with the update settings initially, then tweak them when your co
   * Long pressing the icon in the top right corner will force the bulb off.  (This is a useful fix when toggling fails, such as when some lights in a group get out of sync with their registered state in Home Assistant.)  
   
  * **🔹 Notifications -** allows reading and dismissing Home Assistant persistent_notications.
-   * Notifications are special type of Widget card because it uses _all_ the entities in the domain, not just a single notifiction entity.
-   * Enter `entity: persistent.all` to create a notifications UI card (then customise it as you wish).
-   * This allows the NSPanel to be used as a convenient message board (delivered to all rooms in the house with an NSPanel).  
+   * 'Notifications' is a special type of Widget card because it uses _all_ the entities in the domain, not just a single notifiction entity.
+   * Enter `entity: persistent_notification.all` to create a notifications UI card (then customise it as you wish).
+   * This allows the NSPanel to be used as a convenient message board for HA (delivering messages to all rooms in the house with an NSPanel).  
   
   
 As functionality is developed, more popups will be added to support some of the more complex entity types (such as media_players).  
@@ -159,7 +159,7 @@ Each card has four quadrants for touch interactions, each of which can be given 
   &nbsp;&nbsp; `LHS`: left-hand-side 2 quadrants  
   &nbsp;&nbsp; `RHS`: right-hand-side 2 quadrants  
   &nbsp;&nbsp; `ALL`: all 4 quadrants (entire card, excl. margins between 'hotspots')  
-  &nbsp;&nbsp; `-s`: suffix for a short-press  
+  &nbsp;&nbsp; `-s`: suffix for a short tap  
   &nbsp;&nbsp; `-l`: suffix for a long-press  
   
 
@@ -169,13 +169,12 @@ Each card has four quadrants for touch interactions, each of which can be given 
   
   
 * 🔸 **Light Cards:**
-  * `TL-s`: toggle on/off
-  * `TL-l`: toggle pause/play
-  * `TL-l`: off (fix out of sync lights)
+  * `TL-s`: toggle light on/off
+  * `TL-l`: force turning light OFF (fix out of sync lights)
   * `TR-s`: brings up light popup card
   * `TR-l`: turn on/change the bulb to a supported white mode
   * `BL_R-s`: dim/brighten light (if already on), or turn on light at low/high brightness (if off)
-  * `BL_R-l`: increase/decrease the color_temperature or hue of the light (according to current light_mode)
+  * `BL_R-l`: increase/decrease the color_temperature or hue of the light (according to its current color_mode)
   
   
   
@@ -189,8 +188,9 @@ Each card has four quadrants for touch interactions, each of which can be given 
  
 
 * 🔸 **Automation Cards:**
-  * `ALL-s`: toggle enabled/disabled
-  * `ALL-l`: trigger the automation (ignore conditions)
+  * `ALL-s`: toggle whether automation is enabled/disabled (if it will run when triggered)
+  * `ALL-l`: trigger the automation (ignoring conditions) - execute its `action:`s immediately  
+ (_As feedback, the info text on the card will show how many calls to the automation are currently running._)
 
 * 🔸 **Button Cards:**
   * `ALL-s&l`: trigger the button actions
@@ -203,23 +203,24 @@ Each card has four quadrants for touch interactions, each of which can be given 
 
 * 🔸 **Scene Cards:**
   * `ALL-s&l`: turn scene on  
-  (Scenes cannot be turned off - the icon will highligh as 'on' for an hour afterwards.)
+  (_Scenes cannot be turned off - the icon will highlight as 'on' for an hour after it was turned on._)
   
 * 🔸 **Script Cards:**
   * `ALL-s`: toggle run/stop
-  * `ALL-l`: stop the script
+  * `ALL-l`: (force) stop the script  
+ (_As feedback, the info text on the card will show how many calls to the script are currently running._)
 
 * 🔸 **Switch Cards:**
-  * `ALL-s`: toggle on/off
-  * `ALL-l`: turn off
+  * `ALL-s`: toggle switch on/off
+  * `ALL-l`: force turning switch off
 
 * 🔸 **Update Cards:**
   * `LHS-s`: install update
   * `RHS-s`: skip update (card status will show the installed vs current versions)
   * `RHS-l`: clear skipped update (icon state will become 'active' again)
   
-* 🔸 **Vacuum Cards:** (only tested with Xiaomi so far)
-  * `LHS-s`: toggle start(& turn_on)/stop (& turn_off) cleaning
+* 🔸 **Vacuum Cards:** (only tested with Xiaomi vacuum so far)
+  * `LHS-s`: toggle start(& turn_on)/stop (& turn_off) cleaning (commands for both types of vacuums are sent)
   * `LHS-l`: return to base
   * `RHS-s`: locate vaccum
   * `RHS-l`: spot clean
@@ -235,24 +236,24 @@ _(I have set up interactive cards for all the types of entities I currently use 
 
 ## Customising Widget Card Dashboard Information
 
-Widget cards for all types of entities (whether they support interactions or not) report useful 'dashboard' information, and this information adapts to the the domain, class and reported attributes of the entity.  All aspects of the information a card can be customised in the entities YAML configuration to override defaults, and **this can include dynamic information using standard Home Assistant templating**:
+Widget cards for all types of entities (whether they support interactions or not) report useful 'dashboard' information, and this information adapts to the the domain, class and reported attributes of the entity.  All aspects of the information on a card can be customised in the entities YAML configuration to override defaults, and **this can include dynamic information using standard Home Assistant templating**:
 
 
 <details>
   <summary>▶️ show Widget card configuration details ...</summary>  
   
-Only the `- entity:` is mandatory to specifiy for each of Widget cards in the list under the `widgets:` section of your NSPanels YAML configuration (the Nextion Handler automation for that device).  The `name:` is the most likely optional thing you will want to customise (to override the default, based on the entity's truncated friendly_name) with something that fits in the limited space on the card.  The default icons for each card should be reasonable to get started, but you will likely want to pick something (from the icon index further below) that is more informative. 
+Only the `- entity:` is mandatory to specifiy for each of your Widget cards in the list under the `widgets:` section of your NSPanels YAML configuration (the Nextion Handler automation for that device).  The `name:` is the most likely optional thing you will want to customise (to override the default, which uses the entity's truncated friendly_name) with something that fits better in the limited space on the card.  The default icons for each card should be reasonable to get started, but you will likely want to pick something (from the icon index further below) that is more informative. 
 
-_**I do not recommend changing the other options** until you have everything else working well_ (and then you will likely want to use dynamic data generated by templates).  The first of these to consider templating should probably be `icon_state:` for entities such as numeric sensors where there is no default way to decide when the card should be highlighted with the 'active' version of its icon (such as setting a rule for when to highlight a gas sensor, or when to highlight high power consumption etc.).  You can also replace text with a space string (`" "`) to remove it from a card.  If you only want to replace/blank text under some conditions, then have the template return `{{ None }}` the remainder of the time (which will revert to the defaults again).
+_**I do not recommend changing the other options** until you have everything else working well_ (and then you will likely want to use dynamic data generated by templates).  The first of these to consider templating should probably be `icon_state:` for entities such as numeric sensors where there is no default way to decide when the card should be highlighted with the 'active' version of its icon (such as setting a rule for when to highlight a GDACs alert (see example in template), a gas sensor reading, or high power consumption etc.).  You can also override text with a space string (`" "`) to remove it from a card.  If you only want to replace/blank text under some conditions, then have the template return `{{ None }}` the remainder of the time (which will revert it to showing the defaults again).
   
-* 🔸 `- entity:` the Home Assistant entity_id.  Special cases are `persitent_notications.all` (for a notifications widget), and `template` (or `blank`) for a widget that is filled entirely with custom dynamic (templated), static, or blank information.
-* 🔹 &nbsp;&nbsp;`name:` the title/top row of text on the card
-* 🔹 &nbsp;&nbsp;`icon:` a number (0.167) corresponding to the value of the selected icon-pair index (further below)
-* 🔹 &nbsp;&nbsp;`icon_state:` True/'1' for the highlighted state of the icon-pair; False/'0' for the inactive state
-* 🔹 &nbsp;&nbsp;`alt:` The second, short row of (alternate) info text on the card, below the title
-* 🔹 &nbsp;&nbsp;`info:` The main informative text along the full width of the bottom of the card
+* 🔶 `- entity:` the Home Assistant entity_id.  Special cases are `persitent_notications.all` (for a notifications widget), and `template` (or `blank`) for a widget that is filled entirely with custom dynamic (templated), static, or blank information.
+* 🔷 &nbsp;&nbsp;`name:` the title/top row of text on the card.
+* 🔷 &nbsp;&nbsp;`icon:` a number (0.167) corresponding to the value of the selected icon-pair index (further below).
+* 🔹 &nbsp;&nbsp;`icon_state:` True/'1' for the highlighted state of the icon-pair; False/'0' for the inactive state.
+* 🔹 &nbsp;&nbsp;`alt:` The second, short row of (alternate) info text on the card, below the title.
+* 🔹 &nbsp;&nbsp;`info:` The main informative text along the full width of the bottom of the card.
   
-_(I will likely add the ability to customise the actions that are triggered by each type of touch event on a Widget Card in future.)_
+_(I will likely add the ability to customise the actions that are triggered by each type of touch interaction on a Widget Card in future.)_
   
   
   
@@ -262,7 +263,7 @@ _(I will likely add the ability to customise the actions that are triggered by e
   
   
 ## Icons (with Index Image)
-A currated set of icons is used on the cards.  These are paired, with icons and coloring already formatted to [follow the Minimilist Design UI standards](/UI_Design/Minimalist/).  A default icon will allocated based on the entity type (domain and class).  But you set a different one in your `widgets:` list you by specifying the _number_ (not name) of the icon you want from the index below. (Default icons are in the first 4 rows.)  
+A currated set of icons is used on the cards.  These are paired, with icons and coloring already formatted to [follow the Minimilist Design UI standards](/UI_Design/Minimalist/).  A default icon will allocated based on the entity type (domain and class).  But you set a different one in your `widgets:` list you by specifying the _number_ (not name) of the icon you want from the index below. (Default icons are in the first 6 rows.)  
   
 <details>
   <summary>▶️ show Icon Index ...</summary>
