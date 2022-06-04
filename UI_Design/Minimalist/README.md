@@ -1,10 +1,10 @@
-# Minimalist Design
-(_Last updated: 2022-05-21_)
+# 🔵 Minimalist Design
+(_Last updated: 2022-06-05_)
 
 This is the current UI design that I'm using on my NSPanels.  It is also the one that is easiest for others to use as a template because the vector graphics (SVG) have been set up with:
-* 🔹 well structured and named object hiearchy (dock the 'Objects' tool to the Inkscape side bar to navigate);
+* 🔹 well structured and named object hiearchy (dock the 'Layers and Objects' dialogue to the Inkscape side bar to navigate);
 * 🔹 UI components that are all built on a base of 20x20 pixel block multiples so that they cleanly snap together to fill a 320x480 NSPanel display;
-* 🔹 gridded 'extents' of UI components that map easily to touch co-ordinate bounds (`x` and `y` in multiples of 20 in the Nextion HMI editor);
+* 🔹 gridded 'extents' of UI components that map easily to touch-interaction coordinate bounds (`x` and `y` in multiples of 20 in the Nextion HMI editor);
 * 🔹 a palette of named swatch colors (to easily change and tweak color themes across an entire project);
 * 🔹 a well-defined set of composition rules (documented below), making it easy to use and customize UI 'cards' that have a coherent style and can convey dense information in an efficient and consistent manner.
 
@@ -15,7 +15,7 @@ This is the current UI design that I'm using on my NSPanels.  It is also the one
 
 ![Inkscape screenshot of hiearachical organization](/UI_Design/Minimalist/InkScape_Object-Grouping-Hierarchy.png)
 
-## Anatomy of a UI Card
+## ⚫ Anatomy of a UI Card
 A precise set of parametric rules define how UI components are constructed (although these are applied pragmatically).  The rules are described sequentially for each element below, from the base layer upwards, noting that each individual UI card would ultimately only use a subset of these elements (and would hide the rest).  
 
 <details>
@@ -85,7 +85,7 @@ For the **EU NSPanel**, the right hand edge of the display is hidden by the case
 </details>
 
 
-## Color Conventions
+## ⚫ Color Conventions
 Consistently following a set of conventions for how UI elements are colored makes it much easier to interpret dense information on the display at a glance.
 
 <details>
@@ -134,7 +134,7 @@ All the static non-interactive 'structural' components of the UI are distinguise
 </details>
 
 
-## Creating Customised/Variant Cards
+## ⚫ Creating Customised/Variant Cards
 Although the included SVG file has many cards and components that you can use in your projects, you will likely want to create some of your own custom cards as the templates that you repeatedly duplicate and modify for your own projects.  In these cases it will often be easiest to start from a similar basic card (like and 80x120 entity card or a slider card) and customise it to your needs. 
 
 
