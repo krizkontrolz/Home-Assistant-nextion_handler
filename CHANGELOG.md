@@ -1,12 +1,29 @@
 ## CHANGELOG:
 
+## ✴️ [0.6] 2022-06-03
+
+### Added
+
+- ✴️ New simplified Widget UI option (using special pre-compiled TFT).
+- 🔸 SET & ACT NH commands to support widgets: `setwd` (supported by get_widget_info()) and `wact`.
+- 🔸 Improved 'Minimalist'-style graphical UI (with separate documentation folder, detailed design rules and SVG templates).
+- 🔸 SET & ACT NH commands for media_players: `setmp` and `mp`.
+- 🔸 Many ACT commands will now take _detla_ (specified by `+`/`-` prefix and optional `%` suffix) values to allow easier increase/decrease controls (light brightness, volume etc.)
+
+### Changed
+
+- ❗ BREAKING CHANGE: All `lt_xxx args` instructions are now `lt xxx args` (a single function with service/action component separated out as the first argument - just replace the `_` with a `space` in exisiting instructions in your HMI code).  This is consistent with how `mp` instructions work (and how all future new instructions will work).
+- 🔺 Reduced standard configuration to using just `HA_SET1` and `HA_SET2` (down from 5 strings: command strings 3..5 are commented out throughout template code (HMI, ESPH, HA) and be restored if extras are needed).
+- 🔹 Cleaned up code, particularly to read and use HA states... and automation YAML data structures more effectively.
+
+
 ## [0.5.0] - 2022-04-02
 
 ### Added
 
-- SET & ACT NH commands for Lights: setlt, lt_brt, lt_ct, lt_rgb, lt_hs, lt_cw, lt_wt
-- SET & ACT commands for Persistent Notifications: setntf, ntf, ntfx
-- SET command for fetching Home Assistant date_time: setdt
+- SET & ACT NH commands for Lights: setlt, `lt_brt`, `lt_ct`, `lt_rgb`, `lt_hs`, `lt_cw`, `lt_wt`.
+- SET & ACT commands for Persistent Notifications: `setntf`, `ntf`, `ntfx`.
+- SET command for fetching Home Assistant date_time: `setdt`.
 - Full GESTURE controls in HMI (with new separate documentation and template HMI).
 
 ### Changed
