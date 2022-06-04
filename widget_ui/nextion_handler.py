@@ -1,5 +1,5 @@
 #* Home Assistant Nextion Handler
-#* (v0.6_2022-06-03)
+#* (v0.6_2022-06-04)
 # Handler for NH 'command_strings' sent from Nextion events & update requests.
 # see: https://github.com/krizkontrolz/Home-Assistant-nextion_handler
 #
@@ -1331,17 +1331,17 @@ def setwd(args_list, domain, service):
 
     #* Get & Send data for each Widget card on page: Name, Icon, Domain_code, Boolean_status, Info status, Alt_text
     card = 0
-    try:
-        pg_pfx = "W{}.".format(page_num)  # page prefix for Nextion page variable names
+    pg_pfx = "W{}.".format(page_num)  # page prefix for Nextion page variable names
 
-        page_widgets = WIDGETS_LIST[start_wd: start_wd + num_cards]
-        # If there is at least 1 Widget for page, fill any shortfall cards with blanks
-        num_page_widgets = len(page_widgets)
-        if(0 < num_page_widgets < num_cards):
-            page_widgets.extend([None] * (num_cards - num_page_widgets))
+    page_widgets = WIDGETS_LIST[start_wd: start_wd + num_cards]
+    # If there is at least 1 Widget for page, fill any shortfall cards with blanks
+    num_page_widgets = len(page_widgets)
+    if(0 < num_page_widgets < num_cards):
+        page_widgets.extend([None] * (num_cards - num_page_widgets))
 
-        #for card in range(0, 8):
-        for card, wd in enumerate(page_widgets):
+    for card, wd in enumerate(page_widgets):
+        try:  # Handle exception INSIDE for loop (so that 1 problem card doesn't stop others from updating)
+
             # Defaults for 'blank' (& None) widgets
             card_sfx = "{:02}".format(card)
             entity_id = None
@@ -1491,17 +1491,29 @@ def setwd(args_list, domain, service):
             nx_cmd_str = '{}{}{}.txt="{}"'.format(pg_pfx, 'tALT', card_sfx, wd_alt[:MAX_ALT_CHARS])
             nx_cmd(nx_cmd_str, domain, service)
 
+        except ValueError as exptn:
+            #pass
+            # Log error message
+            err_msg = '{}\nError reading settings for Widget Card index *{}* (0=TL..BR) from YAML list.'.format(exptn, card)
+            logger.warning('nextion_handler.py ' + err_msg)
+            # raise ValueError(err_msg)
+            try:
+                # Display a highlighted error icon for the Widget as feedback
+                # Icon
+                nx_cmd_str = '{}{}{}.val={}'.format(pg_pfx, 'nICN', card_sfx, ERROR_ICON)
+                nx_cmd(nx_cmd_str, domain, service)
+                # Boolean status
+                nx_cmd_str = '{}{}{}.val={}'.format(pg_pfx, 'bST', card_sfx, 1)
+                nx_cmd(nx_cmd_str, domain, service)
+            except:
+                pass
 
-        #* Write Global Nextion settings
-        nx_cmd_str = 'wd_tot={}'.format(num_widgets)
-        nx_cmd(nx_cmd_str, domain, service)
+    # --- end Widget card for loop ---    
 
-    except ValueError as exptn:
-        #pass
-        # Log error message
-        err_msg = '{}\nError reading settings for Widget Card index *{}* (0=TL..BR) from YAML list.'.format(exptn, card)
-        logger.warning('nextion_handler.py ' + err_msg)
-        # raise ValueError(err_msg)
+    #* Write Global Nextion settings
+    nx_cmd_str = 'wd_tot={}'.format(num_widgets)
+    nx_cmd(nx_cmd_str, domain, service)
+
 
     # --- End of setwd() ---
     return True
