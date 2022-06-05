@@ -1,5 +1,5 @@
 # ✴️ Widget UI
-(_Last updated 2022/06/03_)  
+(_Last updated 2022/06/05_)  
 **🎺 v06_2022-06-03 files now uploaded and ready to install.**
 
 ## Current Features and Status
@@ -43,7 +43,8 @@ The details of how information is displayed will continue to be fine tuned, and 
 *🔹 Flashing the ESPHome YAML template:
   * Download a copy of the template `ESPHome_Nextion_Handler_template.yaml` configuration file and fill in your details from your backup configuration into the `substitutions:` section at the top of the file.  (Leaving `ha_prefix: nsp1` will make the automation template easier later on.)
   * Validate the file before installing it to the NSPanel (from the ESPHome addon page in Home Assistant ).
-  * Once the ESPHome installation is complete, check the NSPanel device page in HA to make sure the entities are showing up properly.  If you changed `ha_prefix: nsp1` (above), you will later need to get the enitity_ids for `Trigger`, `HA Act`, `HA Set1 & 2` (from the device page), and `ESPHome: nsp1_send_command` (from `Developer Tools | SERVICES`).  And you will use the `TFT upload button` to flash the Nextion TFT UI file.
+  * Once the ESPHome installation is complete, check the NSPanel device page in HA to make sure the entities are showing up properly.  If you changed `ha_prefix: nsp1` (above), you will later need to get the enitity_ids for `Trigger`, `HA Act`, `HA Set1 & 2` (from the device page), and `ESPHome: nsp1_send_command` (from `Developer Tools | SERVICES`).  And you will use the `TFT upload button` to flash the Nextion TFT UI file.  
+ (_If this is the first time using your NSPanel with ESPHome, there are some lines near the top of the YAML file, marked with `#! *** FIX ***...` that you will need to uncomment **once** to switch the panel from the special 'reparse' mode it uses for the original firmware to allow it work with ESPHome.  Comment those lines out again the next time you reflash your configuration - they only need to run once._)
 
 *🔹 Home Assistant python script:
   * Copy the downloaded `nextion_handler.py` script into the `<config>/python_scripts/` folder of your Home Assistant device.
