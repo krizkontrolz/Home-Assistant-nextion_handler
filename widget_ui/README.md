@@ -253,11 +253,23 @@ _**I do not recommend changing the other options** until you have everything els
 * 🔹 &nbsp;&nbsp;`icon_state:` True/'1' for the highlighted state of the icon-pair; False/'0' for the inactive state.
 * 🔹 &nbsp;&nbsp;`alt:` The second, short row of (alternate) info text on the card, below the title.
 * 🔹 &nbsp;&nbsp;`info:` The main informative text along the full width of the bottom of the card.
+
+If you misconfigure a widget, the Nextion Handler will try to give you feedback on the Nextion display by showing the ❗ _error symbol_ (icon 47, highlighted), a red and white icon of an exclamation point in a circle, and may show some additional information in the info text area (such as showing an invalid entity_id with '*' on either side), to guide you to what part of your `widget:` list needs fixing.  For more serious problems, check the Home Assistant error logs for Nextion Handler messages. 
   
 _(I will likely add the ability to customise the actions that are triggered by each type of touch interaction on a Widget Card in future.)_
   
-  
-  
+**Example customised template card** - shows the time and date, and highlights the icon on the weekend:  
+```YAML
+    widgets: #______________________________________________________________
+      - entity: template
+        name: Time
+        icon: 118
+        icon_state: "{{ now().strftime('%a') in ['Sat','Sun'] }}"  # highlight on weekends
+        alt: "{{ now().strftime('%Hh%m') }}"  # time customise to your liking
+        info: "{{ now().strftime('%a %d %b %Y') }}"  # date - customise to your liking
+```
+
+ 
  --- 
   
 </details>    
