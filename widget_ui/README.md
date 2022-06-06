@@ -76,10 +76,10 @@ _🔸EU version is available on request for testing_ before it is uploaded for g
  
   * Download and copy the `nextion_handler.py` script into the `<config>/python_scripts/` folder of your Home Assistant device.
   * If you have never used Python scripts in Home Assistant before, you will have to add a line `python_script:` to your `configuration.yaml`.  ([See HA page on Python scripts](https://www.home-assistant.io/integrations/python_script/).)
-  * Add the automation template from the `HA_automation.yaml` file to your own HA configuration (editing the NSPanel entity_ids to match those you noted in step 1️⃣ if you set a prefix other than `nsp1`), or copy the template below.
+  * Copy the automation template below to your own HA configuration (editing the NSPanel entity_ids to match those you noted in step 1️⃣ if you set a prefix other than `nsp1`).
   * In the `widgets:` section of the automation, add one of your own entities to the list as `  - entity: light.kitchen` (for example) to get started.  Start with just one to make sure the installation worked.  You can edit the `widget:` list whenever you want, then `reload automations` for HA to recognise the changes.  Some suggestions are already in the downloadable template, commented out, for you to replace with your own entities later on.  (If you get an entity configuration wrong, this will usually be indicated by a red and white ❗ _error symbol_ for that widget.) 
 
-**Automation template:** If you left `ha_prefix: nsp1` unchanged in step 1️⃣ then you only need to change the `- entity: light.kitchen` line near the bottom to match a light of your own.  (_The downloadable version of this template has more annotations and examples._) 
+**Automation template:** If you left `ha_prefix: nsp1` unchanged in step 1️⃣ then you only need to change the `- entity: light.kitchen` line near the bottom to match a light of your own.  (_The downloadable `HA_automation.yaml` file for this template has more annotations and examples._) 
 ```YAML
 - alias: "NSP1 Nextion handler"
   mode: queued
