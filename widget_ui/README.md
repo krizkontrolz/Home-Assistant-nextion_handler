@@ -346,6 +346,22 @@ A currated set of icons is used on the cards.  These are paired (for off/unhighl
    
  ![Widget UI Icon index](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/widget_ui/Widget_Icons_Index.png "Icon numbering index")
 
+### Icons are grouped as follows:
+ * 🔹 0 .. 47 (6 rows): default and system.
+ * 🔹 48 .. 71 (3 rows): lights (orange for indoor, green for outdoor).  
+   (_spare row_.)
+ * 🔹 80 .. 87 (1 row): media players.
+ * 🔹 88 .. 95 (1 row): presence for 'person' and 'device_tracker' entities.
+ * 🔹 96 .. 103 (1 row): binary sensors (representing most device classes).  
+   (_spare row_.)
+ * 🔹 112 .. 135 (3 rows): sensors (numeric) (representing most device classes).
+ * 🔹 136 .. 143 (1 row): 'cover' entities (representing most device classes: automatic blinds, curtains, doors, windows etc.).
+ * 🔹 144 .. 151 (1 row): Controls for indoor appliances.
+ * 🔹 152 .. 159 (1 row): HVAC 'climate' entities.
+ * 🔹 160 .. 167 (1 row): Controls for outdoor devices.
+ 
+ Remaining slots are spares for future additions.  The images (pair) are the maximum size that the Nextion Editor will compile and store in a TFT file.
+ 
  --- 
   
   
