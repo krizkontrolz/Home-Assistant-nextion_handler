@@ -310,12 +310,12 @@ _**I do not recommend changing the other options** until you have everything els
   
 * 🔶 `- entity:` the Home Assistant entity_id.  Special cases are `persitent_notications.all` (for a notifications widget), and `template` (or `blank`) for a widget that is filled entirely with custom dynamic (templated), static, or blank information.
 * 🔷 &nbsp;&nbsp;`name:` the title/top row of text on the card.
-* 🔷 &nbsp;&nbsp;`icon:` a number (0.167) corresponding to the value of the selected icon-pair index (further below).
-* 🔹 &nbsp;&nbsp;`icon_state:` True/'1' for the highlighted state of the icon-pair; False/'0' for the inactive state.
+* 🔷 &nbsp;&nbsp;`icon:` a number (0 to 167) corresponding to the value of the selected icon-pair index (further below).
+* 🔹 &nbsp;&nbsp;`icon_state: use `True/'1' to specify the highlighted state of the icon-pair; otherwise (False/'0', etc.) the inactive state will be used.
 * 🔹 &nbsp;&nbsp;`alt:` The second, short row of (alternate) info text on the card, below the title.
 * 🔹 &nbsp;&nbsp;`info:` The main informative text along the full width of the bottom of the card.
 
-If you misconfigure a widget, the Nextion Handler will try to give you feedback on the Nextion display by showing the ❗ _error symbol_ (icon 47, highlighted), a red and white icon of an exclamation point in a circle, and may show some additional information in the info text area (such as showing an invalid entity_id with '*' on either side), to guide you to what part of your `widget:` list needs fixing.  For more serious problems, check the Home Assistant error logs for Nextion Handler messages. 
+If you misconfigure a widget, the Nextion Handler will try to give you feedback on the Nextion display by showing the ❗ _error symbol_ (icon 47, highlighted), a red and white icon of an exclamation mark in a circle, and may show some additional information in the info text area (such as showing an invalid entity_id with '*' on either side), to guide you to what part of your `widget:` list needs fixing.  For more serious problems, check the Home Assistant error logs for Nextion Handler messages. 
   
 _(I will likely add the ability to customise the actions that are triggered by each type of touch interaction on a Widget Card in future.)_
   
@@ -323,7 +323,7 @@ _(I will likely add the ability to customise the actions that are triggered by e
 ```YAML
     widgets: #______________________________________________________________
       - entity: template # Time & Date card
-        name: "{{ now().strftime('%Hh%m') }}"  # time - customise to your liking
+        name: "{{ now().strftime('%Hh%M') }}"  # time - customise to your liking
         icon: 118  # Time & Date icon
         icon_state: "{{ now().strftime('%a') in ['Sat','Sun'] }}"  # highlight on weekends
         alt: "{{ 'Work day' if states.binary_sensor.workday_today.state == 'on' else 'Day off' }}"  # customise to match your work_day binary_sensor
