@@ -112,7 +112,7 @@ _🔸EU version is available on request for testing_ before it is uploaded for g
 <details>
   <summary>3️⃣ Flash Nextion Widget UI TFT file:</summary> 
 
-  * Download and copy `Widget UI TFT file` into the location you specified in the `tft_url` of your ESPHome configuration, and rename it to match the filename you set in step 1️⃣.  Then press the `TFT upload button` on the NSPanel's device page in Home Assistant (that you located in step 1️⃣).
+  * Download and copy a `Widget UI TFT file` into the location you specified in the `tft_url` of your ESPHome configuration, and rename it to match the filename you set in step 1️⃣.  Then press the `TFT upload button` on the NSPanel's device page in Home Assistant (that you located in step 1️⃣).
   * Wait for the NSPanel to flash and reboot with the new UI.  (You may have to reboot both HA and the NSPanel after the first installation.)
 
 Whenever you change your widgets list (including the initial installation) it will take a little bit longer for each page to refresh the first time after that as it reconfigures itself.  If it gets stuck, open the settings menu (swipe down and close it by swiping down again), which will help to read the new list. 
