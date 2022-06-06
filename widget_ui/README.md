@@ -319,16 +319,19 @@ If you misconfigure a widget, the Nextion Handler will try to give you feedback 
   
 _(I will likely add the ability to customise the actions that are triggered by each type of touch interaction on a Widget Card in future.)_
   
-**Example customised template card** - shows the time and date, and highlights the icon on the weekend:  
+**Demo example of customised card that templates everything** - shows the time and date, and changes the icon and alt text for weekends and holidays (using 'work day' binary sensor):  
 ```YAML
-    widgets: #______________________________________________________________
-      - entity: template # Time & Date card
-        name: "{{ now().strftime('%Hh%M') }}"  # time - customise to your liking
-        icon: 118  # Time & Date icon
-        icon_state: "{{ now().strftime('%a') in ['Sat','Sun'] }}"  # highlight on weekends
-        alt: "{{ 'Work day' if states.binary_sensor.workday_today.state == 'on' else 'Day off' }}"  # customise to match your work_day binary_sensor
-        info: "{{ now().strftime('%a %d %b %Y') }}"  # date - customise to your liking
-```
+  widgets: #______________________________________________________________
+    - entity: template    # Demo Time & Date template card
+      name: "{{ now().strftime('%Hh%M') }}"  # time customise to your liking
+      # Usually use the time_and_date icon; except on weeday holidays, use the Sunny icon instead.
+      icon: "{{ 118 if states('binary_sensor.workday_today') == 'on' or now().strftime('%a') in ['Sat','Sun'] else 26}}"  
+      icon_state: "{{ now().strftime('%a') in ['Sat','Sun'] }}"  # highlight on weekends
+      alt: "{{ 'Day off' if states('binary_sensor.workday_today') == 'off' else 'Work day' }}"  # customise to match your work_day binary_sensor
+      info: "{{ now().strftime('%a %d %b %Y') }}"  # date - customise to your liking
+ 
+ 
+ ```
 
  
  --- 
