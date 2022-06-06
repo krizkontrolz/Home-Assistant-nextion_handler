@@ -1,5 +1,5 @@
 # ✴️ Widget UI
-(_Last updated 2022/06/05_)  
+(_Last updated 2022/06/06_)  
 **🎺 v06_2022-06-03 files now uploaded and ready to install.**
 
 ## Current Features and Status
@@ -11,7 +11,7 @@ The Widgets currently provide sufficient functionality for most of the every-day
  
 
 * 🔹 create a dashboard to easily view information about your smart home, and visually highlight anything needing attention;
-* 🔹 'toggle' all Home Assistant entities that can be toggled (lights, media players, switches, scripts, automations, covers, fans, input_booleans etc.);
+* 🔹 'toggle' all Home Assistant entities that can be toggled (lights, media players, switches, scripts, automations, covers, fans, input_booleans, locks etc.);
 * 🔹 use interactive widgets to control most of the common types of entities (as per the details in the Widget Card interactions list);
 * 🔹 fully control lights (both through quick widget card interactions and a popup page with slider controls and color wheel);
 * 🔹 read and dismiss HA notifications;
@@ -38,26 +38,87 @@ The details of how information is displayed will continue to be fine tuned, and 
   
   
 ### Installation steps
-(Nextion UI TFT is only available for US NSPanels only at this stage.)
-  
-*🔹 Flashing the ESPHome YAML template:
-  * Download a copy of the template `ESPHome_Nextion_Handler_template.yaml` configuration file and fill in your details from your backup configuration into the `substitutions:` section at the top of the file.  (Leaving `ha_prefix: nsp1` will make the automation template easier later on.)
-  * Validate the file before installing it to the NSPanel (from the ESPHome addon page in Home Assistant ).
+(Nextion UI TFT is only available for US NSPanels only at this stage,  
+_🔸EU version is available on request for testing_ before it is uploaded for general access.)
+
+<details>
+  <summary>1️⃣ Fill and flash the ESPHome YAML template:</summary>   
+ 
+  * Download the template `ESPHome_Nextion_Handler_template.yaml` configuration file and fill in your details from your backup configuration into the `substitutions:` section at the top of the file.  (Leaving `ha_prefix: nsp1` will make the automation template easier later on.)
+  * Validate the file before installing it to the NSPanel (from the ESPHome addon page in Home Assistant).
   * Once the ESPHome installation is complete, check the NSPanel device page in HA to make sure the entities are showing up properly.  If you changed `ha_prefix: nsp1` (above), you will later need to get the enitity_ids for `Trigger`, `HA Act`, `HA Set1 & 2` (from the device page), and `ESPHome: nsp1_send_command` (from `Developer Tools | SERVICES`).  And you will use the `TFT upload button` to flash the Nextion TFT UI file.  
  (_If this is the first time using your NSPanel with ESPHome, there are some lines near the top of the YAML file, marked with `#! *** FIX ***...` that you will need to uncomment **once** to switch the panel from the special 'reparse' mode it uses for the original firmware to allow it work with ESPHome.  Comment those lines out again the next time you reflash your configuration - they only need to run once._)
+ 
+**ESPHome fillable template:** you only have to fill in the `substitutions:` section at the top of the template with details specific to your device.  (You can tweak the template later to your liking _after_ you have everything up an running properly.)
+```YAML
+# v0.6_2022-06-03
+#----------------------------------------
+#* DEVICE/USER-SPECIFIC DETAILS (customize for each of your own Nextion Devices).
+#! BACKUP YOUR ORIGINAL ESPHome YAML config for your device.
+#! GET THE name, passwords etc from that config & enter them in the 'substitutions:' below:
+  substitutions:
+    ota_password: "from flashing initial config"     #<< replace with the one from you own device
+    fallback_ap_password: "from initial config"
+    esp_net_name: "from-config"                      # MUST MATCH your initial config (do not use '_', use '-' instead). (Sets device local network name & part of fallback AP name).
+    esp_comment: NSPanel 1                           # descriptive name (only used for description in ESPHome Dashboard).
+    ha_prefix: nsp1                                  # prefixed to HA entity_ids to make them unique (do not use '-' or spaces, use '_' instead: OPPOSITE of 'esp_net_name').
+    tft_url: !secret nsp1_tft_url                    # path, including filename, where you put TFT file created in the Nextion Editor: e.g, "https://MY_URL:8123/local/nsp1.tft" if you put the file in the in the "/config/www/" folder of your HA device.
+    wifi_ssid: !secret wifi_ssid                     # your home WiFi credentials.
+    wifi_password: !secret wifi_password
+  #  encr_key: "H0000000000000000000000000000000000000000000"  # Generate your own key here: https://esphome.io/components/api.html#configuration-variables (and uncomment the api: encrytion: key: "...") section below if you want encrypted HA communications.
+  #----------------------------------------          # No editing of the YAML below is required to use Nextion Handler.
+```
 
-*🔹 Home Assistant python script:
-  * Copy the downloaded `nextion_handler.py` script into the `<config>/python_scripts/` folder of your Home Assistant device.
+</details> 
+
+<details>
+  <summary>2️⃣ Copy and configure Home Assistant Python script:</summary>  
+ 
+  * Download and copy the `nextion_handler.py` script into the `<config>/python_scripts/` folder of your Home Assistant device.
   * If you have never used Python scripts in Home Assistant before, you will have to add a line `python_script:` to your `configuration.yaml`.  ([See HA page on Python scripts](https://www.home-assistant.io/integrations/python_script/).)
-  * Add the automation template from the `HA_automation.yaml` file to your own HA configuration (editing the NSPanel entity_ids to match those you noted above if you set a prefix other than `nsp1`).
-  * In the `widgets:` section of the automation, add one of your own entities to the list as `  - entity: light.kitchen` (for example) to get started.  Start with just one to make sure the installation worked.  You can edit the `widget:` list whenever you want, then `reload automations` for HA to recognise the changes.  Some suggestions are already in the template, commented out, for you to replace with your own entities later on.  (If you get an entity configuration wrong, you can usually recoginise this as the first widget on a page that fails to load information properly.) 
+  * Add the automation template from the `HA_automation.yaml` file to your own HA configuration (editing the NSPanel entity_ids to match those you noted in step 1️⃣ if you set a prefix other than `nsp1`), or copy the template below.
+  * In the `widgets:` section of the automation, add one of your own entities to the list as `  - entity: light.kitchen` (for example) to get started.  Start with just one to make sure the installation worked.  You can edit the `widget:` list whenever you want, then `reload automations` for HA to recognise the changes.  Some suggestions are already in the downloadable template, commented out, for you to replace with your own entities later on.  (If you get an entity configuration wrong, this will usually be indicated by a red and white ❗ _error symbol_ for that widget.) 
 
-*🔹 Nextion Widget UI TFT file:
-  * Copy the downloaded `Widget UI TFT file` into the location you specified in the `tft_url` of your ESPHome configuration, and rename it to match the filename you set.  Then press the `TFT upload button` on the NSPanel's device page in Home Assistant (that you located before).
+**Automation template:** If you left `ha_prefix: nsp1` unchanged in step 1️⃣ then you only need to change the `- entity: light.kitchen` line near the bottom to match a light of your own.  (_The downloadable version of this template has more annotations and examples._) 
+```YAML
+- alias: "NSP1 Nextion handler"
+  mode: queued
+  max: 10
+  trigger:
+    - platform: state
+      entity_id: sensor.nsp1_trigger
+  action:
+    - service: python_script.nextion_handler
+      data:
+        trig_val: sensor.nsp1_trigger
+        nx_cmd_service: esphome.nsp1_send_command
+        action_cmds:
+          - sensor.nsp1_ha_act
+        update_cmds:
+          - sensor.nsp1_ha_set1
+          - sensor.nsp1_ha_set2
+        widgets: #______________________________________________________________
+          # Add a list of your entities here: only the "- entity: " config variable is mandatory,
+          # but usually customise the "name:" and "icon:" too.
+          - entity: persistent_notification.all  # special case
+          #*** Edit for your own devices
+          - entity: light.kitchen                # replace with your own light to start
+            name: Kitchen
+            icon: 50                             # see icon index
+``` 
+ 
+</details> 
+ 
+<details>
+  <summary>3️⃣ Flash Nextion Widget UI TFT file:</summary> 
+
+  * Download and copy `Widget UI TFT file` into the location you specified in the `tft_url` of your ESPHome configuration, and rename it to match the filename you set in step 1️⃣.  Then press the `TFT upload button` on the NSPanel's device page in Home Assistant (that you located in step 1️⃣).
   * Wait for the NSPanel to flash and reboot with the new UI.  (You may have to reboot both HA and the NSPanel after the first installation.)
 
-Whenever you change your widgets list (including the first start) it will take a little bit longer for each page to refresh the first time after that as it reconfigures itself.  If it gets stuck, open the settings menu (swipe down and close it by swiping down again), which will help to read the new list. 
-  
+Whenever you change your widgets list (including the initial installation) it will take a little bit longer for each page to refresh the first time after that as it reconfigures itself.  If it gets stuck, open the settings menu (swipe down and close it by swiping down again), which will help to read the new list. 
+
+</details> 
+ 
 </details>
 
   ---
@@ -261,11 +322,11 @@ _(I will likely add the ability to customise the actions that are triggered by e
 **Example customised template card** - shows the time and date, and highlights the icon on the weekend:  
 ```YAML
     widgets: #______________________________________________________________
-      - entity: template
-        name: Time
-        icon: 118
+      - entity: template # Time & Date card
+        name: "{{ now().strftime('%Hh%m') }}"  # time - customise to your liking
+        icon: 118  # Time & Date icon
         icon_state: "{{ now().strftime('%a') in ['Sat','Sun'] }}"  # highlight on weekends
-        alt: "{{ now().strftime('%Hh%m') }}"  # time customise to your liking
+        alt: "{{ 'Work day' if states.binary_sensor.workday_today.state == 'on' else 'Day off' }}"  # customise to match your work_day binary_sensor
         info: "{{ now().strftime('%a %d %b %Y') }}"  # date - customise to your liking
 ```
 
