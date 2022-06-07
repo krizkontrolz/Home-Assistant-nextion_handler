@@ -1,5 +1,5 @@
 # ✴️ Widget UI
-(_Last updated 2022/06/06_)  
+(_Last updated 2022/06/08_)  
 **🎺 v06_2022-06-03 files now uploaded and ready to install.**
 
 ## Current Features and Status
@@ -112,7 +112,7 @@ _🔸EU version is available on request for testing_ - I don't have an EU model 
 <details>
   <summary>3️⃣ Flash Nextion Widget UI TFT file:</summary> 
 
-  * Download and copy a `Widget UI TFT file` into the location you specified in the `tft_url` of your ESPHome configuration, and rename it to match the filename you set in step 1️⃣.  Then press the `TFT upload button` on the NSPanel's device page in Home Assistant (that you located in step 1️⃣).
+  * Download the `Widget UI TFT file` then copy and rename it to the location and filename you specified in the `tft_url` of your ESPHome configuration in step 1️⃣.  Then press the `TFT upload button` on the NSPanel's device page in Home Assistant (that you located in step 1️⃣).
   * Wait for the NSPanel to flash and reboot with the new UI.  (You may have to reboot both HA and the NSPanel after the first installation.)
 
 Whenever you change your widgets list (including the initial installation) it will take a little bit longer for each page to refresh the first time after that as it reconfigures itself.  If it gets stuck, open the settings menu (swipe down and close it by swiping down again), which will help to read the new list. 
@@ -350,18 +350,18 @@ A currated set of icons is used on the cards.  These are paired (for off/unhighl
  ![Widget UI Icon index](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/widget_ui/Widget_Icons_Index.png "Icon numbering index")
 
 ### Icons are grouped as follows:
- * 🔹 0 .. 47 (6 rows): default and system.
- * 🔹 48 .. 71 (3 rows): lights (orange for indoor, green for outdoor).  
+ * 🔵 0 .. 47 (6 rows): default and system.
+ * 🟠 48 .. 71 (3 rows): lights (orange for indoor, green for outdoor).  
    (_spare row_.)
- * 🔹 80 .. 87 (1 row): media players.
- * 🔹 88 .. 95 (1 row): presence for 'person' and 'device_tracker' entities.
- * 🔹 96 .. 103 (1 row): binary sensors (representing most device classes).  
+ * 🔴 80 .. 87 (1 row): media players.
+ * 🔵 88 .. 95 (1 row): presence for 'person' and 'device_tracker' entities.
+ * 🔵 96 .. 103 (1 row): binary sensors (representing most device classes).  
    (_spare row_.)
- * 🔹 112 .. 135 (3 rows): sensors (numeric) (representing most device classes).
- * 🔹 136 .. 143 (1 row): 'cover' entities (representing most device classes: automatic blinds, curtains, doors, windows etc.).
- * 🔹 144 .. 151 (1 row): Controls for indoor appliances.
- * 🔹 152 .. 159 (1 row): HVAC 'climate' entities.
- * 🔹 160 .. 167 (1 row): Controls for outdoor devices.
+ * 🟣 112 .. 135 (3 rows): sensors (numeric) (representing most device classes).
+ * 🔵 136 .. 143 (1 row): 'cover' entities (representing most device classes: automatic blinds, curtains, doors, windows etc.).
+ * 🔵 144 .. 151 (1 row): Controls for indoor appliances.
+ * 🔴 152 .. 159 (1 row): HVAC 'climate' entities.
+ * 🟢 160 .. 167 (1 row): Controls for outdoor devices.
  
  Remaining slots are spares for future additions.  The images (pair) are the maximum size that the Nextion Editor will compile and store in a TFT file.
  
