@@ -139,17 +139,29 @@ Each page is tiled with Widget cards, one per entity each with four quadrants fo
  
 
 
-## Page Swipe Gestures
-Navigation and other common functions use swipe gestures (rather than on-screen buttons) so that the limited area of the NSPanel display can be fully utilised by Widget cards.
+## Gestures
+Navigation and other common functions use `press`, `nudge` and `swipe` gestures (rather than on-screen buttons) so that the limited area of the NSPanel display can be fully utilised by Widget cards.  Different types of gestures are used for changing pages (`swipes`), replace sliders for multi-step changes on Widgets (`nudges` + hold) and trigger actions specific to the type entity on the Widget (`press` + hold).
   
 <details>
-  <summary>▶️ show navigation gestures ...</summary>
+  <summary>▶️ show gesture types ...</summary>
 
-  
-* **🔹 Left and Right swipes:** change pages forwards and backwards (for as many 'Main' pages as are required for the configured list of Widgets).
-* **🔹 Downward swipes:** will bring up the 'Settings' popup page from any 'Main' page (or will dismiss a popup page).  Opening the settings page will also fetch an updated count of the number of entities in your configured `widgets:` list (so the that correct number of pages can be allocated).
-* **🔹 Upward swipes:** force an immediate update of the widgets on the current page with current data from HA.
+🠖  🠔 🠕 🠗   ◀ ▶ ⯅ 	⯆  	◑ 	◐ 	⦿ ⊙ ✖   
+The gesture enginge allows a wide range of user interactions in the compact space of the NSPanel display.  When you touch the screen, a small indicator pops up in the top left corner of the screen showing on an icon to indicate the current gesture (one of: `🠖` `🠔` `🠕` `🠗` `◀` `▶` `⯅` `⯆` `◑` `◐` `⦿` `⊙` `✖`), and a text description of the action that will be triggered if you lift your finger at the point.  If the gesture is held, then a timer bar will appear to the right of the gesture indicator (and the duration of the hold may modify the gesture and/or triggered action).
+ 
+### Page Swipe Gestures  
+`Swipe` gestures trigger when a touch moves far enough (before the finger is lifted): the trigger distance is about 1/3 the width of a US NSPanel, or 1/4 on the landscape EU NSPanel).  
+* **🔹 `🠖` `🠔` Left and Right swipes:** change pages forwards and backwards (for as many 'Main' pages as are required for the configured list of Widgets).
+* **🔹 `🠗` Downward swipes:** will bring up the 'Settings' popup page from any 'Main' page (or will dismiss a popup page).  Opening the settings page will also fetch an updated count of the number of entities in your configured `widgets:` list (so the that correct number of pages can be allocated).
+* **🔹 `🠕` Upward swipes:** force an immediate update of the widgets on the current page with current data from HA.
 
+### Widget Nudge (and hold) Gestures  
+`Nudge` gestures are short movements on a Widget card (moving a distance about the width of an icon circle).  Nudges are a compact way of replacing slider bars to make incremental step increases/decreases to an entity (such the brightness, color temperature and hue of a light).  Holding a `nudge` will bring up the timer bar, which trigger multiple step changes.
+* ** 🔹 `◀` `▶` Left and Right nudges:** incrementally increase/decrease an entity attribute in step changes. 
+* ** 🔹 `⯅` `⯆` Up and Down nudges:** incrementally increase/decrease a second entity attribute in step changes.
+
+ ### Widget Press (and hold) Gestures  
+◑ 	◐ 	⦿ ⊙ ✖
+ 
  --- 
   
 </details>  
@@ -224,9 +236,11 @@ Each card has four quadrants for touch interactions, each of which can be given 
   &nbsp;&nbsp; `-s`: suffix for a short tap  
   &nbsp;&nbsp; `-l`: suffix for a long-press  
   
-
-* 🔸 **_Cards for ALL entities that can be toggled:_**
-  * `TL-s`: toggle (tap icon)
+	🠖  ➜ ➞  🠔 🠕 🠗   ◀ ▶ ⯅ 	⯆  	◑ 	◐ 	⦿ ⊙ ✖
+* 🔸 **Basic Toggle, On, Off Entities** in domains: `switch`, `input_boolean`, `script`, `siren`, `group`, `camera`, `humidifier`, `remote`.
+  * `◑`, `◐`: toggle (tap icon)
+  * `⦿`: turn OFF
+  * `⊙`: turn on
   
   
   
