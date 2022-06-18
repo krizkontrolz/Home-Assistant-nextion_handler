@@ -1,5 +1,5 @@
 # 🟠 Widget UI
-(_Last updated 2022/06/08_)  
+(_Last updated 2022/06/18_)  
 **🎺 v06_2022-06-03 files now uploaded and ready to install.**
 
 ## Current Features and Status
@@ -129,7 +129,7 @@ Whenever you change your widgets list (including the initial installation) it wi
 Each page is tiled with Widget cards, one per entity each with four quadrants for touch interactions. Information and touch interactions adapt to the type of entity they are displaying.  
 * **🔹 Main Pages:** The 'Main' content pages are filled completely with Widget cards (as shown in the example images below).  Navigation is by swipe gestures that cycles forwards and backwards through the main pages.
 * **🔹 Popup Pages:** Some actions bring up 'popup' pages that provided added controls and information.  These are distinguished by a title bar at the top, and a back arrow in the top left corner for navigating back to the 'Main' page you came from.
-* **Widget Cards:** Each card has an icon (with circular background), then three rows of text: the 'title' at the top, a row of short 'alternate' text, and the main 'info' text along the width of the card at the bottom.
+* **🔹Widget Cards:** Each card has an icon (with circular background), then three rows of text: the 'title' at the top, a row of short 'alternate' text, and the main 'info' text along the width of the card at the bottom.
 * **🔹 Icons:** Icons and their coloring conventions [follow the detailed set of Minimilist Design UI standards for this project](/UI_Design/Minimalist/): cards with white/grey icons typically only provide information and will not trigger any actions when touched, whereas colored icons indicate that long and short presses in the four quadrants of the card will trigger a range of actions (as detailed below).  A grey circle behind the icon indicates that the entity is in an off/inactive state, while a colored background highlights when entities are in an on/active/alert state.  The available icon pairs, currated and precompiled to these conventions, are indexed below. 
   
 
@@ -140,16 +140,16 @@ Each page is tiled with Widget cards, one per entity each with four quadrants fo
 
 
 ## Gestures
-Navigation and other common functions use `press`, `nudge` and `swipe` gestures (rather than on-screen buttons) so that the limited area of the NSPanel display can be fully utilised by Widget cards.  Different types of gestures are used to changing pages (`swipes`), replace sliders for multi-step incremental changes on Widgets (`nudges` + hold) and trigger actions specific to the type entity on the Widget (`press` + hold).
+Navigation and Widget interactions use `press`, `nudge` and `swipe` gestures (rather than on-screen buttons) so that the limited area of the NSPanel display can be fully utilised by Widget cards.  Different types of gestures are used to change pages (`swipes`), replace sliders for multi-step incremental changes on Widgets (`nudges` + hold), and trigger actions specific to the type of entity on the Widget (`press` + hold).
 	
-The gesture enginge allows a wide range of user interactions in the compact space of the NSPanel display.  When you touch the screen, a small `gesture indicator` pops up in the top left corner of the screen showing on an icon to indicate the current gesture (one of: `🠖` `🠔` `🠕` `🠗` `◀` `▶` `⯅` `⯆` `◑` `◐` `⦿` `⊙` `✖`), and a `text description` of the action that will be triggered if you lift your finger at that moment.  If the gesture is held, then a `timer bar` will appear to the right of the gesture indicator (and the duration of the hold may modify the gesture and/or triggered action).	
+The [gesture enginge](/Tips_and_Tricks/NEXTION_GESTURES.md) allows a wide range of user interactions in the compact space of the NSPanel display.  When you touch the screen, a small `gesture indicator` pops up in the top left corner showing a `gesture icon` for the current gesture (one of: `swipe`: `🠖` `🠔` `🠕` `🠗`, `nudge`: `◀` `▶` `⯅` `⯆`, or `press`: `◑` `◐` `⦿` `⊙` `✖`), and a `text description` of the `action` that will be triggered if you lift your finger at that moment.  If the gesture is held, then a `timer bar` will appear to the right of the gesture indicator (where the duration of the hold will modify the gesture and triggered action).	
   
 <details>
   <summary>▶️ show gesture types ...</summary>
 
  
 #### Page Swipe Gestures  
-`Swipe` gestures trigger when a touch moves far enough (before the finger is lifted): the trigger distance is about 1/3 the width of a US NSPanel, or 1/4 on the landscape EU NSPanel).  
+`Swipe` gestures trigger as soon as a touch moves the trigger distance on the display (before the finger is lifted): the trigger distance is about 1/3 the width of a US NSPanel, or 1/4 on the landscape EU NSPanel).  
 * **🔹 `🠖` `🠔` Left and Right swipes:** cycle forwards and backwards through 'Main' pages (for as many 'Main' pages as are required for the configured list of Widgets).
 * **🔹 `🠗` Downward swipes:** will bring up the 'Settings' popup page from any 'Main' page (or will dismiss a popup page).  Opening the settings page will also fetch an updated count of the number of entities in your configured `widgets:` list (so the that correct number of pages can be allocated).
 * **🔹 `🠕` Upward swipes:** force an immediate update of the widgets on the current page with current data from HA.
@@ -229,13 +229,42 @@ As functionality is developed, more popups will be added to support some of the 
 
   
 ## Widget Card Tap Interactions (by Entity type)
-Each card has four quadrants for touch interactions, each of which can be given a short tap or a long press.  The [gesture processing subroutine](/main/Tips_and_Tricks) will reject any touches where your finger moves slightly (but not far enough to register a swipe).  This is to reject ambiguous gestures that could inadvertently trigger an action you didn't mean to (or ambiguous slips between hotspot quadrants).  So legitimate touches need to be precise (without finger movement) to trigger, and short taps should be fast so that they are clearly distinguishable from long presses.
+	
+A set of `nudge` and `press` gestures allows users to interact with Widgets in different ways, as shown in the UI by the `gesture indicator` (`nudges`: `◀` `▶` `⯅` `⯆`, and `presses`: `◑` `◐` `⦿` `⊙` `✖`).  The `actions` that are generated by each of those gestures adapt to the type of entity on that Widget card and are shown as a `text description` next to the `gesture icon` in the `gesture indicator`.  This makes it easy for users to learn all the possible Widget interactions from feedback displayed directly on the Nextion display - but the set of interactions for each entity type is also summarised below for reference: 
+
   
 
 <details>
   <summary>▶️ show actions triggered by touch interactions with each type of Widget card ...</summary>
 
- (OLD 'quadrant' taps) The following abbreviations are used as shorthand below for touch interactions:   
+
+(Under construction: new `tap` and `nudge` gestures follow the icons that appear in the UI `gesture indicator`, as desccribed in the Gestures section above).   	
+	```🠖➞🠔🠕🠗◀▶⯅⯆◑◐⦿⊙✖```
+	
+* 🔸 **Basic Toggle, On, Off Entities** in domains: `switch`, `input_boolean`, `script`, `siren`, `group`, `camera`, `humidifier`, `remote`.
+  * `◑`, `◐`: toggle (tap icon)
+  * LHS & RHS `⦿`: turn OFF
+  * LHS & RHS `⊙`: turn on
+  
+* 🔸 **Light Cards:**
+  * `◑`: toggle light on/off  
+  * LHS `⦿`: force turning light OFF (fix out of sync lights)  
+  * LHS `⊙`: force turning light on  
+  * `◐`: brings up light popup card with color wheel and slider controls  
+  * RHS `⦿`: turn on/change the bulb to a supported white mode  
+  * RHS `⊙`: cancel (no action)  
+  * `◀`, `▶`: adjust light brightness.  If light is off:  
+	`◀` will turn light on at 1% brightness  
+	`▶` will turn light on at 100% brightness  
+  * `⯅`, `⯆`: adjust the light's color temperature (if it is in WW mode) or hue (if it is in an RGB mode)  
+
+	
+---	
+	
+**_OLD quadrant system - currently being updated to the new gestures above._**
+Each card has four quadrants for touch interactions, each of which can be given a short tap or a long press.  The [gesture processing subroutine](/main/Tips_and_Tricks) will reject any touches where your finger moves slightly (but not far enough to register a swipe).  This is to reject ambiguous gestures that could inadvertently trigger an action you didn't mean to (or ambiguous slips between hotspot quadrants).  So legitimate touches need to be precise (without finger movement) to trigger, and short taps should be fast so that they are clearly distinguishable from long presses.
+	
+*OLD 'quadrant' taps:* The following abbreviations are used as shorthand below for touch interactions:   
   &nbsp;&nbsp; `TL`: top left quadrant (tap icon)  
   &nbsp;&nbsp; `TR`: top right quadrant (title)  
   &nbsp;&nbsp; `BL`: bottom left quadrant  
@@ -246,16 +275,7 @@ Each card has four quadrants for touch interactions, each of which can be given 
   &nbsp;&nbsp; `ALL`: all 4 quadrants (entire card, excl. margins between 'hotspots')  
   &nbsp;&nbsp; `-s`: suffix for a short tap  
   &nbsp;&nbsp; `-l`: suffix for a long-press  
-
-(Under construction: new `tap` and `nudge` gestures follow the icons that appear in the UI `gesture indicator`, as desccribed in the Gestures section above).   	
-	```🠖➞🠔🠕🠗◀▶⯅⯆◑◐⦿⊙✖```
 	
-* 🔸 **Basic Toggle, On, Off Entities** in domains: `switch`, `input_boolean`, `script`, `siren`, `group`, `camera`, `humidifier`, `remote`.
-  * `◑`, `◐`: toggle (tap icon)
-  * LHS & RHS `⦿`: turn OFF
-  * LHS & RHS `⊙`: turn on
-  
-  
   
 * 🔸 **Light Cards:**
   * `TL-s`: toggle light on/off
@@ -265,17 +285,6 @@ Each card has four quadrants for touch interactions, each of which can be given 
   * `BL_R-s`: dim/brighten light (if already on), or turn on light at low/high brightness (if off)
   * `BL_R-l`: increase/decrease the color_temperature or hue of the light (according to its current color_mode)
 
-	
-  * `◑`: toggle light on/off  
-  * LHS `⦿`: force turning light OFF (fix out of sync lights)  
-  * LHS `⊙`: force turning light on  
-  * `◐`: brings up light popup card with color wheel and slider controls  
-  * RHS `⦿`: turn on/change the bulb to a supported white mode  
-  * RHS `⊙`: cancel (no action)  
-  * `◀`, `▶`: adjust light brightness.  If light is off:  
-	`◀` will turn light on at 1% brightness  
-	`▶` will turn light on at 100% brightness  
-  * `⯅`, `⯆`: adjust the color temperature (if light is in WW mode) or hue (if light is in an RGB mode) of a light  
 
   
   
