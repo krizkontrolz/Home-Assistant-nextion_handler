@@ -162,7 +162,8 @@ The [gesture enginge](/Tips_and_Tricks/NEXTION_GESTURES.md) allows a wide range 
 #### Widget Nudge (and hold) Gestures  
 `Nudge` gestures are short movements on a Widget card (moving a distance about the width of an icon circle).  Nudges are a compact way of replacing slider bars to make incremental step increases/decreases to an entity (such a lights brightness, color temperature and hue).  Holding a `nudge` will bring up the timer bar to trigger multiple step changes.
 * **🔹 `◀` `▶` Left and Right nudges:** incrementally increase/decrease an entity attribute in step changes. 
-* **🔹 `⯅` `⯆` Up and Down nudges:** incrementally increase/decrease a second entity attribute in step changes.
+* **🔹 `⯅` `⯆` Up and Down nudges:** incrementally increase/decrease a second entity attribute in step changes.  
+To make a single `nudge` increment/decrement just use a quick short flick, and release before the `timer bar` appears.  If you hold until the timer first appears, that counts as a second `nudge`, and each subsequent step on the timer will result in an additional increment/decrement being applied.  The main thing to remember with `nudges` is that you increase the number of step adjustments by _holding_ the touch for a longer duration (rather than by _moving_ your finger further - if you move your finger beyond the trigger distance for a `stroke`, then that action will immediately be excecuted instead).  Alternatively, you can make multiple step adjustments by using several short flicks in a row at about 1 second intervals (if you go too fast, some ajdustments may be lost because of lags in the Home Assistant state machine not updating quickly enough).
 
 #### Widget Press (and hold) Gestures  
 * **🔹 `◑` LHS short tap:** performs the indicated action when tapping on the left hand half of the Widget card.  
