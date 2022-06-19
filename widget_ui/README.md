@@ -142,7 +142,7 @@ Each page is tiled with Widget cards, one per entity each with four quadrants fo
 ## Gestures
 Navigation and Widget interactions use `press`, `nudge` and `swipe` gestures (rather than on-screen buttons) so that the limited area of the NSPanel display can be fully utilised by Widget cards.  Different types of gestures are used to change pages (`swipes`), replace sliders for multi-step incremental changes on Widgets (`nudges` + hold), and trigger actions specific to the type of entity on the Widget (`press` + hold).
 	
-The [gesture enginge](/Tips_and_Tricks/NEXTION_GESTURES.md) allows a wide range of user interactions in the compact space of the NSPanel display.  When you touch the screen, a small `gesture indicator` pops up in the top left corner showing a `gesture icon` for the current gesture (one of: `swipe`: `🠖` `🠔` `🠕` `🠗`, `nudge`: `◀` `▶` `⯅` `⯆`, or `press`: `◑` `◐` `⦿` `⊙` `✖`), and a `text description` of the `action` that will be triggered if you lift your finger at that moment.  If the gesture is held, then a `timer bar` will appear to the right of the gesture indicator (where the duration of the hold will modify the gesture and triggered action).	
+The [gesture enginge](/Tips_and_Tricks/NEXTION_GESTURES.md) allows a wide range of user interactions in the compact space of the NSPanel display.  When you touch the screen, a small `gesture indicator` pops up in the top left corner showing a `gesture icon` for the current gesture (one of: `swipe`: `⬅` `➡` `⬆` `⬇`, `nudge`: `◀` `▶` `⯅` `⯆`, or `press`: `◑` `◐` `◉` `⊙` `✖`), and a `text description` of the `action` that will be triggered if you lift your finger at that moment.  If the gesture is held, then a `timer bar` will appear to the right of the gesture indicator (where the duration of the hold will modify the gesture and triggered action).	
   
 <details>
   <summary>▶️ show gesture types ...</summary>
@@ -150,9 +150,9 @@ The [gesture enginge](/Tips_and_Tricks/NEXTION_GESTURES.md) allows a wide range 
  
 #### Page Swipe Gestures  
 `Swipe` gestures trigger as soon as a touch moves the trigger distance on the display (before the finger is lifted): the trigger distance is about 1/3 the width of a US NSPanel, or 1/4 on the landscape EU NSPanel).  
-* **🔹 `🠖` `🠔` Left and Right swipes:** cycle forwards and backwards through 'Main' pages (for as many 'Main' pages as are required for the configured list of Widgets).
-* **🔹 `🠗` Downward swipes:** will bring up the 'Settings' popup page from any 'Main' page (or will dismiss a popup page).  Opening the settings page will also fetch an updated count of the number of entities in your configured `widgets:` list (so the that correct number of pages can be allocated).
-* **🔹 `🠕` Upward swipes:** force an immediate update of the widgets on the current page with current data from HA.
+* **🔹 `⬅` `➡` Left and Right swipes:** cycle forwards and backwards through 'Main' pages (for as many 'Main' pages as are required for the configured list of Widgets).
+* **🔹 `⬇` Downward swipes:** will bring up the 'Settings' popup page from any 'Main' page (or will dismiss a popup page).  Opening the settings page will also fetch an updated count of the number of entities in your configured `widgets:` list (so the that correct number of pages can be allocated).
+* **🔹 `⬆` Upward swipes:** force an immediate update of the widgets on the current page with current data from HA.
 
 #### Widget Nudge (and hold) Gestures  
 `Nudge` gestures are short movements on a Widget card (moving a distance about the width of an icon circle).  Nudges are a compact way of replacing slider bars to make incremental step increases/decreases to an entity (such a lights brightness, color temperature and hue).  Holding a `nudge` will bring up the timer bar to trigger multiple step changes.
@@ -163,7 +163,7 @@ The [gesture enginge](/Tips_and_Tricks/NEXTION_GESTURES.md) allows a wide range 
 * **🔹 `◑` LHS short tap:** performs the indicated action when tapping on the left hand half of the Widget card.  
 	(Taps are of short duration, where you lift your finger _before the timer bar appears_.) 
 * **🔹 `◐` RHS short tap:** performs the indicated action when tapping on the left hand half of the Widget card. 
-* **🔹 `⦿` Long press:** performs the indicated action when holding press until timer bar first appears.  
+* **🔹 `◉` Long press:** performs the indicated action when holding press until timer bar first appears.  
 	(Actions for LHS and RHS may be different.) 
 * **🔹 `⊙` Very long press:** performs the indicated action when holding press until timer bar increases by 2 more steps after first appearing.  
 	(Actions for LHS and RHS may be different). 
@@ -230,7 +230,7 @@ As functionality is developed, more popups will be added to support some of the 
   
 ## Widget Card Tap Interactions (by Entity type)
 	
-A set of `nudge` and `press` gestures allows users to interact with Widgets in different ways, as shown in the UI by the `gesture indicator` (`nudges`: `◀` `▶` `⯅` `⯆`, and `presses`: `◑` `◐` `⦿` `⊙` `✖`).  The `actions` that are triggered by each of those gestures adapt to the type of entity on that Widget card and are shown as a `text description` next to the `gesture icon` in the `gesture indicator`.  This makes it easy for users to learn all the possible Widget interactions from feedback displayed directly on the Nextion display - but the set of interactions for each entity type is also summarised below for reference: 
+A set of `nudge` and `press` gestures allows users to interact with Widgets in different ways, as shown in the UI by the `gesture indicator` (`nudges`: `◀` `▶` `⯅` `⯆`, and `presses`: `◑` `◐` `◉` `⊙` `✖`).  The `actions` that are triggered by each of those gestures adapt to the type of entity on that Widget card and are shown as a `text description` next to the `gesture icon` in the `gesture indicator`.  This makes it easy for users to learn all the possible Widget interactions from feedback displayed directly on the Nextion display - but the set of interactions for each entity type is also summarised below for reference: 
 
   
 
@@ -238,20 +238,20 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
   <summary>▶️ show actions triggered by touch interactions with each type of Widget card ...</summary>
 
 
-(Under construction: new `tap` and `nudge` gestures follow the icons that appear in the UI `gesture indicator`, as desccribed in the Gestures section above).   	
-	```🠖➞🠔🠕🠗◀▶⯅⯆◑◐⦿⊙✖```
+(Under construction: new `tap` and `nudge` gestures follow the icons that appear in the UI `gesture indicator`, as desccribed in the Gestures section above)
+```◐◑◉⦿⊙✖✘▲▼◀▶⬅⬆⬇➡ 🠖➞🠔🠕🠗◀▶⯅⯆◑◐◉⦿⊙✖```.
 	
-* 🔸 **Basic Toggle, On, Off Entities** in domains: `switch`, `input_boolean`, `script`, `siren`, `group`, `camera`, `humidifier`, `remote`.
+* 🔸 **Cards for Switch, Input boolean, Script, Siren, Group, Camera, Humidifier, and  Remote** (Toggle, On, Off) Entities.
   * `◑`, `◐`: Toggle (tap icon)
-  * LHS & RHS `⦿`: Turn OFF
-  * LHS & RHS `⊙`: Turn on
+  * LHS & RHS `◉`: Turn OFF (long press)
+  * LHS & RHS `⊙`: Turn on (very long press)
   
 * 🔸 **Light Cards:**
   * `◑`: Toggle light on/off  
-  * LHS `⦿`: Force turning light OFF (fix out of sync lights)  
+  * LHS `◉`: Force turning light OFF (fix out of sync lights)  
   * LHS `⊙`: Force turning light on  
   * `◐`: Brings up light Popup card with color wheel and slider controls  
-  * RHS `⦿`: Turn on/change the bulb to a supported white mode  
+  * RHS `◉`: Turn on/change the bulb to a supported white mode  
   * `◀`, `▶`: Adjust light Brightness.  If light is off:  
 	`◀` will turn light on at Minimum (1%) brightness  
 	`▶` will turn light on at Maximum (100%) brightness  
@@ -259,49 +259,49 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
 
 * 🔸 **Media Player Cards:**
   * `◑`: Toggle media player on/off  
-  * LHS `⦿`: Toggle Play/Pause  
+  * LHS `◉`: Toggle Play/Pause  
   * LHS `⊙`: Source select (cycle backwards through source list)  
   * `◐`: (Placeholder to bring up future media player Popup)  
-  * RHS `⦿`: Toggle mute  
+  * RHS `◉`: Toggle mute  
   * RHS `⊙`: Source select (cycle forwards through source list)  
   * `◀`, `▶`: Skip Backwards/Forwards through tracks/channels/media list  
   * `⯅`, `⯆`: Increase/Decrease volume  
 
 * 🔸 **Alarm Control Panel Cards:**
   * `◑`: Arm - Night  
-  * LHS `⦿`: Arm - Home  
+  * LHS `◉`: Arm - Home  
   * `◐`: Arm - Away  
-  * RHS `⦿`: Arm - Vaction  
+  * RHS `◉`: Arm - Vaction  
   * LHS & RHS `⊙`: DISARM  
 
 * 🔸 **Automation Cards:**
   * `◑`, `◐`: Toggle automation Active/Inactive  
-  * LHS & RHS `⦿`: Trigger automation  
+  * LHS & RHS `◉`: Trigger automation  
 	
 * 🔸 **Button Cards:**
   * `◑`, `◐`: Execute Button actions  
 	
 * 🔺 **Cover Cards:**
   * `◑`: Toggle cover open/closed  
-  * LHS `⦿`: Stop cover open/close  
+  * LHS `◉`: Stop cover open/close  
   * LHS `⊙`: Open cover  
   * `◐`: Toggle tilt  
-  * RHS `⦿`: Stop tilt  
+  * RHS `◉`: Stop tilt  
   * RHS `⊙`: Open tilt  
   * `◀`, `▶`: Reduce/Increase cover Tilt  
   * `⯅`, `⯆`: Reduce/Increase cover Position  
 	
 * 🔸 **Input Number Cards:**
-  * LHS `⦿`: Set to Minimum value  
+  * LHS `◉`: Set to Minimum value  
   * LHS `⊙`: Set to 25% (between Min and Max)  
-  * RHS `⦿`: Set to Maximum value  
+  * RHS `◉`: Set to Maximum value  
   * RHS `⊙`: Set to 75% (between Min and Max)  
   * `◀`, `▶`: Decrease/Increase value in increments of 10% of range  
   * `⯅`, `⯆`: Decrease/Increase value in increments of 1% of range  
 	
 * 🔸 **Input_Select and Select Cards:**
-  * LHS `⦿`: Set to First option in list  
-  * RHS `⦿`: Set to Last option in list  
+  * LHS `◉`: Set to First option in list  
+  * RHS `◉`: Set to Last option in list  
   * `◀`, `▶`: Cycle backwards/forwards through the options list  
 	
 * 🔸 **Scene Cards:**
@@ -310,19 +310,15 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
 * 🔸 **Update Cards:**
   * `◑`: Install latest Update  
   * `◐`: Skip this update  
-  * RHS `⦿`: Clear skipping of update  
+  * RHS `◉`: Clear skipping of update  
 	
 * 🔸 **Vacuum Cards:**
   * `◑`: Toggle stop/start cleaning  
-  * LHS `⦿`: Return to base  
+  * LHS `◉`: Return to base  
   * `◐`: Locate vacuum  
-  * RHS `⦿`: Clean spot  
-  * RHS `⊙`: source select (forwards through source list)  
-  * `◀`, `▶`: skip backwards/forwards through tracks/channels/media list  
-  * `⯅`, `⯆`: increase/decrease volume  
 
 
-"🔺" indicates I don't have so I need a volunteer to test these.	
+"🔺" indicates entity types I don't have so I need a volunteer to test.	
 	
 ---	
 	
