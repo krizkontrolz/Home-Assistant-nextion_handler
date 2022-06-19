@@ -146,8 +146,12 @@ The [gesture enginge](/Tips_and_Tricks/NEXTION_GESTURES.md) allows a wide range 
   
 <details>
   <summary>▶️ show gesture types ...</summary>
-
- 
+  
+**Demonstration of the `gesture indicator` giving UI feedback on touch interactions.**	 
+	
+![Gesture UI demo](/widget_ui/DEMO_Gestures_Animation.gif)
+	
+	
 #### Page Swipe Gestures  
 `Swipe` gestures trigger as soon as a touch moves the trigger distance on the display (before the finger is lifted): the trigger distance is about 1/3 the width of a US NSPanel, or 1/4 on the landscape EU NSPanel).  
 * **🔹 `⬅` `➡` Left and Right swipes:** cycle forwards and backwards through 'Main' pages (for as many 'Main' pages as are required for the configured list of Widgets).
