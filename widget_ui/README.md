@@ -1,5 +1,5 @@
 # 🟠 Widget UI
-(_Last updated 2022/06/18_)  
+(_Last updated 2022/06/19_)  
 **🎺 v06_2022-06-03 files now uploaded and ready to install.**
 
 ## Current Features and Status
@@ -19,6 +19,7 @@ The Widgets currently provide sufficient functionality for most of the every-day
   
 The details of how information is displayed will continue to be fine tuned, and new functionality will be added as the supported capabilities of the underlying [Nextion Hanlder](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/HA_NEXTION_HANDLER_INSTRUCTIONS.md) are being developed and expanded.
 
+🚧 New gesture and widget features are currently being documented for version 0.7 (but aren't supported in the currently available 0.6 version).
   
 </details>
  
@@ -126,11 +127,11 @@ Whenever you change your widgets list (including the initial installation) it wi
 ## UI Features
   
 ### Page Layout and Function
-Each page is tiled with Widget cards, one per entity each with four quadrants for touch interactions. Information and touch interactions adapt to the type of entity they are displaying.  
+Each page is tiled with Widget cards, one per entity. Information and touch interactions adapt to the type of entity they are displaying.  
 * **🔹 Main Pages:** The 'Main' content pages are filled completely with Widget cards (as shown in the example images below).  Navigation is by swipe gestures that cycles forwards and backwards through the main pages.
-* **🔹 Popup Pages:** Some actions bring up 'popup' pages that provided added controls and information.  These are distinguished by a title bar at the top, and a back arrow in the top left corner for navigating back to the 'Main' page you came from.
+* **🔹 Popup Pages:** Some actions bring up 'popup' pages that provide added controls and information.  These are distinguished by a title bar at the top, and a back arrow in the top left corner for navigating back to the 'Main' page you came from.
 * **🔹Widget Cards:** Each card has an icon (with circular background), then three rows of text: the 'title' at the top, a row of short 'alternate' text, and the main 'info' text along the width of the card at the bottom.
-* **🔹 Icons:** Icons and their coloring conventions [follow the detailed set of Minimilist Design UI standards for this project](/UI_Design/Minimalist/): cards with white/grey icons typically only provide information and will not trigger any actions when touched, whereas colored icons indicate that long and short presses in the four quadrants of the card will trigger a range of actions (as detailed below).  A grey circle behind the icon indicates that the entity is in an off/inactive state, while a colored background highlights when entities are in an on/active/alert state.  The available icon pairs, currated and precompiled to these conventions, are indexed below. 
+* **🔹 Icons:** Icons and their coloring conventions [follow the detailed set of Minimilist Design UI standards for this project](/UI_Design/Minimalist/): cards with white/grey icons typically only provide information and will not trigger any actions when touched, whereas colored icons indicate that touch interactions with the card will trigger a range of actions (as detailed below).  A grey circle behind the icon indicates that the entity is in an off/inactive state, while a colored background highlights when entities are in an on/active/alert state.  The available icon pairs, currated and precompiled to these conventions, are indexed below. 
   
 
  **Screenshots of Widget UI** (3 'Main' pages, each tiled with 2x4 entity cards) showing how the appearance of cards adapts to the type of entity allocated to them.  
@@ -142,7 +143,7 @@ Each page is tiled with Widget cards, one per entity each with four quadrants fo
 ## Gestures
 Navigation and Widget interactions use `press`, `nudge` and `swipe` gestures (rather than on-screen buttons) so that the limited area of the NSPanel display can be fully utilised by Widget cards.  Different types of gestures are used to change pages (`swipes`), replace sliders for multi-step incremental changes on Widgets (`nudges` + hold), and trigger actions specific to the type of entity on the Widget (`press` + hold).
 	
-The [gesture enginge](/Tips_and_Tricks/NEXTION_GESTURES.md) allows a wide range of user interactions in the compact space of the NSPanel display.  When you touch the screen, a small `gesture indicator` pops up in the top left corner showing a `gesture icon` for the current gesture (one of: `swipe`: `⬅` `➡` `⬆` `⬇`, `nudge`: `◀` `▶` `⯅` `⯆`, or `press`: `◑` `◐` `◉` `⊙` `✖`), and a `text description` of the `action` that will be triggered if you lift your finger at that moment.  If the gesture is held, then a `timer bar` will appear to the right of the gesture indicator (where the duration of the hold will modify the gesture and triggered action).	
+The [gesture enginge](/Tips_and_Tricks/NEXTION_GESTURES.md) allows a wide range of user interactions in the compact space of the NSPanel display.  When you touch the screen, a small `gesture indicator` pops up in the top left corner showing a `gesture icon` for the current gesture (one of: `swipe`: `⬅` `➡` `⬆` `⬇`, `nudge`: `◀` `▶` `⯅` `⯆`, or `press`: `◑` `◐` `◉` `⊙` `✖`), and a `text description` of the `action` that will be triggered if you lift your finger at that moment.  If the gesture is held, then a `timer bar` will appear to the right of the gesture indicator (where the duration of the hold will modify the gesture and triggered action for `presses` and will increase the number of times a step increment/decrement is applied for `nudges`).	
   
 <details>
   <summary>▶️ show gesture types ...</summary>
@@ -242,7 +243,7 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
   <summary>▶️ show actions triggered by touch interactions with each type of Widget card ...</summary>
 
 
-(Under construction: new `tap` and `nudge` gestures follow the icons that appear in the UI `gesture indicator`, as desccribed in the Gestures section above)
+(Under construction: new v0.7 `tap` and `nudge` gestures follow the icons that appear in the UI `gesture indicator`, as desccribed in the Gestures section above)
 ```◐◑◉⦿⊙✖✘▲▼◀▶⬅⬆⬇➡ 🠖➞🠔🠕🠗◀▶⯅⯆◑◐◉⦿⊙✖```.
 	
 * 🔸 **Cards for Switch, Input boolean, Script, Siren, Group, Camera, Humidifier, and  Remote** (Toggle, On, Off) Entities.
@@ -326,7 +327,7 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
 	
 ---	
 	
-**_OLD quadrant system - currently being updated to the new gestures above._**
+**_OLD v0.6 quadrant touch interactions - currently being updated to the new gestures above._**
 Each card has four quadrants for touch interactions, each of which can be given a short tap or a long press.  The [gesture processing subroutine](/main/Tips_and_Tricks) will reject any touches where your finger moves slightly (but not far enough to register a swipe).  This is to reject ambiguous gestures that could inadvertently trigger an action you didn't mean to (or ambiguous slips between hotspot quadrants).  So legitimate touches need to be precise (without finger movement) to trigger, and short taps should be fast so that they are clearly distinguishable from long presses.
 	
 *OLD 'quadrant' taps:* The following abbreviations are used as shorthand below for touch interactions:   
