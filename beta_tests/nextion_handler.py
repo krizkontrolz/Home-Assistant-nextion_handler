@@ -1,5 +1,5 @@
 #* Home Assistant Nextion Handler
-#* (v0.6_2022-06-19 beta)
+#* (v0.7_2022-06-27 beta)
 # Handler for NH 'command_strings' sent from Nextion events & update requests.
 # see: https://github.com/krizkontrolz/Home-Assistant-nextion_handler
 #
@@ -241,20 +241,30 @@ def timedelta_to_str(now, compare_time):
         return 'Never'
 
 
-def adjust(x, adjustment, min_val, max_val, FIT_TO_RANGE=True, IS_MOD=False):
+def adjust(x, adjustment, min_val, max_val, FIT_TO_RANGE=True, IS_MOD=False, AS_INT=False):
     '''Return the new value of a parameter 'x' after applying the
-    (abs/pct/delta/delta_pct) 'adjustment' string ('(+/-/--)y(%)') to 'x':
-        set x directly ('y' or '--y'): NOTE double '-' for a negative value;
-        set x to 'y%' between its possible min and max range;
-        apply a delta ajustment to x ('+y' or '-y');
-        apply a delta_%_of_range ajustment to x ('+y%' or '-y%').
-    RETURNS: x2 (float), as new adjusted value of x.
-        If IS_MOD mod out-of-range x2 (vs max_val),
-        otherwise fit to range bounds.
+    (abs/pct/delta/delta_pct) 'adjustment' string '(+/-/--)adj(%)' to 'x':
+        set x directly ('adj' or '--adj'): NOTE double '-' for a negative value;
+        set x to 'adj%' between its possible min and max range;
+        apply delta ajustment to x ('+adj' or '-adj');
+        apply delta_%_of_range ajustment to x ('+adj%' or '-adj%').
+    RETURNS: new_x (float unles AS_INT==True), as new adjusted value of x.
+        If IS_MOD==True modulo divide out-of-range new_x (by max_val),
+        otherwise truncate new_x to range bounds (unless min/max == None).
+    If 'adjustment' is NOT a valid adjustment string, returns None.
+    Subsequent exceptions are raised.
     '''
+
+    #Check 'adjustment' string is valid
+    try:
+        adj_num = float(adjustment.replace('+','').replace('--','-').replace(r'%',''))  #! need to handle '--x' for negative index vals
+        #x = float(adjustment.replace('--','-').replace(r'%',''))  #! need to handle '--x' for negative index vals
+    except:
+        return None
+    
     IS_PCT = False
     IS_DELTA = False
-    x2 = None
+    new_x = 0  # default
     if max_val is None:
         FIT_TO_RANGE=False
         IS_MOD=False
@@ -276,34 +286,40 @@ def adjust(x, adjustment, min_val, max_val, FIT_TO_RANGE=True, IS_MOD=False):
             else:
                 IS_DELTA = True
         # calculate the adjustment
-        adj_num = float(adj_str)
+        adj_num = float(adj_str)  #TODO: remove adj_str lines, use adj_num from initial check?
         if IS_DELTA:
             if IS_PCT:
                 # Adjust original value by the specified PERCENT of the RANGE
-                x2 = x + (max_val - min_val) * adj_num/100
+                new_x = x + (max_val - min_val) * adj_num/100
             else:
                 # Adjust original value by the specified DELTA VALUE (direclty)
-                x2 = x + adj_num
+                new_x = x + adj_num
         else:
             if IS_PCT:
                 # Set new value PERCENT location WITHIN RANGE
-                x2 = min_val + (max_val - min_val) * adj_num/100
+                new_x = min_val + (max_val - min_val) * adj_num/100
             else:
                 # Set new value DIRECTLY TO VALUE
-                x2 = adj_num
+                new_x = adj_num
         # Fix out-of-range values
-        if FIT_TO_RANGE:
-            x2 = max(min(x2, max_val), min_val)  # 
-        elif IS_MOD:
-            x2 = x2 % max_val
+        if IS_MOD:
+            new_x = new_x % max_val
+        elif FIT_TO_RANGE:
+            # if min_val and new_x < min_val:
+            #     new_x = min_val
+            # elif max_val and new_x > max_val:
+            #     new_x = max_val
+            new_x = max(min(new_x, max_val), min_val)  # 
     except ValueError as exptn:
-        err_msg = '{}\nNextion Handler failed within `adjust(x, adj, min, max)` function:\n<{}> <{}> <{}> <{}>.'.format(exptn, x, adjustement, min_val, max_val)
+        err_msg = '{}\nNextion Handler failed within `adjust(x, adj, min, max, IS_MOD, AS_INT)` function:\n<{}> <{}> <{}> <{}> <{}> <{}>.'.format(exptn, x, adjustement, min_val, max_val, IS_MOD, AS_INT)
         logger.warning('nextion_handler.py ' + err_msg)
         #hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
     
-    return x2
-
+    if AS_INT:
+        return int(new_x + 0.5)
+    else:
+        return new_x
 
 
 #_________________
@@ -911,7 +927,7 @@ def setdt(args_list, domain, service):
 
 #! remove all '+=' etc. in_place_vars NOT supported in restricted ENV
 #* Widget setwd helper function
-def get_widget_info(entity_id, wd_dmn):
+def get_widget_info(entity_id, wd_dmn, wd_icon=None):
     '''Get info required by widgets for entity e, with domain_code wd_dmn.
     Returns:
         wd_bst: boolean state of entity (as 0/1)
@@ -920,6 +936,7 @@ def get_widget_info(entity_id, wd_dmn):
         wd_dmn: (modified to -1 if entity_id is not valid)
     '''
     DOMAIN_NUM_MASK = 127  # first 7 bits give unique code for entity domain 
+    UNAVAILABLE_ICON = 46
 
     #no_errors = True
     wd_bst = 0
@@ -984,7 +1001,7 @@ def get_widget_info(entity_id, wd_dmn):
         except:
             wd_info = "Err reading Notifications"
             wd_alt = '?'
-        return wd_bst, wd_info, wd_alt, wd_dmn
+        return wd_bst, wd_info, wd_alt, wd_dmn, wd_icon
 
     else:
         # Get the state of entity_id and make sure it exists
@@ -995,7 +1012,7 @@ def get_widget_info(entity_id, wd_dmn):
             wd_dmn = -1
             wd_info = '* {}'.format(entity_id)
             wd_bst = 1
-            return wd_bst, wd_info, wd_alt, wd_dmn
+            return wd_bst, wd_info, wd_alt, wd_dmn, wd_icon
 
         #* Defaults (for all other domains WITHOUT customised output below)
         wd_info = state.title()
@@ -1385,8 +1402,12 @@ def get_widget_info(entity_id, wd_dmn):
         #     domain_num = wd_dmn & DOMAIN_NUM_MASK
         #     wd_alt = '*{}'.format(domain_num)
 
+        #* Unavailable - change icon
+        if state == 'unavailable':  #! TEST this
+            wd_icon = UNAVAILABLE_ICON
+
     # --- get_widget_info() ---
-    return wd_bst, str(wd_info), str(wd_alt), wd_dmn
+    return wd_bst, str(wd_info), str(wd_alt), wd_dmn, wd_icon
 
 
 
@@ -1406,6 +1427,7 @@ def setwd(args_list, domain, service):
     MAX_ICON_NUM = 167 # icon image size limited to this by max image size allowed by Nextion
     BLANK_ICON = 47  # state 0=Blank, 1=Alert
     ERROR_ICON = 47  # state 0=Blank, 1=Alert
+    UNAVAILABLE_ICON = 46
     DEFAULT_ICON = 0  # eye symbol, default for valid sensors in unknown domain
 
     MAX_NAME_CHARS = 10
@@ -1437,7 +1459,7 @@ def setwd(args_list, domain, service):
         'input_select': (529, 16),
         'light': (2706, 17),
         'lock': (275, 18),
-        'media_player': (660, 19),
+        'media_player': (2708, 19),
         'persistent_notification': (2069, 20),
         'person': (22, 9),
         'remote': (151, 21),
@@ -1521,6 +1543,7 @@ def setwd(args_list, domain, service):
             ent_domain = 'blank'
             wd_dmn = 0  # domain code - byte encoded
             wd_bst = 0  # icon state: inactive (0) / highlighted (0)
+            wd_icon = -1
             wd_icon_dft = BLANK_ICON
             wd_name = ""  # Line 1: Card title/entity name
             wd_alt = ""  # Line 2: optional alternate/short info on entity
@@ -1608,7 +1631,7 @@ def setwd(args_list, domain, service):
 
             # Get entity data
             if wd_dmn > 0:
-                wd_bst, wd_info, wd_alt, wd_dmn = get_widget_info(entity_id, wd_dmn)
+                wd_bst, wd_info, wd_alt, wd_dmn, wd_icon = get_widget_info(entity_id, wd_dmn, wd_icon=wd_icon_dft)
 
             # final info text
             if wd_info_yaml:
@@ -1633,6 +1656,10 @@ def setwd(args_list, domain, service):
             if wd_dmn < 0 or wd_icon_yaml == ERROR_ICON:
                 wd_icon = ERROR_ICON
                 wd_bst = 1  # Use highlighted version of icon
+            elif wd_icon == UNAVAILABLE_ICON:
+                pass  # don't overwrite  #! modifty get_widget_info to change icons
+            # elif hass.states.get(entity_id).state == 'unavailable':  #! TEST this
+            #     wd_icon = UNAVAILABLE_ICON
             elif wd_icon_yaml:
                 wd_icon = wd_icon_yaml
             elif wd_icon_dft:
@@ -1667,7 +1694,7 @@ def setwd(args_list, domain, service):
         except ValueError as exptn:
             # Handle exceptions INSIDE for loop (for each card individually), so that an error in 1 card doesn't stop others rendering.
             # Log error message
-            err_msg = '{}\nError reading settings for Widget Card index *{}* (0=TL..BR) from YAML list.'.format(exptn, card)
+            err_msg = '{}\nError reading settings for Widget Card index *{}* (0 is top-left on page) from YAML list.'.format(exptn, card)
             logger.warning('nextion_handler.py ' + err_msg)
             # raise ValueError(err_msg)
             try:
@@ -1789,31 +1816,32 @@ def inps(args_list, domain, service):
     prefix = 'input_select.'
     domain = 'input_select'
     service = 'select_option'  #! service 'set_value' with service data 'option'  deprecated ~Mar 2022?
-    skip_service_call = False
+    call_service = True
     try:
         if len(args_list) > 1:
             e = args_list[0]
             x_ = ' '.join(args_list[1:])  # reconstruct string if it was split by on spaces before
             entity_id, ent_state, state = get_entity_id_state(e, domain_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
-            try:
-                # If x_ is a number, use it to adjust selected INDEX in options list
-                x = int(x_.replace('+','').replace('-','').replace(r'%',''))  #! need to handle '--x' for negative index vals
-                opt_list = ent_state.attributes.get('options', None)
-                if opt_list:
-                    num_opts = len(opt_list)
-                    try:
-                        curr_idx = opt_list.index(state)
-                        new_idx = int(adjust(curr_idx, x_, 0, num_opts, IS_MOD=True))
-                    except:
-                        new_idx = 0
-                    opt_str = opt_list[new_idx]
+            # If x_ is a number, use it to adjust selected INDEX in options list
+            #! MOVED check to inside adjust() function
+            #x = int(x_.replace('+','').replace('--','-').replace(r'%',''))  #! need to handle '--x' for negative index vals
+            opt_list = ent_state.attributes.get('options', None)
+            if opt_list:
+                num_opts = len(opt_list)
+                try:
+                    curr_idx = opt_list.index(state)
+                    new_idx = adjust(curr_idx, x_, 0, num_opts, IS_MOD=True, AS_INT=True)
+                except:
+                    new_idx = 0
+                if new_idx is None:
+                    # if x_ is a string, select this option directly
+                    opt_str = x_
                 else:
-                    opt_str = ""
-                    skip_service_call = True
-            except:
-                # if x_ is a string, select this option directly
-                opt_str = x_
-            if not skip_service_call:
+                    opt_str = opt_list[new_idx]
+            else:
+                opt_str = ""
+                call_service = False
+            if call_service:
                 service_data = {'entity_id': entity_id, 'option': opt_str }
                 try:
                     hass.services.call(domain, service, service_data, False)
@@ -1854,7 +1882,7 @@ def sel(args_list, domain, service):
                     num_opts = len(opt_list)
                     try:
                         curr_idx = opt_list.index(state)
-                        new_idx = int(adjust(curr_idx, x_, 0, num_opts, IS_MOD=True))
+                        new_idx = adjust(curr_idx, x_, 0, num_opts, IS_MOD=True, AS_INT=True)
                     except:
                         new_idx = 0
                     opt_str = opt_list[new_idx]
@@ -2471,10 +2499,17 @@ def mp(args_list, domain, service):
             # nxt, prv: media_next_track, media_previous_track, clear_playlist
             # v+, v-: volume_up, volume_down  (fixed vol increments - player-dependent?)
             act, e = args_list
-            entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
+            #entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
+            entity_id, ent_state, state = get_entity_id_state(e, domain_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
             service_data = {'entity_id': entity_id}  # the same for all services below (that have no other arguements)
-            if act == 'pp':
-                service = 'media_play_pause'
+            if act == 'pp2':
+                service = 'media_play_pause'  # not supported on all devices
+            elif act == 'pp':
+                #TODO: if state=='playing' sent stop AND pause, else send play
+                if state == 'playing':
+                    service = 'media_stop'  # also send pause
+                else:
+                    service = 'media_play'
             elif act == 'ply':
                 service = 'media_play'
             elif act == 'ps':
@@ -2500,7 +2535,6 @@ def mp(args_list, domain, service):
             # sk: media_player.media_seek(seek_position: position - player-dependent)
             # pm: media_player.play_media(media_content_id: id - player-dependent; media_content_type: [music, tvshow, video, episode, channel or playlist])
             # src: media_player.select_source(source: source - p-d)
-#int(adjust(curr_idx, x_, 0, num_opts, IS_MOD=True))
             args_list_ext = args_list + ['_']*3  # extend COPY of list with '_'s to indicate potential unassigned/default values
             act, e, x_, y_, z_ = args_list_ext[:5]
             entity_id, ent_state, state = get_entity_id_state(e, domain_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
@@ -2526,35 +2560,52 @@ def mp(args_list, domain, service):
                     service = 'media_seek'
                     curr_pos = ent_state.attributes.get('media_position', 0)
                     duration = ent_state.attributes.get('media_duration', 1)
-                    new_pos = adjust(curr_pos, x_, 0, duration)  # float
+                    new_pos = adjust(curr_pos, x_, 0, duration, AS_INT=True)
                     service_data = {'entity_id': entity_id, 'seek_position': new_pos}
                 elif act == 'pm':
                     service = 'play_media'
                     service_data = {'entity_id': entity_id, 'media_content_id': x_, 'media_content_type': y_}
                 elif act == 'src':
                     #! Fixed? x_ = need to rejoin args BUT without extra '_' added above
+                    # x_ = ' '.join(args_list[2:])
+                    # try:
+                    #     # if x is an integer, change by +/-x items in source list
+                    #     x = int(x_)
+                    #     curr_src = ent_state.attributes.get('source', None)
+                    #     src_list = ent_state.attributes.get('source_list', None)
+                    #     if curr_src and src_list:
+                    #         num_srcs = len(src_list)
+                    #         try:
+                    #             curr_idx = src_list.index(curr_src)
+                    #             new_idx = (curr_idx + x) % num_srcs
+                    #         except:
+                    #             new_idx = 0
+                    #         new_src = src_list[new_idx]
+                    #     else:
+                    #         new_src = ""
+                    #         skip_service_call = True
+                    # except:
+                    #     # if a string, select the source with that name
+                    #     new_src = x_
+                    # service = 'select_source'
+                    # service_data = {'entity_id': entity_id, 'source': new_src}
+                    #
+                    #! test new improved version is working @@@
                     x_ = ' '.join(args_list[2:])
-                    try:
-                        # if x is an integer, change by +/-x items in source list
-                        x = int(x_)
-                        curr_src = ent_state.attributes.get('source', None)
-                        src_list = ent_state.attributes.get('source_list', None)
-                        if curr_src and src_list:
-                            num_srcs = len(src_list)
-                            try:
-                                curr_idx = src_list.index(curr_src)
-                                new_idx = (curr_idx + x) % num_srcs
-                            except:
-                                new_idx = 0
-                            new_src = src_list[new_idx]
+                    curr_src = ent_state.attributes.get('source', None)
+                    src_list = ent_state.attributes.get('source_list', None)
+                    if src_list:
+                        list_len = len(src_list)
+                        curr_idx = src_list.index(curr_src)
+                        new_idx = adjust(curr_idx, x_, 0, list_len, IS_MOD=True, AS_INT=True)
+                        if new_idx is None:
+                            #When x_ is not a vaild adjustment string, treat it as a direct source string instead
+                            new_src = x_
                         else:
-                            new_src = ""
-                            skip_service_call = True
-                    except:
-                        # if a string, select the source with that name
-                        new_src = x_
-                    service = 'select_source'
-                    service_data = {'entity_id': entity_id, 'source': new_src}
+                            new_src = src_list[new_idx]
+                        service = 'select_source'
+                        service_data = {'entity_id': entity_id, 'source': new_src}
+
                 #End of  valid act codes
                 else:
                     transfer_err_msg = 'The specified ACTION CODE is not valid.'
@@ -2643,12 +2694,12 @@ def cv(args_list, domain, service):
                 if act == 'pos':
                     service = 'set_cover_position'
                     curr_pos = ent_state.attributes.get('current_cover_position', 0)
-                    new_pos = int(adjust(curr_pos, x_, 0, 100))
+                    new_pos = adjust(curr_pos, x_, 0, 100, AS_INT=True)
                     service_data = {'entity_id': entity_id, 'position': new_pos}
                 elif act == 'pos_t':
                     service = 'set_cover_tilt_position'
                     curr_pos = ent_state.attributes.get('current_cover_tilt_position', 0)
-                    new_pos = int(adjust(curr_pos, x_, 0, 100))
+                    new_pos = adjust(curr_pos, x_, 0, 100, AS_INT=True)
                     service_data = {'entity_id': entity_id, 'tilt_position': new_pos}
                 #End of  valid act codes
                 else:
@@ -2990,11 +3041,16 @@ def wdact(args_list, domain, service):
     # nx_cmd_str = 'tINF04.txt="{}"'.format(','.join(args_list))
     # nx_cmd(nx_cmd_str, domain, service)
 
+    #Parse incoming agruments
     if len(args_list) == 4:
         try:
             e = args_list[0]
             wd_dmn, gest_type, gest_cnt = [int(i) for i in args_list[1:4]]
             #e = '@{}'.format(wd_num)  # widget '@' index for entity_id
+            #! Err: <wact> <@33> <0> <97> <4>
+            #* Entities with NO interaction  #! These ~should~ be caught & excluded in the Nextion HMI
+            if (wd_dmn & ALL_INTERACTIONS_MASK) == 0:  # Entity has no (supported) Widget actions
+                return False  #! Exit WITHOUT performing any action (service call)
             entity_id, ent_state, state = get_entity_id_state(e)
             e = entity_id  # replace any alias/shorthand 'e' with actual entity_id
             domain_num = wd_dmn & DOMAIN_NUM_MASK
@@ -3009,12 +3065,13 @@ def wdact(args_list, domain, service):
         #hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
 
-    # toggles (ALL entities capable of toggling - they may support additional interactions, handled below)
+
+    #* toggles (ALL entities capable of toggling - they may support additional interactions, handled below)
     if (wd_dmn & DIRECT_TOGGLE_MASK) and gest_type == 91:  # Top Left 'Icon' quadrant
         tgl([e], domain, service)
 
-    #TODO: toggle ONLY cards: Both sides: toggle/toff/ton
-    if (wd_dmn & ALL_INTERACTIONS_MASK) == DIRECT_TOGGLE_MASK:  # The ONLY interaction these entities are capable of is TOGGLING (incl. separate ON & OFF)
+    #* toggle ONLY cards: Both sides: toggle/tof/ton
+    elif (wd_dmn & ALL_INTERACTIONS_MASK) == DIRECT_TOGGLE_MASK:  # The ONLY interaction these entities are capable of is TOGGLING (incl. separate ON & OFF)
         if gest_type == 95:  # 91 already handled above
             tgl([e], domain, service)
         elif gest_type in [92, 96]:
@@ -3022,7 +3079,7 @@ def wdact(args_list, domain, service):
         elif gest_type in [93, 97]:
             ton([e], domain, service)
 
-    # light
+    #* light
     elif domain_num == 18:
         if gest_type == 92:
             tof([e], domain, service)
