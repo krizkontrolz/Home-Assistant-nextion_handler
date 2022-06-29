@@ -1,5 +1,5 @@
 # 🟠 Widget UI
-(_Last updated 2022/06/20_)  
+(_Last updated 2022/06/29_)  
 **Current Installation files v06_2022-06-03**
 
 ## Current Features and Status
@@ -84,7 +84,7 @@ _🔸EU version is available on request for testing_ - I don't have an EU model 
 ```YAML
 - alias: "NSP1 Nextion handler"
   mode: queued
-  max: 10
+  max: 5
   trigger:
     - platform: state
       entity_id: sensor.nsp1_trigger
