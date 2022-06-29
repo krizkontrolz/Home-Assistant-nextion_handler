@@ -5,7 +5,7 @@
 # NSPanel Widget UI config (v0.6_2022-06-03)
 - alias: "NSP1 Nextion handler"
   mode: queued # need a good sequential queue to handle multiple calls in quick succession
-  max: 10
+  max: 5
   trigger:
     - platform: state
       entity_id: sensor.nsp1_trigger # << TRIGGER - state changes are sent from Nx to signal this script should do something.
