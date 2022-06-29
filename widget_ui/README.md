@@ -171,11 +171,14 @@ To make a single `nudge` increment/decrement just use a quick short flick, and r
 * **🔹 `◉` Long press:** performs the indicated alternate action for that type of entity. (Actions for LHS and RHS may be different.)  
 	(Hold a press until the timer bar first appears to trigger the long-press action.) 
 * **🔹 `◎` Very long press:** performs the indicated alternate action for that type of entity. (Actions for LHS and RHS may be different.)  
-	(Hold a press until the timer bar increases by 2 more steps after first appearing to trigger the very-long-press action).  
-* **🔹 `✖` Cancel gesture:** Cancels, without performing any action, when:  
-	a) a press is held for long enough (6 timer bar step increases after first appearing),  
-	b) your finger moves only slightly (so it is ambiguous whether a `press` or `nudge` is intended), or   
-	c) the entity has no action for that gesture, indicated by `✘` in the text description.
+	(Hold a press until the timer bar increases by 2 more steps after first appearing to trigger the very-long-press action).
+	
+#### Cancelling after starting a Gesture  
+* **🔹 `✖` Cancel gesture (and `✘` cancel action):** Cancels, without performing any action, when:  
+	**a)** a press is held for long enough (6 timer bar step increases after first appearing),  
+	**b)** any gesture is held long enough until the timer bar completely fills,  
+	**c)** your finger moves only slightly from the starting point (either as an intential 'cancel' or an ambiguous slip of the finger where it is not clear whether a `press` or `nudge` is intended), or   
+	**d)** the entity has no action for that gesture, indicated by `✘` in the text description.
 
 The `gesture indicator` will update dynamically throughout touch events to give the user feedback on what gesture is currently being detected and what action will be performed if you lift your finger at that point.  You can safely explore the UI by trying out the different gestures and seeing how they are modified by the duration `timer`, then cancel by returning your finger close to the start of the stroke to make the `✖` (cancel) gesture icon appear if you want to avoid triggering any action at the end.	
 	
@@ -199,6 +202,7 @@ Popup pages provide additional detail and control, particularly where generic Wi
   * Fast repeats: the number of times that data updates are requested after a touch action is triggered.  This addresses the issue that some states in HA can update very quickly after a service call, whereas others can have substantial lag (e.g., garage doors, some types of lights).
   * Fast slowdown: the amount by which fast repeats are progressively slowed down.  This amount of time is added to each subsequent repeat.
   * Status information: Small text below the title bar shows the number of widgets read from the YAML configuration, and the version number of the TFT file.  The WiFi status and signal strength are indicated in the top right corner.  
+  * Pressing on the date-time in the title bar will immediately put the device to 'sleep' (blacked out screen).
   * **🔸 Linking/Unlinking of NSPanel physical buttons to relays.**  This linking _**can  also be done in Home Assistant**_ via the UI switches that ESPHome creates  _**or by holding down one of the buttons for ~6 seconds**_ to link/unlink it from its respective relay.  When linked, pushing the physical NSPanel buttons will toggle their respective relays (as with the original firmware).  When unlinked, you can use the buttons to trigger other automations in Home Assistant.  Even when unlinked, holding a button for 3 to 5 seconds will still toggle the relays (so that there is always a way to turn the relay off).  
  The device will provide audible feedback with:
     * 🎵 a beep (after ~3 seconds) to let you know you when to release the button to cause an 'override' relay toggle;
