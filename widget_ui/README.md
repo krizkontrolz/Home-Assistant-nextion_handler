@@ -1,5 +1,5 @@
 # 🟠 Widget UI
-(_Last updated 2022/06/29_)  
+(_Last updated 2022/06/30_)  
 **Current Installation files v06_2022-06-03**
 
 ## Current Features and Status
@@ -14,12 +14,13 @@ The Widgets currently provide sufficient functionality for most of the every-day
 * 🔹 'toggle' all Home Assistant entities that can be toggled (lights, media players, switches, scripts, automations, covers, fans, input_booleans, locks etc.);
 * 🔹 use interactive widgets to control most of the common types of entities (as per the details in the Widget Card interactions list);
 * 🔹 fully control lights (both through quick widget card interactions and a popup page with slider controls and color wheel);
+* 🔹 fully control _some_ media players (both through quick widget card interactions and a popup page with slider controls and media information);
 * 🔹 read and dismiss HA notifications;
 * 🔹 change NSPanel settings (including managing the linking/unlinking of NSPanel physical buttons to their respective relays).
   
 The details of how information is displayed will continue to be fine tuned, and new functionality will be added as the supported capabilities of the underlying [Nextion Hanlder](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/HA_NEXTION_HANDLER_INSTRUCTIONS.md) are being developed and expanded.
 
-🚧 New gesture and widget features are currently being documented for version 0.7 (but aren't supported in the currently available 0.6 version).
+🚧 New gesture and widget features are currently being documented for version 0.7 (in beta, but aren't supported in the currently available 0.6 version).
   
 </details>
  
@@ -40,7 +41,7 @@ The details of how information is displayed will continue to be fine tuned, and 
   
 ### Installation steps
 (Nextion UI TFT is only available for US NSPanels only at this stage,  
-_🔸EU version is available on request for testing_ - I don't have an EU model so need someone to confirm it works properly before it is uploaded for general access.)
+_🔸EU version 0.7 is in beta testing and available on request for those who want to join and help with feedback_.)
 
 <details>
   <summary>1️⃣ Fill and flash the ESPHome YAML template:</summary>   
@@ -113,7 +114,8 @@ _🔸EU version is available on request for testing_ - I don't have an EU model 
 <details>
   <summary>3️⃣ Flash Nextion Widget UI TFT file:</summary> 
 
-  * Download the `Widget UI TFT file` then copy and rename it to the location and filename you specified in the `tft_url` of your ESPHome configuration in step 1️⃣.  Then press the `TFT upload button` on the NSPanel's device page in Home Assistant (that you located in step 1️⃣).
+  * Download the `Widget UI TFT file` then copy and rename it to the location and filename you specified in the `tft_url` of your ESPHome configuration in step 1️⃣.  Then press the `TFT upload button` on the NSPanel's device page in Home Assistant (that you located in step 1️⃣).  
+	👉 This seems to be the only step where some people are having trouble.  Make sure that the `Widget UI TFT file` exactly matches the path where you put the TFT file, that you rename the TFT to match too, and that you have made sure files in that location can be accessed locally on your network.
   * Wait for the NSPanel to flash and reboot with the new UI.  (You may have to reboot both HA and the NSPanel after the first installation.)
 
 Whenever you change your widgets list (including the initial installation) it will take a little bit longer for each page to refresh the first time after that as it reconfigures itself.  If it gets stuck, open the settings menu (swipe down and close it by swiping down again), which will help to read the new list. 
@@ -142,7 +144,7 @@ Each page is tiled with Widget cards, one per entity. Information and touch inte
 
 ## Gestures
 
-The [gesture enginge](/Tips_and_Tricks/NEXTION_GESTURES.md) allows a wide range of user interactions in the compact space of the NSPanel display while filling that limited area with Widgets and useful information (rather than buttons and slider bars).  Different types of gestures are used to change pages (`swipes`), make multi-step incremental changes to Widget attributes (`nudges` + hold), and trigger actions specific to the type of entity on the Widget (`press` + hold).  When you touch the screen, a small `gesture indicator` pops up in the top left corner showing a `gesture icon` for the currently detected gesture (one of: swipes: `⬅` `➡` `⬆` `⬇`, nudges: `◀` `▶` `⯅` `⯆`, or presses: `◐` `◑` `◉` `◎` `✖`), and a `text description` of the `action` that will be triggered if you lift your finger at that moment.  If the gesture is held, then a `timer bar` will appear to the right of the gesture indicator (where the duration of the hold will modify the gesture and triggered action for `presses` and will increase the number of times a step increment/decrement is applied for `nudges`).	
+The [gesture enginge](/Tips_and_Tricks/NEXTION_GESTURES.md) allows a wide range of user interactions in the compact space of the NSPanel display while filling that limited area with Widgets and useful information (rather than buttons and slider bars).  Different types of gestures are used to change pages (`swipes`), make multi-step incremental changes to Widget attributes (`nudges` + hold), and trigger actions specific to the type of entity on the Widget (`press` + hold).  When you touch the screen, a small `gesture indicator` pops up in the top left corner showing a `gesture icon` for the currently detected gesture (one of: swipes: `⬅` `➡` `⬆` `⬇`, nudges: `◀` `▶` `▲` `▼`, or presses: `◐` `◑` `◉` `◎` `✖`), and a `text description` of the `action` that will be triggered if you lift your finger at that moment.  If the gesture is held, then a `timer bar` will appear to the right of the gesture indicator (where the duration of the hold will modify the gesture and triggered action for `presses` and will increase the number of times a step increment/decrement is applied for `nudges`).	
   
 <details>
   <summary>▶️ show gesture types ...</summary>
@@ -161,7 +163,7 @@ The [gesture enginge](/Tips_and_Tricks/NEXTION_GESTURES.md) allows a wide range 
 #### Widget Nudge (and hold) Gestures  
 `Nudge` gestures are short movements on a Widget card (moving a distance about the width of an icon circle).  Nudges are a compact way of replacing slider bars to make incremental step increases/decreases to an entity attribute (such a lights brightness, color temperature and hue).  Holding a `nudge` will bring up the timer bar to trigger multiple step changes.
 * **🔹 `◀` `▶` Left and Right nudges:** incrementally increase/decrease an entity attribute in step changes. 
-* **🔹 `⯅` `⯆` Up and Down nudges:** incrementally increase/decrease a second entity attribute in step changes.  
+* **🔹 `▲` `▼` Up and Down nudges:** incrementally increase/decrease a second entity attribute in step changes.  
 To make a single `nudge` increment/decrement just use a quick short flick, and release before the `timer bar` appears.  If you hold until the timer first appears, that counts as a second `nudge`, and each subsequent step on the timer will result in an additional increment/decrement being applied.  The main thing to remember with `nudges` is that you increase the number of step adjustments by _holding_ the touch for a longer duration (rather than by _moving_ your finger further - if you move your finger beyond the trigger distance for a `stroke`, then that action will immediately be excecuted instead).  Alternatively, you can make multiple step adjustments by using several short flicks in a row at about 1 second intervals (if you go too fast, some ajdustments may be lost because of lags in the Home Assistant state machine not updating quickly enough).
 
 #### Widget Press (and hold) Gestures  
@@ -240,7 +242,7 @@ As functionality is developed, more popups will be added to support some of the 
   
 ## Widget Card Tap Interactions (by Entity type)
 	
-A set of `nudge` and `press` gestures allows users to interact with Widgets in different ways, as shown in the UI by the `gesture indicator` (`nudges`: `◀` `▶` `⯅` `⯆`, and `presses`: `◐` `◑` `◉` `◎` `✖`).  The `actions` that are triggered by each of those gestures adapt to the type of entity on that Widget card and are shown as a `text description` next to the `gesture icon` in the `gesture indicator`.  This makes it easy for users to learn all the possible Widget interactions from feedback displayed directly on the Nextion display - but the set of interactions for each entity type is also summarised below for reference: 
+A set of `nudge` and `press` gestures allows users to interact with Widgets in different ways, as shown in the UI by the `gesture indicator` (`nudges`: `◀` `▶` `▲` `▼`, and `presses`: `◐` `◑` `◉` `◎` `✖`).  The `actions` that are triggered by each of those gestures adapt to the type of entity on that Widget card and are shown as a `text description` next to the `gesture icon` in the `gesture indicator`.  This makes it easy for users to learn all the possible Widget interactions from feedback displayed directly on the Nextion display - but the set of interactions for each entity type is also summarised below for reference: 
 
   
 
@@ -248,8 +250,7 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
   <summary>▶️ show actions triggered by touch interactions with each type of Widget card ...</summary>
 
 
-(Under construction: new v0.7 `tap` and `nudge` gestures follow the icons that appear in the UI `gesture indicator`, as desccribed in the Gestures section above)
-```◐◑◉◎ ⦿⊙✖✘▲▼◀▶⬅⬆⬇➡ 🠖➞🠔🠕🠗◀▶⯅⯆◑◐◉⦿⊙✖```.
+(Under construction: beta v0.7 `tap` and `nudge` gestures follow the icons that appear in the UI `gesture indicator`, as desccribed in the Gestures section above.)
 	
 * 🔸 **Cards for Switch, Input boolean, Script, Siren, Group, Camera, Humidifier, and  Remote** (Toggle, On, Off) Entities.
   * `◐`, `◑`: Toggle (tap icon)
@@ -265,7 +266,7 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
   * `◀`, `▶`: Adjust light Brightness.  If light is off:  
 	`◀` will turn light on at Minimum (1%) brightness  
 	`▶` will turn light on at Maximum (100%) brightness  
-  * `⯅`, `⯆`: Adjust the light's Color Temperature (if it is in WW mode) or Hue (if it is in an RGB mode)  
+  * `▲`, `▼`: Adjust the light's Color Temperature (if it is in WW mode) or Hue (if it is in an RGB mode)  
 
 * 🔸 **Media Player Cards:**
   * `◐`: Toggle media player on/off  
@@ -275,9 +276,9 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
   * RHS `◉`: Toggle mute  
   * RHS `◎`: Source select (cycle forwards through source list)  
   * `◀`, `▶`: Skip Backwards/Forwards through tracks/channels/media list  
-  * `⯅`, `⯆`: Increase/Decrease volume  
+  * `▲`, `▼`: Increase/Decrease volume  
 
-* 🔸 **Alarm Control Panel Cards:**
+* 🔺 **Alarm Control Panel Cards:**
   * `◐`: Arm - Night  
   * LHS `◉`: Arm - Home  
   * `◑`: Arm - Away  
@@ -299,7 +300,7 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
   * RHS `◉`: Stop tilt  
   * RHS `◎`: Open tilt  
   * `◀`, `▶`: Reduce/Increase cover Tilt  
-  * `⯅`, `⯆`: Reduce/Increase cover Position  
+  * `▲`, `▼`: Reduce/Increase cover Position  
 	
 * 🔸 **Input Number Cards:**
   * LHS `◉`: Set to Minimum value  
@@ -307,7 +308,7 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
   * RHS `◉`: Set to Maximum value  
   * RHS `◎`: Set to 75% (between Min and Max)  
   * `◀`, `▶`: Decrease/Increase value in increments of 10% of range  
-  * `⯅`, `⯆`: Decrease/Increase value in increments of 1% of range  
+  * `▲`, `▼`: Decrease/Increase value in increments of 1% of range  
 	
 * 🔸 **Input_Select and Select Cards:**
   * LHS `◉`: Set to First option in list  
@@ -326,9 +327,10 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
   * `◐`: Toggle stop/start cleaning  
   * LHS `◉`: Return to base  
   * `◑`: Locate vacuum  
+  * RHS `◉`: Spot clean  
 
 
-"🔺" indicates entity types I don't have so I need a volunteer to test.	
+"🔺" indicates entity types where I'm particularly after feedback (because I don't have these devices to test myself).	
 	
 ---	
 	
@@ -434,7 +436,7 @@ _**I do not recommend changing the other options** until you have everything els
 * 🔹 &nbsp;&nbsp;`alt:` The second, short row of (alternate) info text on the card, below the title.
 * 🔹 &nbsp;&nbsp;`info:` The main informative text along the full width of the bottom of the card.
 
-If you misconfigure a widget, the Nextion Handler will try to give you feedback on the Nextion display by showing the ❗ _error symbol_ (icon 47, highlighted), a red and white icon of an exclamation mark in a circle, and may show some additional information in the info text area (such as showing an invalid entity_id with '*' on either side), to guide you to what part of your `widget:` list needs fixing.  For more serious problems, check the Home Assistant error logs for Nextion Handler messages. 
+If you misconfigure a widget, the Nextion Handler will try to give you feedback on the Nextion display by showing the ❗ _error symbol_ (**icon 47**, highlighted), a red and white icon of an exclamation mark in a circle, and may show some additional information in the info text area (such as showing an invalid entity_id with '*' on either side), to guide you to what part of your `widget:` list needs fixing.  For more serious problems, check the Home Assistant error logs for Nextion Handler messages. 
   
 _(I will likely add the ability to customise the actions that are triggered by each type of touch interaction on a Widget Card in future.)_
 
@@ -444,7 +446,7 @@ _(I will likely add the ability to customise the actions that are triggered by e
 	
 While the intention of the Widget UI is to keep configuration as simple as possible, it does still allow more advanced users who are comfortable with Home Assistant templating to do very detailed customisations of the dashboard information displayed, including some quite sophisticated dynamic behaviours.  If you are not comfortable with templating, you can safely ingnore it, and the defaults will do a good job for most people.  But if you like the creative opportunities that dynamic templating allows, then the example below gives an idea of how to get started with your own customisations.
 	
-**Demo example of customised card that templates everything** - shows the time and date, and changes the icon and alt text for weekends and holidays (using a 'workday' binary sensor):  
+**Demo example of a customised card that templates everything** - shows the time and date, and changes the icon and alt text for weekends and holidays (using a 'workday' binary sensor):  
 ```YAML
   widgets: #______________________________________________________________
     - entity: template    # Demo Time & Date template card
@@ -467,12 +469,12 @@ While the intention of the Widget UI is to keep configuration as simple as possi
   
   
 ## Icons (with Index Image)
-A currated set of icons is used on the cards.  These are paired (for off/unhighlighted and on/highlighted states), with icons and coloring already formatted to [follow the Minimilist Design UI standards](/UI_Design/Minimalist/).  A default icon will be allocated based on the entity type (domain and class).  But you can set a different one in your `widgets:` list by specifying the _number_ (not name) of the icon you want from the index below. (Default, automatically assigned, icons are in the first 6 rows.)  You can also use templating to dynamically change the `icon:` and the `icon_state:` in your your `widget:` list configuration.
+A currated set of precompiled icon images is used on the cards.  These are paired (for off/unhighlighted and on/highlighted states), with icons and coloring already formatted to [follow the Minimilist Design UI standards](/UI_Design/Minimalist/).  A default icon will be allocated based on the entity type (domain and class).  But you can set a different one in your `widgets:` list by specifying the _number_ (not name) of the icon you want from the index below. (Default, automatically assigned, icons are in the first 6 rows.)  You can also use templating to dynamically change the `icon:` and the `icon_state:` in your your `widget:` list configuration.
   
 <details>
   <summary>▶️ show Icon Index ...</summary>
 
- **Index numbers for available icon choices.**  Icons are paired - the off/unhighlighted state is on the left and the on/highlighted version is on the right.  Use the index number of the icon you want in the `icon:` setting of each `- entity:` in your `widget:` list (or omit this setting to accept the default for that entity type).  **Icon 47** is used in its unhighlighted state to blank out the icon area on 'blank' cards, and it is used in its highlighted state as the ❗ _error symbol_ to give users feedback that they need to fix a problem with their `widget:` config for that entity.
+ **Index numbers for available icon choices.**  Icons are paired - the off/unhighlighted state is on the left and the on/highlighted version is on the right.  Use the index number of the icon you want in the `icon:` setting of each `- entity:` in your `widget:` list (or omit this setting to accept the default for that entity type).  **Icon 47** is used in its unhighlighted state to blank out the icon area on 'blank' cards, and it is used in its highlighted state as the ❗ _error symbol_ to give users feedback that they need to fix a problem with their `widget:` config for that entity.  **Icon 46** is used to show when an entity is unavailable.
    
  ![Widget UI Icon index](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/widget_ui/Widget_Icons_Index.png "Icon numbering index")
 
@@ -492,6 +494,8 @@ A currated set of icons is used on the cards.  These are paired (for off/unhighl
  
  Remaining slots are spares for future additions.  The images (pair) are the maximum size that the Nextion Editor will compile and store in a TFT file.
  
+	
+Temp (gesture icons): ```◐◑◉◎ ⦿⊙✖✘▲▼◀▶⬅⬆⬇➡ 🠖➞🠔🠕🠗◀▶⯅⯆◑◐◉⦿⊙✖```
  --- 
   
   
