@@ -1,5 +1,5 @@
 #* Home Assistant Nextion Handler
-#* (v0.7_2022-06-29 beta)
+#* (v0.7_2022-07-04 beta)
 # Handler for NH 'command_strings' sent from Nextion events & update requests.
 # see: https://github.com/krizkontrolz/Home-Assistant-nextion_handler
 #
@@ -7,6 +7,7 @@
 #
 #* CHANGELOG: https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/CHANGELOG.md
 # lt(), mp(), cv(), widget improvements, 'unavailable', code cleanup
+# setsys(), version numbers
 #
 # ------------------------------------------------------------------------------
 #
@@ -16,13 +17,11 @@
 #    ...
 # ------------------------------------------------------------------------------
 
-
-
+VERSION = 20220704  # version of this script as YYYYMMDD integer. __version__ not allowed in restricted env
 
 #*------------------------------------------------------------------------------
 #* CONFIGURABLE CONSTANTS
 #*------------------------------------------------------------------------------
-
 
 NX_UI_UPDATE = 'APPLY_VARS'  # name of Nx 'subroutine' to click to apply the refreshed data to the UI after a data update
 
@@ -105,36 +104,68 @@ DICT_DOMAINS = {
     'zone': (36, 32)
 }
 
-BIN_SENSOR_STATE_DICT = {
-    'battery': ['LOW', 'normal'],
-    'battery_charging': ['charging', 'OFF'],  # 'not charging']
-    'carbon_monoxide': ['CO', 'clear'],
-    'cold': ['COLD', 'normal'],
-    'connectivity': ['connected', 'OFF'],  #'disconnected']
-    'door': ['OPEN', 'closed'],
-    'garage_door': ['OPEN', 'closed'],
-    'gas': ['GAS', 'clear'],
-    'heat': ['HOT', 'normal'],
-    'light': ['LIGHT', 'off'],  #'no light']
-    'lock': ['UNLOCKED', 'locked'],
-    'moisture': ['WET', 'dry'],
-    'motion': ['MOTION', 'clear'],
-    'moving': ['MOVING', 'stopped'],
-    'occupancy': ['occupied', 'clear'],
-    'opening': ['OPEN', 'closed'],
-    'plug': ['plugged', 'OFF'],  #'unplugged']
-    'power': ['power', 'OFF'],
-    'presence': ['home', 'away'],
-    'problem': ['problem', 'OK'],
-    'running': ['running', 'OFF'],  # 'not running']
-    'safety': ['UNSAFE', 'safe'],
-    'smoke': ['SMOKE', 'clear'],
-    'sound': ['SOUND', 'clear'],
-    'tamper': ['TAMPER', 'clear'],
-    'update': ['UPDATE', 'none'],  #['update available, 'up-to-date']
-    'vibration': ['VIBRATION', 'clear'],
-    'window': ['OPEN', 'closed']
+# BIN_SENSOR_STATE_DICT = {
+#     'battery': ['LOW', 'normal'],
+#     'battery_charging': ['charging', 'OFF'],  # 'not charging']
+#     'carbon_monoxide': ['CO', 'clear'],
+#     'cold': ['COLD', 'normal'],
+#     'connectivity': ['connected', 'OFF'],  #'disconnected']
+#     'door': ['OPEN', 'closed'],
+#     'garage_door': ['OPEN', 'closed'],
+#     'gas': ['GAS', 'clear'],
+#     'heat': ['HOT', 'normal'],
+#     'light': ['LIGHT', 'off'],  #'no light']
+#     'lock': ['UNLOCKED', 'locked'],
+#     'moisture': ['WET', 'dry'],
+#     'motion': ['MOTION', 'clear'],
+#     'moving': ['MOVING', 'stopped'],
+#     'occupancy': ['occupied', 'clear'],
+#     'opening': ['OPEN', 'closed'],
+#     'plug': ['plugged', 'OFF'],  #'unplugged']
+#     'power': ['power', 'OFF'],
+#     'presence': ['home', 'away'],
+#     'problem': ['problem', 'OK'],
+#     'running': ['running', 'OFF'],  # 'not running']
+#     'safety': ['UNSAFE', 'safe'],
+#     'smoke': ['SMOKE', 'clear'],
+#     'sound': ['SOUND', 'clear'],
+#     'tamper': ['TAMPER', 'clear'],
+#     'update': ['UPDATE', 'none'],  #['update available, 'up-to-date']
+#     'vibration': ['VIBRATION', 'clear'],
+#     'window': ['OPEN', 'closed']
+# }
+
+BIN_SENSOR_DICT = {
+    'battery': ['normal', 'LOW', 96],
+    'battery_charging': ['OFF', 'charging', 112],
+    'carbon_monoxide': ['clear', 'CO', 102],
+    'cold': ['normal', 'COLD', 158],
+    'connectivity': ['OFF', 'connected', 37],
+    'door': ['closed', 'OPEN', 97],
+    'garage_door': ['closed', 'OPEN', 139],
+    'gas': ['clear', 'GAS', 102],
+    'heat': ['normal', 'HOT', 159],
+    'light': ['off', 'LIGHT', 17],
+    'lock': ['locked', 'UNLOCKED', 98],
+    'moisture': ['dry', 'WET', 99],
+    'motion': ['clear', 'MOTION', 100],
+    'moving': ['stopped', 'MOVING', 100],
+    'occupancy': ['clear', 'occupied', 100],
+    'opening': ['closed', 'OPEN', 97],
+    'plug': ['OFF', 'plugged', 101],
+    'power': ['OFF', 'power', 27],
+    'presence': ['away', 'home', 95],
+    'problem': ['OK', 'problem', 40],
+    'running': ['OFF', 'running', 3],
+    'safety': ['safe', 'UNSAFE', 40],
+    'smoke': ['clear', 'SMOKE', 102],
+    'sound': ['clear', 'SOUND', 81],
+    'tamper': ['clear', 'TAMPER', 40],
+    'update': ['none', 'UPDATE', 29],
+    'vibration': ['clear', 'VIBRATION', 40],
+    'window': ['closed', 'OPEN', 103]
 }
+
 
 #*------------------------------------------------------------------------------
 #* HANDLER FUNCTIONS for each NhCmd instruction
@@ -984,25 +1015,65 @@ def setdt(args_list, domain, service):
                 fmt = FMT_DEFAULT
             nx_full, nx_lookup, data_type = nx_var_parse(nx, 'txt')
             dt_now = datetime.datetime.now()  #! this works
+            # try:
+            #     dt_str = dt_now.strftime(fmt)  #! but strftime() fails exception check
+            # except:
+            #     try:
+            #         #dt_str = dt_now.strftime(FMT_DEFAULT)
+            #         #dt_str = dt_now.strftime("%d %b %y, %I:%M:%S %p")
+            #         dt_str = datetime.datetime.strftime(datetime.datetime.now(), "%d %b %y, %I:%M:%S %p")
+            #     except:
+            #         try:
+            #             #! failsafe date-time string approach that seems reliable
+            #             dt_str = '*{:02}/{:02} {:02}h{:02}'.format(dt_now.day, dt_now.month, dt_now.hour, dt_now.minute)
+            #         except:
+            #             raise ValueError('Formatting date-time string failed.')
             try:
-                dt_str = dt_now.strftime(fmt)  #! but strftime() fails exception check
+                dt_str = '{:02}/{:02} {:02}h{:02}'.format(dt_now.day, dt_now.month, dt_now.hour, dt_now.minute)
             except:
-                try:
-                    #dt_str = dt_now.strftime(FMT_DEFAULT)
-                    #dt_str = dt_now.strftime("%d %b %y, %I:%M:%S %p")
-                    dt_str = datetime.datetime.strftime(datetime.datetime.now(), "%d %b %y, %I:%M:%S %p")
-                except:
-                    try:
-                        #! failsafe date-time string approach that seems reliable
-                        dt_str = '*{:02}/{:02} {:02}h{:02}'.format(dt_now.day, dt_now.month, dt_now.hour, dt_now.minute)
-                    except:
-                        raise ValueError('Formatting date-time string failed.')
+                raise ValueError('Formatting date-time string failed.')
             nx_cmd_str = '{}="{}"'.format(nx_full, dt_str)  # Nx strings need double quotes
             nx_cmd(nx_cmd_str, domain, service)
         else:
             raise ValueError('Wrong number of items in arguments list.')
     except ValueError as exptn:
         err_msg = '{}\nNextion Handler failed within SET function:\n<{}> <{}>.'.format(exptn, 'setdt', '> <'.join(args_list))
+        logger.warning('nextion_handler.py ' + err_msg)
+        #hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
+        raise ValueError(err_msg)
+    return True
+
+
+
+def setsys(args_list, domain, service):
+    '''setsys nh_ver num_widgets num_aliases
+    (Assign system information to the provided list of variables
+    (but skip if they are '_')) '''
+
+
+    try:
+        args_list.extend(['_'] * (3))
+        [nh_ver, wd_tot, al_tot] = args_list[:3]
+        # version
+        if nh_ver != '_':
+            nx_full, nx_lookup, data_type = nx_var_parse(nh_ver, 'val')
+            new_value = VERSION
+            nx_cmd_str = '{}={}'.format(nx_full, new_value)
+            nx_cmd(nx_cmd_str, domain, service)
+        # Num Widgets
+        if wd_tot != '_':
+            nx_full, nx_lookup, data_type = nx_var_parse(wd_tot, 'val')
+            new_value = len(WIDGETS_LIST)
+            nx_cmd_str = '{}={}'.format(nx_full, new_value)
+            nx_cmd(nx_cmd_str, domain, service)
+        # Num Aliases
+        if al_tot != '_':
+            nx_full, nx_lookup, data_type = nx_var_parse(al_tot, 'val')
+            new_value = len(ENTITY_ALIASES)
+            nx_cmd_str = '{}={}'.format(nx_full, new_value)
+            nx_cmd(nx_cmd_str, domain, service)
+    except ValueError as exptn:
+        err_msg = '{}\nNextion Handler failed within SET function:\n<{}> <{}>.'.format(exptn, 'setsys', '> <'.join(args_list))
         logger.warning('nextion_handler.py ' + err_msg)
         #hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
@@ -1214,17 +1285,23 @@ def get_widget_info(entity_id, wd_dmn, wd_icon=None):
             else:
                 wd_alt = 'DISABLED'
             curr = ent_state.attributes.get('current', 0)
-            wd_info = timedelta_to_str(dt_util.now(), ent_state.attributes.get('last_triggered', dt_util.now()))
-            wd_info = '({}) {}'.format(curr, wd_info)
+            if curr > 0:
+                wd_info = '{} Running'.format(curr)
+            else:
+                wd_info = timedelta_to_str(dt_util.now(), ent_state.attributes.get('last_triggered', dt_util.now()))
+                #wd_info = '({}) {}'.format(curr, wd_info)
 
         #* binary sensors
         #TODO: change on/off to match class (Dict -> [off_name, on_name])
         elif(domain_num == 3):
-            #NOTE: BIN_SENSOR_STATE_DICT moved to Global
+            #NOTE: BIN_SENSOR_STATE_DICT moved to Global, replaced with BIN_SENSOR_DICT
             dev_class = ent_state.attributes.get('device_class', '')
-            #wd_alt = state.title()
-            wd_alt = BIN_SENSOR_STATE_DICT.get(dev_class, ('on', 'off'))[1 - wd_bst]
-            wd_alt = wd_alt.title()
+            #wd_alt = state.title()  BIN_SENSOR_DICT
+            #wd_alt = BIN_SENSOR_STATE_DICT.get(dev_class, ('on', 'off'))[1 - wd_bst]
+            #wd_alt = wd_alt.title()
+            dev_info = BIN_SENSOR_DICT.get(dev_class, ('off', 'on', 3))
+            wd_alt = dev_info[wd_bst].title()
+            wd_icon = dev_info[2]
             #wd_info = '  {} ({})'.format(state.title(), dev_class.title())
             wd_info = timedelta_to_str(dt_util.now(), ent_state.last_changed)
 
@@ -1236,13 +1313,18 @@ def get_widget_info(entity_id, wd_dmn, wd_icon=None):
             td = dt_util.now() - ent_state.last_changed
             wd_bst = 1 if (td.total_seconds() < 30) else 0
 
-        #! needs testing
-        #* cover 
+        #! Tested by zigomatic - docs seem incorrect: https://developers.home-assistant.io/docs/core/entity/cover/
+        #* cover
         elif(domain_num == 8):
             wd_bst = 1 if state in ['open', 'opening'] else 0  # A cover entity can be in states (open, closing and (opening, closing) or 'stopped').
             #wd_alt = state.title()
-            pos = ent_state.attributes.get('current_cover_position', None)
-            pos_t = ent_state.attributes.get('current_cover_tilt_position', None)
+            #! Are docs incorrect or are do different devices return different attributes?
+            pos = ent_state.attributes.get('cover_position', None)  #! zigomatic test
+            if pos is None:
+                pos = ent_state.attributes.get('current_cover_position', None)  #! fallback
+            pos_t = ent_state.attributes.get('cover_tilt_position', None)
+            if pos_t is None:
+                pos_t = ent_state.attributes.get('current_cover_tilt_position', None)
             if pos is None and pos_t is None:
                 wd_info = state.title()
             elif pos_t is None:
@@ -1335,14 +1417,15 @@ def get_widget_info(entity_id, wd_dmn, wd_icon=None):
             #     wd_info = 'Running Script'
             # else:
             #     wd_info = 'Inactive Script'
-            if wd_bst:
-                wd_alt = 'Running'
-            else:
-                wd_alt = 'zzz'
+            # if wd_bst:
+            #     wd_alt = 'Running'
+            # else:
+            #     wd_alt = 'zzz'
             curr = ent_state.attributes.get('current', 0)
+            wd_alt = '{} Running'.format(curr)
             wd_info = timedelta_to_str(dt_util.now(),
                     ent_state.attributes.get('last_triggered'))
-            wd_info = '({}) {}'.format(curr, wd_info)
+            #wd_info = '({}) {}'.format(curr, wd_info)
 
         #* select (26) - included with input_select (17)
 
@@ -1464,7 +1547,6 @@ def get_widget_info(entity_id, wd_dmn, wd_icon=None):
     return wd_bst, str(wd_info), str(wd_alt), wd_dmn, wd_icon
 
 
-
 #TODO: for WIDGET (initial featurs complete) @wd
 def setwd(args_list, domain, service):
     '''setwd page_num_, start_wd, num_cards
@@ -1484,6 +1566,9 @@ def setwd(args_list, domain, service):
     MAX_INFO_CHARS = 20
 
     #* Parse calling arguments
+    #2022-06-30 22:21:55 ERROR (SyncWorker_6) [homeassistant.components.python_script.nextion_handler.py] nextion_handler.py list index out of range
+#Nextion Handler EXCEPTION - failed trying to call command:
+#<setwd 0 0 6 0 15 15 25>.
     try:
         # defaults for optional parameters
         page_type = 0  #TODO: not used yet: placeholder for allowing future different 'types' of widget pages that support different features (e.g. bit encoded feature support)
@@ -1627,7 +1712,7 @@ def setwd(args_list, domain, service):
 
             # Get entity data (may modify defalut icon)
             if wd_dmn > 0:
-                wd_bst, wd_info, wd_alt, wd_dmn, wd_icon = get_widget_info(entity_id, wd_dmn, wd_icon=wd_icon_dft)
+                wd_bst, wd_info, wd_alt, wd_dmn, wd_icon_dft = get_widget_info(entity_id, wd_dmn, wd_icon=wd_icon_dft)
 
             # final info text
             if wd_info_yaml:
@@ -1652,8 +1737,9 @@ def setwd(args_list, domain, service):
             if wd_dmn < 0 or wd_icon_yaml == ERROR_ICON:
                 wd_icon = ERROR_ICON
                 wd_bst = 1  # Use highlighted version of icon
-            elif wd_icon == UNAVAILABLE_ICON:
-                pass  # don't overwrite  #! get_widget_info changes icon
+            elif wd_icon_dft == UNAVAILABLE_ICON:
+                wd_icon = UNAVAILABLE_ICON
+                wd_dmn = 0  # disable interactions & gesture action descriptions
             # elif hass.states.get(entity_id).state == 'unavailable':
             #     wd_icon = UNAVAILABLE_ICON
             elif wd_icon_yaml:
@@ -2224,7 +2310,7 @@ def lt(args_list, domain, service):
         lt wt E (set light E to a supported white/color_temp mode).
             (Otherwise just try to turn the light on.)
     '''
-    MAX_R_MULT = 130  # ignore co-ordinates outside the radius of color wheel by this % factor
+    MAX_R_MULT = 999 #130  # ignore co-ordinates outside the radius of color wheel by this % factor
 
     prefix = 'light.'
     domain = 'light'
@@ -2499,9 +2585,9 @@ def mp(args_list, domain, service):
             #entity_id = get_entity_id_state(e, domain_prefix=prefix)[0]  # will raise exception if it can't translate e to valid entity_id
             entity_id, ent_state, state = get_entity_id_state(e, domain_prefix=prefix)  # will raise exception if it can't translate e to valid entity_id
             service_data = {'entity_id': entity_id}  # the same for all services below (that have no other arguements)
-            if act == 'pp2':
+            if act == 'pp':
                 service = 'media_play_pause'  # not supported on all devices
-            elif act == 'pp':
+            elif act == 'pp2':
                 #TODO: if state=='playing' sent stop AND pause, else send play
                 if state == 'playing':
                     service = 'media_stop'  # also send pause
@@ -2691,12 +2777,18 @@ def cv(args_list, domain, service):
             try:
                 if act == 'pos':
                     service = 'set_cover_position'
-                    curr_pos = ent_state.attributes.get('current_cover_position', 0)
+                    #! Are docs incorrect or are do different devices return different attributes?
+                    curr_pos = ent_state.attributes.get('cover_position', None)  #! zigomatic test
+                    if curr_pos is None:
+                        curr_pos = ent_state.attributes.get('current_cover_position', None)  #! fallback
                     new_pos = adjust(curr_pos, x_, 0, 100, AS_INT=True)
                     service_data = {'entity_id': entity_id, 'position': new_pos}
                 elif act == 'pos_t':
                     service = 'set_cover_tilt_position'
-                    curr_pos = ent_state.attributes.get('current_cover_tilt_position', 0)
+                    #! Are docs incorrect or are do different devices return different attributes?
+                    curr_pos = ent_state.attributes.get('cover_tilt_position', None)
+                    if curr_pos is None:
+                        curr_pos = ent_state.attributes.get('current_cover_tilt_position', None)
                     new_pos = adjust(curr_pos, x_, 0, 100, AS_INT=True)
                     service_data = {'entity_id': entity_id, 'tilt_position': new_pos}
                 #End of  valid act codes
@@ -3116,13 +3208,15 @@ def wdact(args_list, domain, service):
             for i in range(gest_cnt):
                 mp(['prv', e], domain, service) # previous track
         elif gest_type in [73, 83]: #V
-            #adjustment = "-{}".format(20 * gest_cnt)
-            for i in range(gest_cnt):
-                mp(['v-', e], domain, service) # step volume up #! change to multi step changes
+            adjustment = "-{}".format(0.05 * gest_cnt)
+            mp(['vol', e, adjustment], domain, service) # step volume up
+            # for i in range(gest_cnt):
+            #     mp(['v-', e], domain, service) # step volume up #! change to multi step changes
         elif gest_type in [74, 84]:  #^
-            #adjustment = "+{}".format(20 * gest_cnt)
-            for i in range(gest_cnt):
-                mp(['v+', e], domain, service) # step volume down
+            adjustment = "+{}".format(0.05 * gest_cnt)
+            mp(['vol', e, adjustment], domain, service) # step volume down
+            # for i in range(gest_cnt):
+            #     mp(['v+', e], domain, service) # step volume down
 
     #* alarm_control_panel  #! needs testing on physical device
     #TODO: possible future pop-up card will use short tap TR (gest_type == 95)
@@ -3356,6 +3450,7 @@ FUNC_DICT ={
     'setdt': setdt,
     'setmp': setmp,
     'setwd': setwd,
+    'setsys': setsys,
     #* ACTION functions
     # Actions where entity_id class needs to be provided (but $alias preferred)
     'tgl': tgl,
@@ -3595,7 +3690,8 @@ if continue_script and unparsed_strings:
                             logger.warning('nextion_handler.py ' + 'Skipped NhCmd (gave errors): <{}>.'.format(nh_cmd_str))
                             bad_cmds.extend([nh_cmd_str])
                         continue  # skip bad command and continue to next in list
-                    #!good_cmds.extend([nh_cmd_str]) #! for debug - COMMENT OUT when done
+                    #!dbg
+                    #good_cmds.extend([nh_cmd_str]) #! for debug - COMMENT OUT when done
         # Send subroutine to update Nextion display with refreshed data after a 'SET' update
         if nxh_call_type == 'SET':
             if nh_cmd_func != 'sub':  # skip if the last NhCmd was a Nx subroutine call
@@ -3620,5 +3716,6 @@ if bad_cmds:
     hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler completed with Errors!', 'message': err_msg, 'notification_id': 'nx_handler_error_done' }, False)
 if nxh_call_type == 'ACT':
     if good_cmds:
-        msg = 'Nextion Handler successfully completed the following ACTIONS:\n<{}>'.format('>\n<'.join(good_cmds))
+        msg = 'Nextion Handler successfully completed the following ACTIONS:\n<{}>\nTRIGGER:{}'.format('>\n<'.join(good_cmds), trig_val)
+        #logger.debug(msg)
         hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler completed', 'message': msg, 'notification_id': 'nx_handler_info_done' }, False)
