@@ -1,5 +1,5 @@
 #* Home Assistant Nextion Handler
-#* (v0.7_2022-07-04 beta)
+#* (v0.7_2022-07-07 beta)
 # Handler for NH 'command_strings' sent from Nextion events & update requests.
 # see: https://github.com/krizkontrolz/Home-Assistant-nextion_handler
 #
@@ -7,7 +7,8 @@
 #
 #* CHANGELOG: https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/CHANGELOG.md
 # lt(), mp(), cv(), widget improvements, 'unavailable', code cleanup
-# setsys(), version numbers
+# setsys(), version numbers, fix 'cover_position' -> 'current_position',
+# fix notifications for double '/n' not rendering on Nx
 #
 # ------------------------------------------------------------------------------
 #
@@ -17,7 +18,7 @@
 #    ...
 # ------------------------------------------------------------------------------
 
-VERSION = 20220704  # version of this script as YYYYMMDD integer. __version__ not allowed in restricted env
+VERSION = 20220707  # version of this script as YYYYMMDD integer. __version__ not allowed in restricted env
 
 #*------------------------------------------------------------------------------
 #* CONFIGURABLE CONSTANTS
@@ -962,7 +963,11 @@ def setntf(args_list, domain, service):
                     entity_id = ntf_list[n - 1]
                     ent_state = hass.states.get(entity_id)
                     title = ent_state.attributes['title']
-                    message = ent_state.attributes['message'] + r'\r' + timedelta_to_str(dt_util.now(), ent_state.last_changed)
+                    title = title.replace('"',"'")
+                    message = ent_state.attributes['message'].replace('\n\n', '\n')
+                    message = r'\r'.join(message.split('\n'))  # Convert from HA linebreak (\n) to Nextion (\r)
+                    message = message.replace('"',"'")
+                    message = message + r'\r' + timedelta_to_str(dt_util.now(), ent_state.last_changed)
                 else:
                     title = 'NONE'
                     message = 'No Notifications'
@@ -974,14 +979,13 @@ def setntf(args_list, domain, service):
             if nx_t != '_':
                 nx_full, nx_lookup, data_type = nx_var_parse(nx_t, 'txt')
                 title = r'\r'.join(title.split('\n'))  # Convert from HA linebreak (\n) to Nextion (\r)
-                new_value = title.replace('"',"'")[:len_t]
+                new_value = title[:len_t]
                 nx_cmd_str = '{}="{}"'.format(nx_full, new_value) # Nextion commands need double quotes for text
                 nx_cmd(nx_cmd_str, domain, service)
             # Notification message (.txt)
             if nx_m != '_':
                 nx_full, nx_lookup, data_type = nx_var_parse(nx_m, 'txt')
-                message = r'\r'.join(message.split('\n'))  # Convert from HA linebreak (\n) to Nextion (\r)
-                new_value = message.replace('"',"'")[:len_m]
+                new_value = message[:len_m]
                 nx_cmd_str = '{}="{}"'.format(nx_full, new_value) # Nextion commands need double quotes for text
                 nx_cmd(nx_cmd_str, domain, service)
             # Notification count (.val)
@@ -1049,7 +1053,6 @@ def setsys(args_list, domain, service):
     '''setsys nh_ver num_widgets num_aliases
     (Assign system information to the provided list of variables
     (but skip if they are '_')) '''
-
 
     try:
         args_list.extend(['_'] * (3))
@@ -1319,7 +1322,7 @@ def get_widget_info(entity_id, wd_dmn, wd_icon=None):
             wd_bst = 1 if state in ['open', 'opening'] else 0  # A cover entity can be in states (open, closing and (opening, closing) or 'stopped').
             #wd_alt = state.title()
             #! Are docs incorrect or are do different devices return different attributes?
-            pos = ent_state.attributes.get('cover_position', None)  #! zigomatic test
+            pos = ent_state.attributes.get('current_position', None)  #! zigomatic test
             if pos is None:
                 pos = ent_state.attributes.get('current_cover_position', None)  #! fallback
             pos_t = ent_state.attributes.get('cover_tilt_position', None)
@@ -1542,6 +1545,11 @@ def get_widget_info(entity_id, wd_dmn, wd_icon=None):
             wd_icon = UNAVAILABLE_ICON
             wd_dmn = domain_num  # remove action capabilities from domain code
             wd_alt = 'Unavailable'
+
+        #* Unknown - change icon (without disabling actions)
+        elif state == 'unknown':
+            wd_icon = UNAVAILABLE_ICON
+
 
     # --- get_widget_info() ---
     return wd_bst, str(wd_info), str(wd_alt), wd_dmn, wd_icon
@@ -2778,9 +2786,9 @@ def cv(args_list, domain, service):
                 if act == 'pos':
                     service = 'set_cover_position'
                     #! Are docs incorrect or are do different devices return different attributes?
-                    curr_pos = ent_state.attributes.get('cover_position', None)  #! zigomatic test
+                    curr_pos = ent_state.attributes.get('current_position', None)  #! zigomatic test
                     if curr_pos is None:
-                        curr_pos = ent_state.attributes.get('current_cover_position', None)  #! fallback
+                        curr_pos = ent_state.attributes.get('current_cover_position', 0)  #! fallback
                     new_pos = adjust(curr_pos, x_, 0, 100, AS_INT=True)
                     service_data = {'entity_id': entity_id, 'position': new_pos}
                 elif act == 'pos_t':
