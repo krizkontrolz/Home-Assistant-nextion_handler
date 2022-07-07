@@ -9,6 +9,17 @@ The files here are for those testing specific new features or bug fixes.  Not mu
 * **Python script** (nextion_handler) - copy and overwrite previous file.
 * **ESPHome config template** - BACK UP original YAML file, copy and paste the _section below your customised substitutions_ (into the standard 'boilerplate' section), uncomment the encryption section (if you use it), customise the boot settings (if you use that part), then flash with ESPHome.
 
+## EU beta 2022-07-07
+TFT (HMI included too)
+* Widened margins for detecting 'edge swipes' especially on RHS for more robuts 'page swipes'.
+* Widened hotspot areas beyond visual margins of all UI elements for more robust touch detection (Nextion precision is poor).
+* Version checks now conducted whenever device sleeps and will display if ESPHome config or nextion_handler.py versions are too old for current TFT (with prompt to update).
+* `⬅` and `➡` strokes on Popup pages now have actions assigned to them (e.g., put device to sleep from Settings page).
+
+Python script:
+* Fixed typo that stopped 'cover' code from working properly.
+* Converts `\n\n` in Notification messages to single line break `\r` to render properly on Nextion.
+
 ## EU beta 2022-07-04
 TFT
 * Changed gestures so that swipes on Widgets vs Pages are more distinct.  Now you must _swipe from the bezel into the display area_ for `⬅➡⬆⬇` gestures (to change pages etc.) and any swipes on Widget cards (starting away from the edges of the display) will be `⯇⯈⯅⯆` gestures (adjust enitity attributes for that Widget).  This makes it much easier to control the gestures you intend to send (and avoid triggering Widget actions unintentionally).
