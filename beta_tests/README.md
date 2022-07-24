@@ -5,6 +5,11 @@ The files here are for those testing specific new features or bug fixes.  Not mu
 (I have to comment out the fix while testing on the US panel and sometimes forget to uncomment before uploading a TFT here.)
 
 ## Instructions for Updating from previous to Latest Beta:
+
+ <details>
+  <summary>▶️ expand instructions ...</summary>
+
+
 * **Nextion TFT** (`NSP-EU*_YYYY-MM-YY_beta.TFT`) - copy the latest TFT and rename to overwirte your previous version, then upload to your NSPanel. (_Keep the path and name of the file and the `tft_url` the same when updating, something short and simple, so you don't have to keep editing and reflashing the ESPHome config._)
 * **Python script** (`nextion_handler.py`) - copy and overwrite previous file in your `\config\python_scripts` directory in Home Assistant.
 * **ESPHome config template** (`ESPHome_Nextion_Handler_template.yaml`) - This file will be updated far less frequently than the two above, but takes a bit more effort and care to update. **BACK UP** your original YAML file, copy and paste the _section below your customised `substitution:` block_ (into the standard 'boilerplate' section), edit back in parts of the template you customised before (see check list below), then flash with ESPHome.  (Keep the name and path of the YAML file the same when updating, just paste the new information into the existing (backed up) file).  After pasting in the new information you may need to edit back in any of your previous customisations:
@@ -15,6 +20,11 @@ The files here are for those testing specific new features or bug fixes.  Not mu
   * edit back in any other custom parts of your previous config. (such as where there are comments in the template suggesting customisation options).
   * **fix any indentation problems after editing** - some YAML editors mess this up when copying and pasting (and I made this mistake in one of the previous beta templates - appologies).
   * if you are trying to merge large numbers of edits to a custom config file, you can use the GitHub `History` (button in top right corner when you open a tracked file in GitHub) to view commit details of all the changes between versions.
+</details>
+ 
+--- 
+
+
 
 ## EU and US beta 2022-07-24
 TFT (HMI included too)
