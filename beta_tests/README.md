@@ -33,6 +33,9 @@ TFT (HMI included too)
 * New detailed climate control 'popup' card (with controls for temperature (range & single), humidity, hvac modes, preset modes, fan modes, swing modes, aux heat).
 * Improved gesture feedback that dynamically updates the actual cumulative step change that will be applied when making nudge/swipe adjustments on Widget cards (e.g. how much a light' brightness will change by).
 * Gesture indicators _everywhere_ now (including 'popup' control cards, with added interactions now that there is clear UI feedback).
+* For entity domains that have `class` subcategories (`cover.*`, `binary_sensor.*`, and `sensor.*`) the `class` is used to pick the default icon - the default icon should now be an informative option even without any user customisation.
+* Dashboard information for `sensor`s now improved.
+* Tweaks to UI graphics and interaction hotspots.
 * Improved error messages on Settings and 'sleep' screens - now there are warnings if the Nextion TFT requires a later version of the `nextion_handler.py` or `ESPHome template`.
 * Improved System Information screen (when you tap the blank screen to wake the NSPanel, don't lift your finger, and the information will keep displaying until you release).
 * Performance and reliability improvements (although not perfect yet).
