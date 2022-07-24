@@ -16,6 +16,26 @@ The files here are for those testing specific new features or bug fixes.  Not mu
   * **fix any indentation problems after editing** - some YAML editors mess this up when copying and pasting (and I made this mistake in one of the previous beta templates - appologies).
   * if you are trying to merge large numbers of edits to a custom config file, you can use the GitHub `History` (button in top right corner when you open a tracked file in GitHub) to view commit details of all the changes between versions.
 
+## EU and US beta 2022-07-24
+TFT (HMI included too)
+* US (portrait) version now added too.
+* All 36 standard entity types (domains) now supported in Widget UI with new dashboard information and/or interactive controls now added for  `climate.*`, `fan.*`, `humidifier.*`, `lock.*`, and `water_heater.*` entities.  I don't own these myself so would appreciate any feedback on what works and what needs fixing for these.
+* New detailed climate control 'popup' card (with controls for temperature (range & single), humidity, hvac modes, preset modes, fan modes, swing modes, aux heat).
+* Improved gesture feedback that dynamically updates the actual cumulative step change that will be applied when making nudge/swipe adjustments on Widget cards (e.g. how much a light' brightness will change by).
+* Gesture indicators _everywhere_ now (including 'popup' control cards, with added interactions now that there is clear UI feedback).
+* Improved error messages on Settings and 'sleep' screens - now there are warnings if the Nextion TFT requires a later version of the `nextion_handler.py` or `ESPHome template`.
+* Improved System Information screen (when you tap the blank screen to wake the NSPanel, don't lift your finger, and the information will keep displaying until you release).
+* Performance and reliability improvements (although not perfect yet).
+
+Python script (**needs updating too**):
+* Backend support for all new Widget dashboard information and interactions.
+* Improved list picking - can pick both by cycling (in multiple-step jumps) through lists, or directly picking by the number of item in lists (e.g., picking `input_select`s or `source`s for `media_player`s).  Selected list items now show the number of the item in the list too to help with this.
+* Code clean-up and new/improved helper functions for reptitive code.
+
+ESPHome config. (**no upgrad needed**)
+* No upgrade needed if you already have a working version.  This config. is slightly modified to make it easier for first time users in the YAML sections that are uncommented/commented, e.g. the 'reparse mode fix' is uncommented by default.
+
+
 ## EU beta 2022-07-07
 TFT (HMI included too)
 * Widened margins for detecting 'edge swipes' especially on RHS for more robuts 'page swipes'.
