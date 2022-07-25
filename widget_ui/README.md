@@ -1,5 +1,5 @@
 # 🟠 Widget UI
-(_Last updated 2022/06/30_)  
+(_Last updated 2022/07/25_)  
 **Current Installation files v06_2022-06-03**
 
 ## Current Features and Status
@@ -46,7 +46,8 @@ _🔸EU version 0.7 is in beta testing and available on request for those who wa
 <details>
   <summary>1️⃣ Fill and flash the ESPHome YAML template:</summary>   
  
-  * Download the template `ESPHome_Nextion_Handler_template.yaml` configuration file and fill in your details from your backup configuration into the `substitutions:` section at the top of the file.  (Leaving `ha_prefix: nsp1` will make the automation template easier later on.)
+  * Download the template `ESPHome_Nextion_Handler_template.yaml` configuration file, paste the template into your original (backed up) configuration, fill in your details from your backup configuration into the `substitutions:` section at the top of the file (and then delete all the old YAML).  (Leaving `ha_prefix: nsp1` will make the automation template easier later on.)
+  * set a simple path an filename for the `tft_url` where you will place the TFT file in step 3️⃣ for uploading to the Nextion display (read the annotation in the template for how to match the URL with the path on your Home Assistant device).
   * Validate the file before installing it to the NSPanel (from the ESPHome addon page in Home Assistant).
   * Once the ESPHome installation is complete, check the NSPanel device page in HA to make sure the entities are showing up properly.  If you changed `ha_prefix: nsp1` (above), you will later need to get the enitity_ids for `Trigger`, `HA Act`, `HA Set1 & 2` (from the device page), and `ESPHome: nsp1_send_command` (from `Developer Tools | SERVICES`).  And you will use the `TFT upload button` to flash the Nextion TFT UI file.  
  (_If this is the first time using your NSPanel with ESPHome, there are some lines near the top of the YAML file, marked with `#! *** FIX ***...` that you will need to uncomment **once** to switch the panel from the special 'reparse' mode it uses for the original firmware to allow it work with ESPHome.  Comment those lines out again the next time you reflash your configuration - they only need to run once._)
@@ -115,7 +116,7 @@ _🔸EU version 0.7 is in beta testing and available on request for those who wa
   <summary>3️⃣ Flash Nextion Widget UI TFT file:</summary> 
 
   * Download the `Widget UI TFT file` then copy and rename it to the location and filename you specified in the `tft_url` of your ESPHome configuration in step 1️⃣.  Then press the `TFT upload button` on the NSPanel's device page in Home Assistant (that you located in step 1️⃣).  
-	👉 This seems to be the only step where some people are having trouble.  Make sure that the `Widget UI TFT file` exactly matches the path where you put the TFT file, that you rename the TFT to match too, and that you have made sure files in that location can be accessed locally on your network.
+	👉 This seems to be the only step where some people are having trouble.  Make sure that the `Widget UI TFT file` exactly matches the path where you put the TFT file, that you rename the TFT to match too, and that you have made sure files in that location can be accessed locally on your network.  (There are more notes on this topic [on the HA formums here](https://community.home-assistant.io/t/nextion-handler-for-home-assistant-for-nspanels/394858/5?u=krizkontrolz).)
   * Wait for the NSPanel to flash and reboot with the new UI.  (You may have to reboot both HA and the NSPanel after the first installation.)
 
 Whenever you change your widgets list (including the initial installation) it will take a little bit longer for each page to refresh the first time after that as it reconfigures itself.  If it gets stuck, open the settings menu (swipe down and close it by swiping down again), which will help to read the new list. 
