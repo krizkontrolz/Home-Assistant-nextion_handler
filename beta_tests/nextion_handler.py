@@ -6,11 +6,8 @@
 # ------------------------------------------------------------------------------
 #
 # * CHANGELOG: https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/CHANGELOG.md
-# lt(), mp(), cv(), widget improvements, 'unavailable', code cleanup
-# setsys(), version numbers, fix 'cover_position' -> 'current_position',
-# fix notifications for double '/n' not rendering on Nx
-# add climate set and act:  setcl(), cl()
-# streamlined repetitive code with new/improved helper functions
+# Fix ent_state.get -> ent_state.attributes.get in cl()
+# Add adjustment(x) to parsing of adjustment to lt() brt, brtv & ct
 #
 # ------------------------------------------------------------------------------
 #
@@ -22,7 +19,7 @@
 # ------------------------------------------------------------------------------
 # Reformatted code with Black: https://black.vercel.app/
 
-VERSION = 20220724  # version of this script as YYYYMMDD integer; ('__version__' not allowed in restricted env)
+VERSION = 20220725  # version of this script as YYYYMMDD integer; ('__version__' not allowed in restricted env)
 
 # *------------------------------------------------------------------------------
 # * CONFIGURABLE CONSTANTS
@@ -456,11 +453,14 @@ def adjust(
     """
 
     # Check 'adjustment' string is valid
+    adj_str = str(adj)
     if OPTION_LIST and adj in OPTION_LIST:
         return adj  # adj is already a valid listed option (no ajustment required)
     else:
         try:
-            adj_num = float(adj.replace("+", "").replace("--", "-").replace(r"%", ""))
+            adj_num = float(
+                adj_str.replace("+", "").replace("--", "-").replace(r"%", "")
+            )
         except:
             return None
     # Convert and fill in default args (when picking a value from a list / normal numeric adjustment)
@@ -496,10 +496,9 @@ def adjust(
     new_x = 0  # default
     try:
         # parse what TYPE of adjustment is required (VALUE is from adj_num above)
-        adj_str = str(adj)
         if adj_str[-1:] == "%":
             IS_PCT = True
-            adj_str = adj_str[:-1]
+            # adj_str = adj_str[:-1]
         if adj_str[0] == "+":
             IS_DELTA = True
         elif adj_str[0] == "-":
@@ -508,7 +507,7 @@ def adjust(
             #     adj_str = adj_str[1:]
             # else:
             #     IS_DELTA = True
-            if adj_str[1] != "-":
+            if (len(adj_str) >= 2) and (adj_str[1] != "-"):
                 IS_DELTA = True
         # calculate the adjustment
         if IS_DELTA:
@@ -535,8 +534,8 @@ def adjust(
         if IS_MOD:
             new_x = new_x % modulo_val
         elif FIT_TO_RANGE:
-            new_x = max(min(new_x, max_val), min_val)
-        if OPTION_LIST:
+            new_x = min_val if new_x < min_val else new_x
+        if not OPTION_LIST is None:
             new_x = OPTION_LIST[new_x]
         return new_x
     except ValueError as exptn:
@@ -2737,51 +2736,41 @@ def lt(args_list):
                 # brighness (pct & val)
                 if act == "brt":
                     service = "turn_on"
-                    x = int(x_)
-                    if x_[0] == "+":
-                        if state == "off":
-                            x = 100  # turn on at max brightness
-                        else:
-                            x = int(
-                                ent_state.attributes.get("brightness", 0) / 2.55 + x
-                            )
-                            if x > 100:
-                                x = 100
-                    elif x_[0] == "-":
-                        if state == "off":
-                            x = 1  # 15  # turn on at min brightness
-                        else:
-                            x = int(
-                                ent_state.attributes.get("brightness", 0) / 2.55 + x
-                            )
-                            if x < 1:
-                                x = 1  # don't dim to completely off
-                    service_data = {"entity_id": entity_id, "brightness_pct": x}
+                    if state == "off":
+                        if x_[0] == "+":
+                            x_ = "100"  # turn on at max brightness
+                        elif x_[0] == "-":
+                            x_ = "1"  # 15  # turn on at min brightness
+                    curr_val = ent_state.attributes.get("brightness", 0) / 2.55
+                    new_val = adjust(curr_val, x_, 1, 100, AS_INT=True)
+                    if new_val is None:
+                        # TODO: add error handling
+                        new_val = 33
+                    service_data = {"entity_id": entity_id, "brightness_pct": new_val}
                 elif act == "brtv":
                     service = "turn_on"
-                    x = int(x_)
-                    if x_[0] == "+":
-                        x = int(ent_state.attributes.get("brightness", 0)) + x
-                        if x > 255:
-                            x = 255
-                    elif x_[0] == "-":
-                        x = int(ent_state.attributes.get("brightness", 0)) + x
-                        if x < 5:
-                            x = 5  # don't dim to completely off
-                    service_data = {"entity_id": entity_id, "brightness": int(x_)}
+                    if state == "off":
+                        if x_[0] == "+":
+                            x_ = "255"  # turn on at max brightness
+                        elif x_[0] == "-":
+                            x_ = "5"  # 5  # turn on at min brightness
+                    curr_val = ent_state.attributes.get("brightness", 0)
+                    new_val = adjust(curr_val, x_, 1, 255, AS_INT=True)
+                    if new_val is None:
+                        # TODO: add error handling
+                        new_val = 80
+                    service_data = {"entity_id": entity_id, "brightness": new_val}
                 # color_temp
                 elif act == "ct":
                     service = "turn_on"
-                    x = int(x_)
-                    if x_[0] == "+":
-                        x = int(ent_state.attributes.get("color_temp", 370)) + x
-                        if x > ent_state.attributes.get("max_mireds", 500):
-                            x = ent_state.attributes.get("max_mireds", 500)
-                    elif x_[0] == "-":
-                        x = int(ent_state.attributes.get("color_temp", 0)) + x
-                        if x < ent_state.attributes.get("min_mireds", 153):
-                            x = ent_state.attributes.get("min_mireds", 153)
-                    service_data = {"entity_id": entity_id, "color_temp": x}
+                    curr_val = ent_state.attributes.get("color_temp", 370)
+                    min_val = ent_state.attributes.get("min_mireds", 153)
+                    max_val = ent_state.attributes.get("max_mireds", 500)
+                    new_val = adjust(curr_val, x_, min_val, max_val, AS_INT=True)
+                    if new_val is None:
+                        # TODO: add error handling
+                        new_val = 370
+                    service_data = {"entity_id": entity_id, "color_temp": new_val}
                 # color (rgb, hs, cw)
                 elif act == "rgb":
                     service = "turn_on"
@@ -3170,7 +3159,7 @@ def cl(args_list):
                     # HVAC mode
                     service = "set_hvac_mode"
                     try:
-                        modes = ent_state.get("hvac_modes", None)
+                        modes = ent_state.attributes.get("hvac_modes", None)
                         curr_mode = state
                         new_mode = adjust(
                             curr_mode, mode_adj, None, None, OPTION_LIST=modes
@@ -3192,8 +3181,8 @@ def cl(args_list):
                 elif act == "pm":
                     service = "set_preset_mode"
                     try:
-                        modes = ent_state.get("preset_modes", None)
-                        curr_mode = ent_state.get("preset_mode", None)
+                        modes = ent_state.attributes.get("preset_modes", None)
+                        curr_mode = ent_state.attributes.get("preset_mode", None)
                         new_mode = adjust(
                             curr_mode, mode_adj, None, None, OPTION_LIST=modes
                         )  # option
@@ -3213,8 +3202,8 @@ def cl(args_list):
                 elif act == "fm":
                     service = "set_fan_mode"
                     try:
-                        modes = ent_state.get("fan_modes", None)
-                        curr_mode = ent_state.get("fan_mode", None)
+                        modes = ent_state.attributes.get("fan_modes", None)
+                        curr_mode = ent_state.attributes.get("fan_mode", None)
                         new_mode = adjust(
                             curr_mode, mode_adj, None, None, OPTION_LIST=modes
                         )  # option
@@ -3234,8 +3223,8 @@ def cl(args_list):
                 elif act == "sm":
                     service = "set_swing_mode"
                     try:
-                        modes = ent_state.get("swing_modes", None)
-                        curr_mode = ent_state.get("swing_mode", None)
+                        modes = ent_state.attributes.get("swing_modes", None)
+                        curr_mode = ent_state.attributes.get("swing_mode", None)
                         new_mode = adjust(
                             curr_mode, mode_adj, None, None, OPTION_LIST=modes
                         )  # option
@@ -3269,12 +3258,16 @@ def cl(args_list):
                 elif act in ["tmp", "tlo", "thi", "tauto"]:
                     service = "set_temperature"
                     try:
-                        t_set = ent_state.get("temperature", None)
-                        t_range_lo = ent_state.get("target_temperature_low", None)
-                        t_range_hi = ent_state.get("target_temperature_high", None)
+                        t_set = ent_state.attributes.get("temperature", None)
+                        t_range_lo = ent_state.attributes.get(
+                            "target_temperature_low", None
+                        )
+                        t_range_hi = ent_state.attributes.get(
+                            "target_temperature_high", None
+                        )
                         if act == "tauto":
                             # Simple rules to figure out which is the most likely adjustment required
-                            action = ent_state.get("hvac_action", None)
+                            action = ent_state.attributes.get("hvac_action", None)
                             if t_range_lo is None:
                                 t_type = "tmp"
                             elif state == "heat" or action == "heating":
@@ -3293,10 +3286,9 @@ def cl(args_list):
                         elif t_type == "thi":
                             curr_val = t_range_hi
                             attr = "target_temperature_high"
-                        min_val = ent_state.get(
-                            "min_temp", 7
-                        )  # 7 & 35 are documented HA defaults
-                        max_val = ent_state.get("max_temp", 35)
+                        # 7 & 35 are documented HA defaults
+                        min_val = ent_state.attributes.get("min_temp", 7)
+                        max_val = ent_state.attributes.get("max_temp", 35)
                         new_val = adjust(
                             curr_val, x_, min_val, max_val, AS_INT=True
                         )  # int
@@ -3314,11 +3306,11 @@ def cl(args_list):
                 elif act == "hum":
                     service = "set_humidity"
                     try:
-                        curr_val = ent_state.get("humidity", None)
-                        min_val = ent_state.get(
+                        curr_val = ent_state.attributes.get("humidity", None)
+                        min_val = ent_state.attributes.get(
                             "min_humidity", 30
                         )  # 30 & 99 are documented HA defaults
-                        max_val = ent_state.get("max_humidity", 99)
+                        max_val = ent_state.attributes.get("max_humidity", 99)
                         new_val = adjust(
                             curr_val, x_, min_val, max_val, AS_INT=True
                         )  # int
