@@ -11,9 +11,8 @@
 # ------------------------------------------------------------------------------
 #
 # TODO:
-#    (v0.7 fine tuning new NSPanel Widget gestures & actions - done)
 #    (v0.7 new features for entities I don't own need beta testers:
-#     climate.*, fan.*, humidifier.*, lock.*, water_heater.*)
+#     fan.*, humidifier.*, lock.*, water_heater.*)
 #    ...
 # ------------------------------------------------------------------------------
 # Reformatted code with Black: https://black.vercel.app/
@@ -74,7 +73,7 @@ DOMAINS_DICT = {
     "button": (516, 4),
     "calendar": (5, 5),
     "camera": (134, 6),
-    "climate": (2695, 7),
+    "climate": (2823, 7),
     "cover": (648, 8),
     "device_tracker": (9, 9),
     "fan": (650, 10),
@@ -3667,7 +3666,7 @@ def wdact(args_list):
         # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
     # * toggles (ALL entities capable of toggling - they may support additional interactions, handled below)
-    if (wd_dmn & DIRECT_TOGGLE_MASK) and gest_type == 91:  # Top Left 'Icon' quadrant
+    if gest_type == 91 and (wd_dmn & DIRECT_TOGGLE_MASK):  # Top Left 'Icon' quadrant
         tgl([e])
     # * toggle ONLY cards: Both sides: toggle/tof/ton
     # The ONLY interaction these entities are capable of is TOGGLING (incl. separate ON & OFF)
@@ -3763,10 +3762,9 @@ def wdact(args_list):
         if gest_type in [91, 95]:
             hass.services.call("button", "press", {"entity_id": entity_id}, False)
     # * climate
-    #! needs testing
     # G.tACT_LIST.txt="Toggle|Cool|Auto|Popup Control|Heat|Heat-Cool|Humidity% +|Humidity% -|Temp° -|Temp° +"
     elif domain_num == 7:
-        if gest_type == 91: # require special toggle
+        if gest_type == 91:  # require special toggle
             cl(["tgl", e])
         elif gest_type == 92:  # long press LHS
             cl(["hm", e, "cool"])
