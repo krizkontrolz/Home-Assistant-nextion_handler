@@ -1,13 +1,12 @@
 # * Home Assistant Nextion Handler
-# * (v0.7_2022-07-24 beta)
+# * (v0.7_2022-07-27 beta)
 # Handler for NH 'command_strings' sent from Nextion events & update requests.
 # see: https://github.com/krizkontrolz/Home-Assistant-nextion_handler
 #
 # ------------------------------------------------------------------------------
 #
 # * CHANGELOG: https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/CHANGELOG.md
-# Fix ent_state.get -> ent_state.attributes.get in cl()
-# Add adjustment(x) to parsing of adjustment to lt() brt, brtv & ct
+# Fix toggling of climate.* entities (new: cl tgl e) (cannot use normal toggle)
 #
 # ------------------------------------------------------------------------------
 #
@@ -19,7 +18,7 @@
 # ------------------------------------------------------------------------------
 # Reformatted code with Black: https://black.vercel.app/
 
-VERSION = 20220725  # version of this script as YYYYMMDD integer; ('__version__' not allowed in restricted env)
+VERSION = 20220727  # version of this script as YYYYMMDD integer; ('__version__' not allowed in restricted env)
 
 # *------------------------------------------------------------------------------
 # * CONFIGURABLE CONSTANTS
@@ -3126,7 +3125,8 @@ def cl(args_list):
     """cl act E (arg1) (arg2...) (call action/'service' with code 'act' for
     climate entity E)
     action/service options:
-        (turn_on, turn_off, toggle: use generic ton, tof, tgl instead)
+        (turn_on, turn_off: use generic ton, tof)
+        cl tgl E (climate-specific toggle) (Generic toggle does not work!)
         cl hm E m (set_hvac_mode to mode m)
         cl pm E m (set_preset_mode to mode m)
         cl fm E m (set_fan_mode to mode m)
@@ -3147,7 +3147,17 @@ def cl(args_list):
 
     try:
         # set the service & service_data for the hass.service call
-        if len(args_list) >= 3:
+        if len(args_list) == 2:
+            act, e = args_list
+            entity_id, ent_state, state = get_entity_id_state(e, domain_prefix=prefix)
+            # toggle (climate entities don't work with normal toggle)
+            if act == "tgl":
+                service = "turn_on" if state == "off" else "turn_off"
+                service_data = {"entity_id": entity_id}
+            # End of  valid act codes (for 2 args)
+            else:
+                transfer_err_msg = "The specified ACTION CODE is not valid."
+        elif len(args_list) >= 3:
             # args_list_ext = args_list + ['_']*3  # extend COPY of list with '_'s to indicate potential unassigned/default values
             act, e, x_ = args_list[:3]
             if act in ["hm", "pm", "fm", "sm"]:
@@ -3155,8 +3165,8 @@ def cl(args_list):
                 mode_adj = " ".join(args_list[2:])
             entity_id, ent_state, state = get_entity_id_state(e, domain_prefix=prefix)
             try:
+                # HVAC mode
                 if act == "hm":
-                    # HVAC mode
                     service = "set_hvac_mode"
                     try:
                         modes = ent_state.attributes.get("hvac_modes", None)
@@ -3756,8 +3766,9 @@ def wdact(args_list):
     #! needs testing
     # G.tACT_LIST.txt="Toggle|Cool|Auto|Popup Control|Heat|Heat-Cool|Humidity% +|Humidity% -|Temp° -|Temp° +"
     elif domain_num == 7:
-        # gest_type == 91 already toggles
-        if gest_type == 92:  # long press LHS
+        if gest_type == 91: # require special toggle
+            cl(["tgl", e])
+        elif gest_type == 92:  # long press LHS
             cl(["hm", e, "cool"])
         elif gest_type == 93:  # v long press RHS
             cl(["hm", e, "auto"])
