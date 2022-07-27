@@ -24,6 +24,10 @@ The files here are for those testing specific new features or bug fixes.  Not mu
  
 --- 
 
+## 2022-07-27
+Python script and TFTs:
+* Small fix for toggling HVAC (climate.*) devices (created a custom toggle action because they cannot be used with the standard toggle).
+
 ## 2022-07-25
 Python script:
 * Fixed typo bug in cl() (climate.* action function): `ent_state.get()` -> `ent_state.attributes.get()`.
