@@ -1,26 +1,27 @@
 # 🟠 Widget UI
-(_Last updated 2022/07/25_)  
-**Current Installation files v06_2022-06-03**
+(_Last updated 2022/07/28_)  
+**WAIT for v0.7 (Current Installation files v06_2022-06-03)**  
+🚧 All documentation is currently being updated for version 0.7 as it is about to come out of beta.  I do not recommend installing v0.6 at this stage - either wait for v0.7 release or join the beta (which is likely the v0.7 release version at this point anyway).
 
 ## Current Features and Status
 
-The Widgets currently provide sufficient functionality for most of the every-day Home Assistant controls, allowing you to:
+The Widgets cards now support, and automatically configure themselves, to all 36 types of entities in Home Assistant, with extra 'popup' pages to provide more detailed information and control for the all the more complex device types:
 
  <details>
-  <summary>▶️ show current list of features ...</summary>
+  <summary>▶️ show list of features for v0.7 ...</summary>
  
 
-* 🔹 create a dashboard to easily view information about your smart home, and visually highlight anything needing attention;
-* 🔹 'toggle' all Home Assistant entities that can be toggled (lights, media players, switches, scripts, automations, covers, fans, input_booleans, locks etc.);
-* 🔹 use interactive widgets to control most of the common types of entities (as per the details in the Widget Card interactions list);
-* 🔹 fully control lights (both through quick widget card interactions and a popup page with slider controls and color wheel);
-* 🔹 fully control _some_ media players (both through quick widget card interactions and a popup page with slider controls and media information);
-* 🔹 read and dismiss HA notifications;
-* 🔹 change NSPanel settings (including managing the linking/unlinking of NSPanel physical buttons to their respective relays).
+* 🔹 Widget UI supports all 36 standard Home Assistant entity types (domains) showing you Widget card information that adapts to the type of entity;  
+* 🔹 Entity types that have 'classes' adapt the information they show to the class of entity (e.g., a temperature sensor will show you a thermometer as the default icon and the text information will indicate the class of sensor);  
+* 🔹 All devices that support interactive control in Home Assistant can now be controlled with 'gestures' that adapt to the type of Widget card, giving you quick access to common controls (such as swiping to adjust light brightness);  
+* 🔹 When you swipe or tap on a Widget card a 'gesture indicator' will pop up in the top left of the screen to show what action that gesture will perform for that device.  If you hold a tap or swipe, a timer bar will appear next to the gesture indicator and the gesture action will be modified.  The gesture indicator will give you visual feedback on these changes during the gesture.  For example if you swipe to the left on a light card the gesture indicator will initially show `▶ Brithness% +20`, and this will update with each timer step before you remove your finger (e.g., hold for 3 timer steps to increase brightness by 60%: `▶ Brithness% +60`);  
+* 🔹 For entity types with more complex information or controls, tapping on the right hand half of the card will bring up a detailed pop up page. This currently works for lights, HVAC/climate devices, media players, and notifications;  
+* 🔹 The settings page can be accessed by swiping down from the bezel/edge on any Widget page.  This is also the boot-up page for Widget UI (while it reads your configured list of `widgets:` from your Home Assistant `automation.yaml`).  You can manage linking/unlinking of your NSPanel physical buttons to their respective relays from here;  
+* 🔹 Two small indicator bars across the bottom of the display indicate the status of the 2 relays.  There are multiple ways for you to control linking/unlinkingg of the relays from the physical buttons without having to reconfigure the device (through the settings menu, Home Assistant, or holding down the physical buttons until you get audio feedback - see the docs below);  
+* 🔹 System information is available from the blank sleep screen.  The information will display when you touch the screen to wake the device up, and will remain on the display until you lift your finger;  
+* 🔹 You can quickly put the screen to sleep by swiping down from the top bezel/edge on any 'popup page'.  Swiping down and holding until the gesture timer appears will put the screen to sleep from any Widget page;  
+* 🔹 System checks will let you know when the Nextion TFT requires a later version of the `nextion_handler.py` script (or `ESPHome template` configuration).
   
-The details of how information is displayed will continue to be fine tuned, and new functionality will be added as the supported capabilities of the underlying [Nextion Hanlder](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/HA_NEXTION_HANDLER_INSTRUCTIONS.md) are being developed and expanded.
-
-🚧 New gesture and widget features are currently being documented for version 0.7 (in beta, but aren't supported in the currently available 0.6 version).
   
 </details>
  
@@ -32,7 +33,7 @@ The details of how information is displayed will continue to be fine tuned, and 
   <summary>▶️ show Installation steps and requirements ...</summary>
 
 ### Before you start
-**🔹 Pre-requisites:**  Home Assistant (HA) with ESPHome installed, an NSPanel that has been flashed with ESPHome ([see Credits and Resources links](https://github.com/krizkontrolz/Home-Assistant-nextion_handler) at the bottom of the root repository README), and some basic familiarity with configuring HA.
+**🔹 Pre-requisites:**  Home Assistant (HA) with ESPHome installed, an NSPanel that has been flashed with ESPHome (see [Masto's](https://www.youtube.com/watch?v=Kdf6W_Ied4o) or [EverythingSmartHome's](https://www.youtube.com/watch?v=sCrdiCzxMOQ) video instructions), and some basic familiarity with configuring HA.
 
 **🔹 BACK UP your existing Nextion files:** in particular your device's ESPHome YAML configuration.  You will need to enter the details from that into the new template later (and will need your original ota password & other details to be able to upload any new configuration).
 
