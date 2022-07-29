@@ -140,9 +140,9 @@ substitutions:
   
 ### Page Layout and Function
 Each page is tiled with Widget cards, one per entity. Information and touch interactions adapt to the type of entity they are displaying.  
-* **🔹 Main Pages:** The 'Main' content pages are filled completely with Widget cards (as shown in the example images below).  Navigation is by `swipe` gestures that cycles forwards and backwards through the main pages.
+* **🔹 Main Pages:** The 'Main' content pages are filled completely with Widget cards (as shown in the example images below).  Navigation is by `edge swipe` gestures (from the bezel/edge into the display) that cycle forwards and backwards through the main pages.
 * **🔹 Popup Pages:** Some actions bring up 'popup' pages that provide added controls and information.  These are distinguished by a title bar at the top, and a back arrow in the top left corner for navigating back to the 'Main' page you came from.
-* **🔹Widget Cards:** Each card has an icon (with circular background), then three rows of text: the 'title' at the top, a row of short 'alternate' text, and the main 'info' text along the width of the card at the bottom.  Users interact with Widgets by `press` and `nudge` gestures (described below).
+* **🔹Widget Cards:** Each card has an icon (with circular background), then three rows of text: the 'title' at the top, a row of short 'alternate' text, and the main 'info' text along the width of the card at the bottom.  Users interact with Widgets by `press` and `nudge` (swipes starting on the Widget card) gestures (described below).
 * **🔹 Icons:** Icons and their coloring conventions [follow the detailed set of Minimilist Design UI standards for this project](/UI_Design/Minimalist/): cards with white/grey icons typically only provide information and will not trigger any actions when touched, whereas colored icons indicate that touch interactions with the card will trigger a range of actions (as detailed below).  A grey circle behind the icon indicates that the entity is in an off/inactive state, while a colored background highlights when entities are in an on/active/alert state.  The available icon pairs, currated and precompiled to these conventions, are indexed below. 
   
 
@@ -154,7 +154,7 @@ Each page is tiled with Widget cards, one per entity. Information and touch inte
 
 ## Gestures
 
-The [gesture enginge](/Tips_and_Tricks/NEXTION_GESTURES.md) allows a wide range of user interactions in the compact space of the NSPanel display while filling that limited area with Widgets and useful information (rather than buttons and slider bars).  Different types of gestures are used to change pages (`swipes`), make multi-step incremental changes to Widget attributes (`nudges` + hold), and trigger actions specific to the type of entity on the Widget (`press` + hold).  When you touch the screen, a small `gesture indicator` pops up in the top left corner showing a `gesture icon` for the currently detected gesture (one of: swipes: `⬅` `➡` `⬆` `⬇`, nudges: `◀` `▶` `▲` `▼`, or presses: `◐` `◑` `◉` `◎` `✖`), and a `text description` of the `action` that will be triggered if you lift your finger at that moment.  If the gesture is held, then a `timer bar` will appear to the right of the gesture indicator (where the duration of the hold will modify the gesture and triggered action for `presses` and will increase the number of times a step increment/decrement is applied for `nudges`).	
+The [gesture enginge](/Tips_and_Tricks/NEXTION_GESTURES.md) allows a wide range of user interactions in the compact space of the NSPanel display while filling that limited area with Widgets and useful information (rather than buttons and slider bars).  Different types of gestures are used to change pages (`edge swipes`), make multi-step incremental changes to Widget attributes (`nudges` + hold), and trigger actions specific to the type of entity on the Widget (`press` + hold).  When you touch the screen, a small `gesture indicator` pops up in the top left corner showing a `gesture icon` for the currently detected gesture (one of: edge swipes: `⬅` `➡` `⬆` `⬇`, nudges: `◀` `▶` `▲` `▼`, or presses: `◐` `◑` `◉` `◎` `✖`), and a `text description` of the `action` that will be triggered if you lift your finger at that moment.  If the gesture is held, then a `timer bar` will appear to the right of the gesture indicator.  For `presses` the action perfomred will change as the timer bar increases for short presses (`◐` and `◑`), long presses (`◉`), and very long presses (`◎`)  (and will cancel `✖` if you continue to hold the press any longer).  `Nudges` work like slider bars to control attributes that you can gradually adjust, so each step of the timer bar lets you the amount of the change you make (such as to a light's brightness) - the gesture indicator will update to show what attribute is being adjusted for that Widget and by how much it will be changed if you release your finger at that point.	
   
 <details>
   <summary>▶️ show gesture types ...</summary>
@@ -164,22 +164,22 @@ The [gesture enginge](/Tips_and_Tricks/NEXTION_GESTURES.md) allows a wide range 
 ![Gesture UI demo](/widget_ui/DEMO_Gestures_Animation.gif)
 	
 	
-#### Page Swipe Gestures  
-`Swipe` gestures trigger as soon as a touch moves the trigger distance on the display (_before_ your finger is lifted): the trigger distance is about 1/3 the width of a US NSPanel, or 1/4 on the landscape EU NSPanel).  
-* **🔹 `⬅` `➡` Left and Right swipes:** cycle forwards and backwards through 'Main' pages (for as many 'Main' pages as are required for the configured list of Widgets).
-* **🔹 `⬇` Downward swipes:** will bring up the 'Settings' popup page from any 'Main' page (or will dismiss a popup page).  Opening the settings page will also fetch an updated count of the number of entities in your configured `widgets:` list (so the that correct number of pages can be allocated).
-* **🔹 `⬆` Upward swipes:** force an immediate update of the widgets on the current page with current data from HA.
+#### Page/Edge Swipe Gestures  
+ 
+* **🔹 `⬅` `➡` Left and Right `edge swipes`:** cycle forwards and backwards through 'Main' pages (for as many 'Main' pages as are required for the configured list of Widgets).  If you hold the gesture until the timer bar appears, you can skip forward/backward multiple pages at a time (as shown on the gesture indicator).
+* **🔹 `⬇` Downward swipes:** will bring up the 'Settings' popup page from any 'Main' page (or will dismiss a popup page).  Opening the settings page will also fetch an updated count of the number of entities in your configured `widgets:` list (so the that correct number of pages can be allocated). Holding `⬇` until the timer bar appears will put the screen to sleep immediately from any Widget page.
+* **🔹 `⬆` Upward swipes:** force an immediate update of the Widget information on the current page by fetching refreshed data from HA.
 
-#### Widget Nudge (and hold) Gestures  
-`Nudge` gestures are short movements on a Widget card (moving a distance about the width of an icon circle).  Nudges are a compact way of replacing slider bars to make incremental step increases/decreases to an entity attribute (such a lights brightness, color temperature and hue).  Holding a `nudge` will bring up the timer bar to trigger multiple step changes.
-* **🔹 `◀` `▶` Left and Right nudges:** incrementally increase/decrease an entity attribute in step changes. 
+#### Widget Swipe/Nudge (and hold) Gestures  
+`Nudge` gestures are swipes that start on a Widget card (away from the edge of the screen).  Nudges are a compact way of replacing slider bars to make incremental step increases/decreases to an entity attribute (such a lights brightness, color temperature and hue).  Holding a `nudge` will bring up the timer bar to trigger multiple step changes.  The gesture indicator will show what attribute would be changed and progressively updates the amount of change with each step in the timer bar.
+* **🔹 `◀` `▶` Left and Right nudges:** incrementally increase/decrease an entity attribute the step changes show in the gesture indicator. 
 * **🔹 `▲` `▼` Up and Down nudges:** incrementally increase/decrease a second entity attribute in step changes.  
-To make a single `nudge` increment/decrement just use a quick short flick, and release before the `timer bar` appears.  If you hold until the timer first appears, that counts as a second `nudge`, and each subsequent step on the timer will result in an additional increment/decrement being applied.  The main thing to remember with `nudges` is that you increase the number of step adjustments by _holding_ the touch for a longer duration (rather than by _moving_ your finger further - if you move your finger beyond the trigger distance for a `stroke`, then that action will immediately be excecuted instead).  Alternatively, you can make multiple step adjustments by using several short flicks in a row at about 1 second intervals (if you go too fast, some ajdustments may be lost because of lags in the Home Assistant state machine not updating quickly enough).
+To make a single `nudge` increment/decrement, release before the `timer bar` appears.  The main thing to remember with `nudges` is that you increase the size of step adjustments by _holding_ the touch for a longer duration (rather than by _moving_ your finger further).
 
 #### Widget Press (and hold) Gestures  
-* **🔹 `◐` LHS short tap:** A tap on the Widget icon (left half of card) performs the most common action for that type of entity, such a toggling it.  
+* **🔹 `◐` LHS tap:** A tap on the Widget icon (left half of Widget card) performs the most common action for that type of entity, such a toggling it.  
 	(Taps are of short duration, where you lift your finger _before the timer bar appears_.) 
-* **🔹 `◑` RHS short tap:** will open the `popup card` for that entity (if it has one) or perform another common action for that entity. 
+* **🔹 `◑` RHS tap:** will open the `popup card` for that entity (if it has one) or perform another common action for that entity. 
 * **🔹 `◉` Long press:** performs the indicated alternate action for that type of entity. (Actions for LHS and RHS may be different.)  
 	(Hold a press until the timer bar first appears to trigger the long-press action.) 
 * **🔹 `◎` Very long press:** performs the indicated alternate action for that type of entity. (Actions for LHS and RHS may be different.)  
@@ -187,9 +187,9 @@ To make a single `nudge` increment/decrement just use a quick short flick, and r
 	
 #### Cancelling after starting a Gesture  
 * **🔹 `✖` Cancel gesture (and `✘` cancel action):** Cancels, without performing any action, when:  
-	**a)** a press is held for long enough (6 timer bar step increases after first appearing),  
+	**a)** a press is held for long enough (until the `✖` appears),  
 	**b)** any gesture is held long enough until the timer bar completely fills,  
-	**c)** your finger moves only slightly from the starting point (either as an intential 'cancel' or an ambiguous slip of the finger where it is not clear whether a `press` or `nudge` is intended), or   
+	**c)** you move finger your to a point a short distance from your starting position, or   
 	**d)** the entity has no action for that gesture, indicated by `✘` in the text description.
 
 The `gesture indicator` will update dynamically throughout touch events to give the user feedback on what gesture is currently being detected and what action will be performed if you lift your finger at that point.  You can safely explore the UI by trying out the different gestures and seeing how they are modified by the duration `timer`, then cancel by returning your finger close to the start of the stroke to make the `✖` (cancel) gesture icon appear if you want to avoid triggering any action at the end.	
@@ -203,7 +203,7 @@ The `gesture indicator` will update dynamically throughout touch events to give 
 Popup pages provide additional detail and control, particularly where generic Widget cards are too limiting:  
   
 <details>
-  <summary>▶️ show details on Popups for Settings, Lights, and Notifications ...</summary>
+  <summary>▶️ show details on Popups for Settings, Lights, Media Players, HVAC/Climate Controls, and Notifications ...</summary>
 
   
 * **🔹 Settings Popup -** shows system information and allows adjustment to the behaviour of the NSPanel:
@@ -229,7 +229,17 @@ Be conservative with the update settings initially, then tweak them when your co
   * All controls relevant to the current light are immediately available irrespective of the current color mode, or whether the light is off (which allows making some changes faster than the HA UI approach).
   * Long pressing on the color wheel will switch the light to a supported white/color_temperature mode. (This is mainly useful for RGBW bulbs that don't have color_temperature control).
   * Long pressing the icon in the top right corner will force the bulb off.  (This is a useful fix when toggling fails, such as when some lights in a group get out of sync with their registered state in Home Assistant.)  
+
+* **🔹 Media Player Popup -** provides full control of media players:
+  * Controls for Volume, Mute, Power, Play, Pause, Forward, Back, and Select Source.
+  * Shows information on current state, media/track information, and track position and duration (if available for device).
   
+
+* **🔹 Climate Control Popup -** provides full control of HVAC devices:
+  * Temperature controls for devices both with single set points and those which set the targets as a range with lower and upper bounds.  For devices that set a temperature range, the set point will show in blue for the lower bound and red for the upper bound - tap the temperature value to toggle between which set point you want to view and adjust.
+  * Humidity slider (for devices with this feature). 
+  * Icon buttons for controlling the four main HVAC modes.  (Long pressing the buttons gives access to less common modes, such as drying - see the gesture indicator when you long press the buttons).
+  * Selector controls for preset modes, fan modes and swing modes.  Use the arrows to cycle forwards and backwards (in multiple steps) through the available options.  Press and hold the text describing the current mode to directly select an option by its numbered position in the available list of options.
  * **🔹 Notifications -** allows reading and dismissing Home Assistant persistent_notications.
    * 'Notifications' is a special type of Widget card because it uses _all_ the entities in the domain, not just a single notifiction entity.
    * Enter `entity: persistent_notification.all` to create a notifications UI card (then customise it as you wish).
@@ -239,7 +249,7 @@ Be conservative with the update settings initially, then tweak them when your co
 As functionality is developed, more popups will be added to support some of the more complex entity types (such as media_players).  
   
 
- **Screenshots of current 'popup cards' to support widget entity cards.**  (Where available, popups are triggered by touching the top right quadrant of the enity card). 
+ **Screenshots of some of the current 'Popup Pages'.**  Where available, popups are triggered by touching the top right quadrant of the enity card.  The gesture indicator will show when a popup control is available for a Widget Card. 
    
 ![Widget Popups](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/widget_ui/Screenshots_Popups.png "Widget Popups")
   
