@@ -41,36 +41,41 @@ The Widgets cards now support, and automatically configure themselves, to all 36
   
   
 ### Installation steps
-(Nextion UI TFT is only available for US NSPanels only at this stage,  
-_🔸EU version 0.7 is in beta testing and available on request for those who want to join and help with feedback_.)
+(_🔸EU & US versions 0.7 are near the end of beta testing, and will be released when this documentation has been updated_.)
 
 <details>
   <summary>1️⃣ Fill and flash the ESPHome YAML template:</summary>   
  
-  * Download the template `ESPHome_Nextion_Handler_template.yaml` configuration file, paste the template into your original (backed up) configuration, fill in your details from your backup configuration into the `substitutions:` section at the top of the file (and then delete all the old YAML).  (Leaving `ha_prefix: nsp1` will make the automation template easier later on.)
-  * set a simple path an filename for the `tft_url` where you will place the TFT file in step 3️⃣ for uploading to the Nextion display (read the annotation in the template for how to match the URL with the path on your Home Assistant device).
-  * Validate the file before installing it to the NSPanel (from the ESPHome addon page in Home Assistant).
-  * Once the ESPHome installation is complete, check the NSPanel device page in HA to make sure the entities are showing up properly.  If you changed `ha_prefix: nsp1` (above), you will later need to get the enitity_ids for `Trigger`, `HA Act`, `HA Set1 & 2` (from the device page), and `ESPHome: nsp1_send_command` (from `Developer Tools | SERVICES`).  And you will use the `TFT upload button` to flash the Nextion TFT UI file.  
- (_If this is the first time using your NSPanel with ESPHome, there are some lines near the top of the YAML file, marked with `#! *** FIX ***...` that you will need to uncomment **once** to switch the panel from the special 'reparse' mode it uses for the original firmware to allow it work with ESPHome.  Comment those lines out again the next time you reflash your configuration - they only need to run once._)
+  * Download the template `ESPHome_Nextion_Handler_template.yaml` configuration file (or open it in your browser here).  
+  * From the ESPHome page in Home Assistant, paste the template into the top of your original (backed up) configuration for your NSPanel (_keeping the filename of the your original `yaml` configuration unchanged_).  **Check** that copying and pasting the template did not change the indentation of the pasted text.  
+  * Fill in your details from your backup configuration into the `substitutions:` section at the top of the file (and then delete all the old YAML).  This block of the template is shown below.  
+  * Following the default settings, paths and filenames in the template will make the initial install easier - you can come back later once everything is working to customise your configuration.  
+  (Leaving `ha_prefix: nsp1` will make the automation template easier later on.)  
+  (Setting `tft_url:` to `https://MY_URL:8123/local/nsp/nsp1.tft` means that when you download the Nextion TFT file later (3️⃣) you will name it `nsp1.tft` and place it in the `/config/www/nsp/` folder on Home Assistant device.  The `https://MY_URL:8123` part of `tft_url:` should match the URL you enter into your web browser to access the user interface to your Home Assistant.)  
+  * `Validate` the file (from the ESPHome `⋮` menu for your NSPanel) before your `Install` it.
+  * Once the ESPHome installation is complete, check the NSPanel `Device` page in HA to make sure the entities are showing up properly.  If you changed `ha_prefix: nsp1` (above), you will later need to get the enitity_ids for `Trigger`, `HA Act`, `HA Set1 & 2` (from the NSPanel `Device` page), and `ESPHome: nsp1_send_command` (from `Developer Tools | SERVICES`).  And you will use the `TFT upload button` to flash the Nextion TFT UI file.  
+ 
  
 **ESPHome fillable template:** you only have to fill in the `substitutions:` section at the top of the template with details specific to your device.  (You can tweak the template later to your liking _after_ you have everything up an running properly.)
 ```YAML
-# v0.6_2022-06-03
 #----------------------------------------
 #* DEVICE/USER-SPECIFIC DETAILS (customize for each of your own Nextion Devices).
 #! BACKUP YOUR ORIGINAL ESPHome YAML config for your device.
 #! GET THE name, passwords etc from that config & enter them in the 'substitutions:' below:
-  substitutions:
-    ota_password: "from flashing initial config"     #<< replace with the one from you own device
-    fallback_ap_password: "from initial config"
-    esp_net_name: "from-config"                      # MUST MATCH your initial config (do not use '_', use '-' instead). (Sets device local network name & part of fallback AP name).
-    esp_comment: NSPanel 1                           # descriptive name (only used for description in ESPHome Dashboard).
-    ha_prefix: nsp1                                  # prefixed to HA entity_ids to make them unique (do not use '-' or spaces, use '_' instead: OPPOSITE of 'esp_net_name').
-    tft_url: !secret nsp1_tft_url                    # path, including filename, where you put TFT file created in the Nextion Editor: e.g, "https://MY_URL:8123/local/nsp1.tft" if you put the file in the in the "/config/www/" folder of your HA device.
-    wifi_ssid: !secret wifi_ssid                     # your home WiFi credentials.
-    wifi_password: !secret wifi_password
-  #  encr_key: "H0000000000000000000000000000000000000000000"  # Generate your own key here: https://esphome.io/components/api.html#configuration-variables (and uncomment the api: encrytion: key: "...") section below if you want encrypted HA communications.
-  #----------------------------------------          # No editing of the YAML below is required to use Nextion Handler.
+substitutions:
+  ota_password: "from flashing initial config"       #<< replace with the one from you own device
+  fallback_ap_password: "from initial config"
+  esp_net_name: "from-config"                        # MUST MATCH your initial config (do not use '_', use '-' instead). (Sets device local network name & part of fallback AP name).
+  esp_comment: NSPanel 1                             # descriptive name (only used for description in ESPHome Dashboard).
+  ha_prefix: nsp1                                    # prefixed to HA entity_ids to make them unique (do not use '-' or spaces, use '_' instead: OPPOSITE of 'esp_net_name').
+  tft_url: "https://MY_URL:8123/local/nsp/nsp1.tft"  # You will place your TFT file at "/config/www/nsp/nsp1.tft" on your HA device and
+                                                     # the "https://MY_URL:8123/" part of the tft_url matches the URL to your HA web interface.
+  wifi_ssid: !secret wifi_ssid                       # your home WiFi credentials.
+  wifi_password: !secret wifi_password
+#  encr_key: "H0000000000000000000000000000000000000000000"  # Generate your own key here: https://esphome.io/components/api.html#configuration-variables (and uncomment the api: encrytion: key: "...") section below if you want encrypted HA communications.
+#----------------------------------------            # No editing of the YAML below is required to use Nextion Handler.
+...
+...
 ```
 
 </details> 
