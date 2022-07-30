@@ -1,11 +1,11 @@
 # 🟠 Widget UI
-(_Last updated 2022/07/28_)  
+(_Last updated 2022/07/30_)  
 **WAIT for v0.7 (Current Installation files v06_2022-06-03)**  
 🚧 All documentation is currently being updated for version 0.7 as it is about to come out of beta.  I do not recommend installing v0.6 at this stage - either wait for v0.7 release or join the beta (which is likely the v0.7 release version at this point anyway).
 
 ## Current Features and Status
 
-The Widgets cards now support, and automatically configure themselves, to all 36 types of entities in Home Assistant, with extra 'popup' pages to provide more detailed information and control for the all the more complex device types:
+The Widgets cards now support, and automatically configure themselves, to all 36 types of entities in Home Assistant, with extra 'Popup Control' pages to provide more detailed information and control for the all the more complex device types:
 
  <details>
   <summary>▶️ show list of features for v0.7 ...</summary>
@@ -13,13 +13,13 @@ The Widgets cards now support, and automatically configure themselves, to all 36
 
 * 🔹 Widget UI supports all 36 standard Home Assistant entity types (domains) showing you Widget card information that adapts to the type of entity;  
 * 🔹 Entity types that have 'classes' adapt the information they show to the class of entity (e.g., a temperature sensor will show you a thermometer as the default icon and the text information will indicate the class of sensor);  
-* 🔹 All devices that support interactive control in Home Assistant can now be controlled with 'gestures' that adapt to the type of Widget card, giving you quick access to common controls (such as swiping to adjust light brightness);  
-* 🔹 When you swipe or tap on a Widget card a 'gesture indicator' will pop up in the top left of the screen to show what action that gesture will perform for that device.  If you hold a tap or swipe, a timer bar will appear next to the gesture indicator and the gesture action will be modified.  The gesture indicator will give you visual feedback on these changes during the gesture.  For example if you swipe to the left on a light card the gesture indicator will initially show `▶ Brithness% +20`, and this will update with each timer step before you remove your finger (e.g., hold for 3 timer steps to increase brightness by 60%: `▶ Brithness% +60`);  
-* 🔹 For entity types with more complex information or controls, tapping on the right hand half of the card will bring up a detailed pop up page. This currently works for lights, HVAC/climate devices, media players, and notifications;  
+* 🔹 All devices that support interactive control in Home Assistant can now be controlled with 'gestures' that adapt to the type of Widget card, giving you quick access to common controls (such as swiping to adjust a light's brightness);  
+* 🔹 When you swipe or tap on a Widget card a 'gesture indicator' will pop up in the top left of the screen to show what action that gesture will perform for that device.  If you hold a press or swipe, a timer bar will appear next to the gesture indicator and the gesture action will be modified.  The gesture indicator will give you visual feedback on these changes during the gesture.  For example if you swipe to the left on a light card the gesture indicator will initially show `▶ Brightness% +20`, and this will update with each timer step before you remove your finger (e.g., hold for 3 timer steps to increase brightness by 60%: `▶ Brightness% +60`);  
+* 🔹 For entity types with more complex information or controls, tapping on the right half of the card will bring up a detailed `Popup Control` page. This currently works for lights, HVAC/climate devices, media players, and notifications;  
 * 🔹 The settings page can be accessed by swiping down from the bezel/edge on any Widget page.  This is also the boot-up page for Widget UI (while it reads your configured list of `widgets:` from your Home Assistant `automation.yaml`).  You can manage linking/unlinking of your NSPanel physical buttons to their respective relays from here;  
 * 🔹 Two small indicator bars across the bottom of the display indicate the status of the 2 relays.  There are multiple ways for you to control linking/unlinkingg of the relays from the physical buttons without having to reconfigure the device (through the settings menu, Home Assistant, or holding down the physical buttons until you get audio feedback - see the docs below);  
 * 🔹 System information is available from the blank sleep screen.  The information will display when you touch the screen to wake the device up, and will remain on the display until you lift your finger;  
-* 🔹 You can quickly put the screen to sleep by swiping down from the top bezel/edge on any 'popup page'.  Swiping down and holding until the gesture timer appears will put the screen to sleep from any Widget page;  
+* 🔹 You can quickly put the display to sleep by swiping down from the top bezel/edge on any 'popup page'.  Swiping down and holding until the gesture timer appears will put the screen to sleep from any Widget page;  
 * 🔹 System checks will let you know when the Nextion TFT requires a later version of the `nextion_handler.py` script (or `ESPHome template` configuration).
   
   
@@ -267,36 +267,48 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
   
 
 <details>
-  <summary>▶️ show actions triggered by touch interactions with each type of Widget card ...</summary>
+  <summary>▶️ Full ist of gesture controls for each type of Widget card ...</summary>
 
 
-(Under construction: beta v0.7 `tap` and `nudge` gestures follow the icons that appear in the UI `gesture indicator`, as desccribed in the Gestures section above.)
-	
-* 🔸 **Cards for Switch, Input boolean, Script, Siren, Group, Camera, Humidifier, and  Remote** (Toggle, On, Off) Entities.
-  * `◐`, `◑`: Toggle (tap icon)
-  * LHS & RHS `◉`: Turn OFF (long press)
-  * LHS & RHS `◎`: Turn on (very long press)
-  
+(Icons for `press` and `nudge` gestures follow those that appear in the UI `gesture indicator`, as desccribed in the Gestures section above.)
+
+
 * 🔸 **Light Cards:**
   * `◐`: Toggle light on/off  
   * LHS `◉`: Force turning light OFF (fix out of sync lights)  
   * LHS `◎`: Force turning light on  
-  * `◑`: Brings up light Popup card with color wheel and slider controls  
+  * `◑`: Detailed Popup Control (with color wheel and slider controls etc.)  
   * RHS `◉`: Turn on/change the bulb to a supported white mode  
-  * `◀`, `▶`: Adjust light Brightness.  If light is off:  
+  * `◀`, `▶`: Adjust light Brightness (20% steps).
+  	If light is off:  
 	`◀` will turn light on at Minimum (1%) brightness  
 	`▶` will turn light on at Maximum (100%) brightness  
-  * `▲`, `▼`: Adjust the light's Color Temperature (if it is in WW mode) or Hue (if it is in an RGB mode)  
+  * `▲`, `▼`: Adjust the light's Color Temperature (if it is in WW mode) or Hue (if it is in an RGB mode) (in steps of 20)
 
 * 🔸 **Media Player Cards:**
   * `◐`: Toggle media player on/off  
   * LHS `◉`: Toggle Play/Pause  
   * LHS `◎`: Source select (cycle backwards through source list)  
-  * `◑`: (Placeholder to bring up future media player Popup)  
+  * `◑`: Detailed Popup Control (with volume slider, source selector etc.) 
   * RHS `◉`: Toggle mute  
   * RHS `◎`: Source select (cycle forwards through source list)  
   * `◀`, `▶`: Skip Backwards/Forwards through tracks/channels/media list  
-  * `▲`, `▼`: Increase/Decrease volume  
+  * `▲`, `▼`: Adjust volume (5% steps) 
+
+* 🔸 **Climate/HVAC Cards:**
+  * `◐`: Toggle HVAC device on/off  
+  * LHS `◉`: Cool mode  
+  * LHS `◎`: Auto mode  
+  * `◑`: Detailed Popup Control (with temperature and humidity sliders, mode selectors etc.) 
+  * RHS `◉`: Heat mode  
+  * RHS `◎`: Heat-Cool mode  
+  * `◀`, `▶`: Adjust humidity (5% steps)  
+  * `▲`, `▼`: Adjust temperature (1° steps) 
+
+* 🔺 **Persistent Notifications Cards:**
+  * `◐`, `◑`: Detailed Popup Control (cycle through and delete HA notifictions)
+
+---
 
 * 🔺 **Alarm Control Panel Cards:**
   * `◐`: Arm - Night  
@@ -313,123 +325,88 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
   * `◐`, `◑`: Execute Button actions  
 	
 * 🔺 **Cover Cards:**
-  * `◐`: Toggle cover open/closed  
+  * `◐`: Toggle cover open/closed position 
   * LHS `◉`: Stop cover open/close  
-  * LHS `◎`: Open cover  
-  * `◑`: Toggle tilt  
+  * LHS `◎`: Fully Open cover  
+  * `◑`: Toggle tilt (for slats in blinds) 
   * RHS `◉`: Stop tilt  
   * RHS `◎`: Open tilt  
-  * `◀`, `▶`: Reduce/Increase cover Tilt  
-  * `▲`, `▼`: Reduce/Increase cover Position  
-	
+  * `◀`, `▶`: Adjust tilt of slats (10% steps)  
+  * `▲`, `▼`: Adjust ▲open/▼close position (20% steps)  
+
+* 🔺 **Fan Cards:**
+  * `◐`: Toggle fan On/Off 
+  * LHS `◉`: Oscillate On  
+  * LHS `◎`: Oscillate Off  
+  * `◑`: Toggle tilt (for slats in blinds) 
+  * RHS `◉`: Set Direction to Foward  
+  * RHS `◎`: Set Direction to Reverse  
+  * `◀`, `▶`: Adjust fan speed (1 repeat per step)  
+  * `▲`, `▼`: Adjust fan speed (1 repeat per step)  
+
+* 🔺 **Humidifier Cards:**
+  * `◐`, `◑`: Toggle humidfier On/Off 
+  * LHS & RHS `◉`: Turn Off  
+  * LHS & RHS `◎`: Turn On  
+  * `◀`, `▶`: Adjust humiity (5% steps)  
+
 * 🔸 **Input Number Cards:**
   * LHS `◉`: Set to Minimum value  
   * LHS `◎`: Set to 25% (between Min and Max)  
   * RHS `◉`: Set to Maximum value  
   * RHS `◎`: Set to 75% (between Min and Max)  
-  * `◀`, `▶`: Decrease/Increase value in increments of 10% of range  
-  * `▲`, `▼`: Decrease/Increase value in increments of 1% of range  
+  * `◀`, `▶`: Adjust value (Course: 10% steps between Min and Max)  
+  * `▲`, `▼`: Adjust value (Fine: 1% steps)  
 	
 * 🔸 **Input_Select and Select Cards:**
   * LHS `◉`: Set to First option in list  
   * RHS `◉`: Set to Last option in list  
-  * `◀`, `▶`: Cycle backwards/forwards through the options list  
-	
+  * `◀`, `▶`: Cycle backwards/forwards through the options list (1 repeat per step)  
+  * `▲`, `▼`: Directly pick the nth option in the list (where n is set from the timer steps)   
+  	`▲` picks directly counting from the end of the list _backwards_
+
+* 🔺 **Lock Cards:**
+  * `◐`, `◑`: Lock 
+  * LHS & RHS `◉`: Unlock  
+  * LHS & RHS `◎`: Open lock  
+
 * 🔸 **Scene Cards:**
   * `◐`, `◑`: Turn on scene (there is no 'turn off' for scenes)  
-	
+
+* 🔸 **Timer Cards:**
+  * `◐`, `◑`: Start/Continue timer 
+  * LHS & RHS `◉`: Pause timer  
+  * LHS `◎`: Cancel timer (_without_ triggering)  
+  * RHS `◎`: Finish timer (_triggers timer complete_)  
+
 * 🔸 **Update Cards:**
   * `◐`: Install latest Update  
   * `◑`: Skip this update  
   * RHS `◉`: Clear skipping of update  
 	
 * 🔸 **Vacuum Cards:**
-  * `◐`: Toggle stop/start cleaning  
-  * LHS `◉`: Return to base  
+  * `◐`: Toggle Start/Stop cleaning  
+  * LHS `◉`: Return to Dock  
   * `◑`: Locate vacuum  
   * RHS `◉`: Spot clean  
 
+* 🔺 **Water Heater Cards:**
+  * `◐`, `◑`: Toggle Away Mode  
+  * LHS & RHS `◉`: Turn Away Mode On  
+  * LHS & RHS `◎`: Turn Away Mode Off  
+  * `▲`, `▼`: Adjust temperature (1° steps)  
 
-"🔺" indicates entity types where I'm particularly after feedback (because I don't have these devices to test myself).	
+
+* 🔸 **Cards for Switch, Script, Input boolean, Siren, Group, Camera, and  Remote**   
+(_All entity types that only have Toggle, On, and Off_)
+  * `◐`, `◑`: Toggle (tap icon)
+  * LHS & RHS `◉`: Turn OFF (long press)
+  * LHS & RHS `◎`: Turn on (very long press)
+
+"🔺" indicates entity types where I'm particularly after more feedback (because I don't have these devices to test myself).	
 	
 ---	
-	
-**_OLD v0.6 quadrant touch interactions - currently being updated to the new gestures above._**
-Each card has four quadrants for touch interactions, each of which can be given a short tap or a long press.  The [gesture processing subroutine](/main/Tips_and_Tricks) will reject any touches where your finger moves slightly (but not far enough to register a swipe).  This is to reject ambiguous gestures that could inadvertently trigger an action you didn't mean to (or ambiguous slips between hotspot quadrants).  So legitimate touches need to be precise (without finger movement) to trigger, and short taps should be fast so that they are clearly distinguishable from long presses.
-	
-*OLD 'quadrant' taps:* The following abbreviations are used as shorthand below for touch interactions:   
-  &nbsp;&nbsp; `TL`: top left quadrant (tap icon)  
-  &nbsp;&nbsp; `TR`: top right quadrant (title)  
-  &nbsp;&nbsp; `BL`: bottom left quadrant  
-  &nbsp;&nbsp; `BR`: bottom right quadrant  
-  &nbsp;&nbsp; `BL_R`: bottom left-right paired interactions  
-  &nbsp;&nbsp; `LHS`: left-hand-side 2 quadrants  
-  &nbsp;&nbsp; `RHS`: right-hand-side 2 quadrants  
-  &nbsp;&nbsp; `ALL`: all 4 quadrants (entire card, excl. margins between 'hotspots')  
-  &nbsp;&nbsp; `-s`: suffix for a short tap  
-  &nbsp;&nbsp; `-l`: suffix for a long-press  
-	
-  
-* 🔸 **Light Cards:**
-  * `TL-s`: toggle light on/off
-  * `TL-l`: force turning light OFF (fix out of sync lights)
-  * `TR-s`: brings up light popup card
-  * `TR-l`: turn on/change the bulb to a supported white mode
-  * `BL_R-s`: dim/brighten light (if already on), or turn on light at low/high brightness (if off)
-  * `BL_R-l`: increase/decrease the color_temperature or hue of the light (according to its current color_mode)
 
-
-  
-  
-* 🔸 **Media Player Cards:**
-  * `TL-s`: toggle power on/off
-  * `TL-l`: toggle pause/play
-  * `TR-s`: _(placeholder for future media popup card)_
-  * `TR-l`: mute/unmute the volume
-  * `BL_R-s`: change the volume down/up
-  * `BL_R-l`: change to the previous/next track or channel
- 
-
-* 🔸 **Automation Cards:**
-  * `ALL-s`: toggle whether automation is enabled/disabled (if it will run when triggered)
-  * `ALL-l`: trigger the automation (ignoring conditions) - execute its `action:`s immediately  
- (_As feedback, the info text on the card will show how many calls to the automation are currently running._)
-
-* 🔸 **Button Cards:**
-  * `ALL-s&l`: trigger the button actions
-  
-* 🔸 **Input Number Cards:**
-  * `LHS-s`: decrease value by 5% of range
-  * `LHS-l`: decrease value by 20% of range
-  * `RHS-s`: inrease value by 5% of range
-  * `RHS-l`: increase value by 20% of range  
-
-* 🔸 **Scene Cards:**
-  * `ALL-s&l`: turn scene on  
-  (_Scenes cannot be turned off - the icon will highlight as 'on' for an hour after it was turned on._)
-  
-* 🔸 **Script Cards:**
-  * `ALL-s`: toggle run/stop
-  * `ALL-l`: (force) stop the script  
- (_As feedback, the info text on the card will show how many calls to the script are currently running._)
-
-* 🔸 **Switch Cards:**
-  * `ALL-s`: toggle switch on/off
-  * `ALL-l`: force turning switch off
-
-* 🔸 **Update Cards:**
-  * `LHS-s`: install update
-  * `RHS-s`: skip update (card status will show the installed vs current versions)
-  * `RHS-l`: clear skipped update (icon state will become 'active' again)
-  
-* 🔸 **Vacuum Cards:** (only tested with Xiaomi vacuum so far)
-  * `LHS-s`: toggle start(& turn_on)/stop (& turn_off) cleaning (commands for both types of vacuums are sent)
-  * `LHS-l`: return to base
-  * `RHS-s`: locate vaccum
-  * `RHS-l`: spot clean
-  
-  
-_(I have set up interactive cards for all the types of entities I currently use in Home Assistant. I can look at filling the gaps over time, but that will require input and testing from those who want them.)_
   
  --- 
   
