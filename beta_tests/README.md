@@ -1,5 +1,7 @@
 # Beta Testing Files
 
+Use the v0.7 in the main pages now.
+
 The files here are for those testing specific new features or bug fixes.  Not much use to anyone else.  
 🔶 **_If a new EU version re-introduces the touch offset problem, remind me to fix it._**  
 (I have to comment out the fix while testing on the US panel and sometimes forget to uncomment before uploading a TFT here.)
