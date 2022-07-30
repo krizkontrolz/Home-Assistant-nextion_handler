@@ -33,10 +33,8 @@ The Widgets cards now support, and automatically configure themselves, to all 36
   <summary>▶️ show Installation steps and requirements ...</summary>
 
 ### Before you start
-**🔹 Pre-requisites:**  Home Assistant (HA) with ESPHome installed, an NSPanel that has been flashed with ESPHome (see [Masto's](https://www.youtube.com/watch?v=Kdf6W_Ied4o) or [EverythingSmartHome's](https://www.youtube.com/watch?v=sCrdiCzxMOQ) video instructions), and some basic familiarity with configuring HA.
-
-**🔹 BACK UP your existing Nextion files:** in particular your device's ESPHome YAML configuration.  You will need to enter the details from that into the new template later (and will need your original ota password & other details to be able to upload any new configuration).
-
+**🔹 Pre-requisites:**  Home Assistant (HA) with ESPHome installed, an NSPanel that has been flashed with ESPHome (see [Masto's](https://www.youtube.com/watch?v=Kdf6W_Ied4o) or [EverythingSmartHome's](https://www.youtube.com/watch?v=sCrdiCzxMOQ) video instructions), and some basic familiarity with configuring HA.  
+**🔹 BACK UP your existing Nextion files:** in particular your device's ESPHome YAML configuration.  You will need to enter the details from that into the new template later (and will need your original ota password & other details to be able to upload any new configuration).  
 **🔹 File locations:** All installation files are in the same [folder as this README document](/widget_ui).
   
   
@@ -46,14 +44,14 @@ The Widgets cards now support, and automatically configure themselves, to all 36
 <details>
   <summary>1️⃣ Fill and flash the ESPHome YAML template:</summary>   
  
-  * Download the template `ESPHome_Nextion_Handler_template.yaml` configuration file (or open it in your browser here).  
-  * From the ESPHome Dashboard page in Home Assistant, paste the template into the top of your original (backed up) configuration for your NSPanel (_keeping the filename of the your original `yaml` configuration unchanged_).  **Check** that copying and pasting the template did not change the indentation of the pasted text.  
+  * Download and open the template `ESPHome_Nextion_Handler_template.yaml` configuration file (or open it in your browser here).  
+  * From the ESPHome Dashboard page in Home Assistant, paste the template into the top of your original (backed up) configuration for your NSPanel (_keeping the filename and location of the your original `yaml` configuration unchanged_).  **Check** that copying and pasting the template did not change the indentation of the pasted text.  
   * Fill in your details from your backup configuration into the `substitutions:` section at the top of the file (and then delete all the old YAML).  This block of the template is shown below.  
   * Following the default settings, paths and filenames in the template will make the initial install easier - you can come back later once everything is working to customise your configuration.  
   (Leaving `ha_prefix: nsp1` will mean that you can use the `automation.yaml` template without editing later on.)  
-  (Setting `tft_url:` to `https://MY_URL:8123/local/nsp/nsp1.tft` means that when you download the Nextion TFT file later (3️⃣) you will name it `nsp1.tft` and place it in the `/config/www/nsp/` folder on Home Assistant device.  Change the `https://MY_URL:8123` part of `tft_url:` to match the URL you enter into your web browser to access the user interface to your Home Assistant.)  
+  (Setting `tft_url:` to `https://MY_URL:8123/local/nsp/nsp1.tft` means that when you download the Nextion TFT file later (3️⃣) you will name it `nsp1.tft` and place it in the `<config>/www/nsp/` folder on Home Assistant device.  Get the `https://MY_URL:8123` part of `tft_url:` from the URL in your web browser when you have your Home Assistant interface open.)  
   * `Validate` the file (from the ESPHome Dashboard `⋮` menu for your NSPanel) before your `Install` it.
-  * Once the ESPHome installation is complete, check the NSPanel `Device` page in HA to make sure the entities are showing up properly.  If you changed `ha_prefix: nsp1` (above), you will later need to get the enitity_ids for `Trigger`, `HA Act`, `HA Set1 & 2` (from the NSPanel `Device` page), and `ESPHome: nsp1_send_command` (from `Developer Tools | SERVICES`).  And you will use the `TFT upload button` to flash the Nextion TFT UI file.  
+  * Once the ESPHome installation is complete, check the NSPanel `Device` page in HA to make sure the entities are showing up properly.  If you changed `ha_prefix: nsp1` (above), you will later need to get the enitity_ids for `Trigger`, `HA Act`, `HA Set1 & 2` (from the NSPanel `Device` page), and `ESPHome: nsp1_send_command` (from `Developer Tools | SERVICES`).  You will later use the `TFT upload button` on the `Device` page to flash the Nextion TFT UI file.  
  
  
 **ESPHome fillable template:** you only have to fill in the `substitutions:` section at the top of the template with details specific to your device.  (You can tweak the template later to your liking _after_ you have everything up an running properly.)
@@ -85,8 +83,8 @@ substitutions:
  
   * Download and copy the `nextion_handler.py` script into the `<config>/python_scripts/` folder of your Home Assistant device.
   * If you have never used Python scripts in Home Assistant before, you will have to add a line `python_script:` to your `configuration.yaml`.  ([See HA page on Python scripts](https://www.home-assistant.io/integrations/python_script/).)  
-  * Copy the automation template below to your own HA `automation.yaml`.  
-  * In the `widgets:` section of the automation, add one of your own entities to the list as `  - entity: light.kitchen` (for example) to get started.  Start with just one to make sure the installation worked.  You can edit the `widget:` list whenever you want, then `reload automations` for HA to recognise the changes.  (If you get an entity configuration wrong, this will usually be indicated by a red and white ❗ _error symbol_ for that Widget.) 
+  * Create an automation in Home Assistant to link this script to your NSPanel using the YAML template below (usually in your `automation.yaml` file).  
+  * In the `widgets:` section of the automation, add one of your own entities to the list as `  - entity: light.kitchen` (for example).  Start with just one as a quick test to make sure the installation worked.  You can edit the `widget:` list whenever you want, then `reload automations` (type `cr` in HA as the command palette shortcut) for HA to recognise the changes.  (If you get an entity configuration wrong, this will usually be indicated by a red and white ❗ _error icon_ for that Widget on the NSPanel.)  
 
 **Automation template:** If you left `ha_prefix: nsp1` unchanged in step 1️⃣ then you only need to change the `- entity: light.kitchen` line near the bottom to match a light of your own.  (_The downloadable `HA_automation.yaml` file for this template has more annotations and suggested examples of what you might add to your list later on._) You can have up to 6 pages of Widgets on your NSPanels which allows **36 entities in your list for the EU version** and **48 entities for the US version**.
 ```YAML
@@ -108,13 +106,15 @@ substitutions:
           - sensor.nsp1_ha_set1
           - sensor.nsp1_ha_set2
         widgets: #______________________________________________________________
-          # Add a list of your entities here: only the "- entity: " config variable is mandatory,
-          # but usually customise the "name:" and "icon:" too.
-          #*** Edit for your own devices
+          # Add a list of your entities: only the "- entity: " config variable is mandatory,
+          # but usually customise the "name:" too.
+          # (Later customise the "icon:" if you want to override the default).
+          # *** Edit for your own devices ***
           - entity: light.kitchen                # replace with your own light to start
             name: Kitchen
             icon: 50                             # see icon index
-	  # - entity: ...                        # add up to 36(EU) or 48(US) entities in a LIST
+          # - entity: ...                        # add up to 36(EU) or 48(US) entities in a LIST
+
 ``` 
  
 </details> 
@@ -122,13 +122,14 @@ substitutions:
 <details>
   <summary>3️⃣ Flash Nextion Widget UI TFT file:</summary> 
 
-  * Download the `Widget UI TFT file` for your NSPanel (EU or US) then rename it `nsp1.tft` and place it in the `/config/www/nsp/` folder on your Home Assistant device (or the location and filename you matching the `tft_url` of your ESPHome configuration in step 1️⃣).
-  * Then press the `TFT upload button` on the NSPanel's device page in Home Assistant (that you located in step 1️⃣).  
+  * Download the `Widget UI TFT file` for your NSPanel (EU or US) then rename it `nsp1.tft`.
+  * In the main `<config>` folder on your Home Assistant device create the `/www/nsp/` folders and place the `nsp1.tft` file in that folder (so the full path to the TFT file will be `<config>/www/nsp/nsp1.tft`, which is a special location where HA allows local access without login credentials using the default `tft_url` from your ESPHome configuration in step 1️⃣).
+  * Then press the `TFT upload button` on the NSPanel's `Device` page in Home Assistant (that you located in step 1️⃣).  
   * Wait for the NSPanel to flash and reboot with the new UI.  (You may have to reboot both HA and the NSPanel after the first installation.)  
   
-👉  Make sure that the path where you place the `TFT file` matches the `tft_url:` you set in your ESPHome configuration in step 1️⃣.  When you enter the `tft_url` into your browser, it should download the TFT file - if not you have got the path or url wrong.  There are more notes on configuring the tft_url to match a local file path on your HA device [here, on the HA formums](https://community.home-assistant.io/t/nextion-handler-for-home-assistant-for-nspanels/394858/5?u=krizkontrolz).)
+👉  Make sure that the path where you place the `TFT file` matches the `tft_url:` you set in your ESPHome configuration in step 1️⃣.  When you enter the `tft_url` into your browser, it should download the TFT file - if not you have probably put the file in the wrong path or got the TFT URL wrong.  There are more notes on configuring the `tft_url` to match a locally-accessible file path on your HA device [here, on the HA formums](https://community.home-assistant.io/t/nextion-handler-for-home-assistant-for-nspanels/394858/5?u=krizkontrolz).)
   
-👉 Whenever you change your widgets list (including the initial installation) it will take a little bit longer for each page to refresh the first time after that as it reconfigures itself.  If it gets stuck, open the settings menu (swipe down and close it by swiping down again), which will help to read the new list. 
+👉 Whenever you change your `widgets:` list (including the initial installation) it will take a little bit longer for each page to refresh the first time after that as it reconfigures itself.  If it gets stuck, open the settings menu (swipe down and close it by swiping down again), which will help to read the new list. 
 
 </details> 
  
@@ -204,7 +205,7 @@ Popup pages provide additional detail and control, particularly where generic Wi
   
 <details>
   <summary>▶️ show details on Popups for Settings, Lights, Media Players, HVAC/Climate Controls, and Notifications ...</summary>
-
+  
   
 * **🔹 Settings Popup -** shows system information and allows adjustment to the behaviour of the NSPanel:
   * Brightness max: the standard brightness that the display will revert to on any interaction.
