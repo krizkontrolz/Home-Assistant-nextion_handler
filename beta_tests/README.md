@@ -24,6 +24,17 @@ The files here are for those testing specific new features or bug fixes.  Not mu
  
 --- 
 
+# 2022-07-30 v0.7 release version
+TFTs:
+* Final tweaks to Widget actions, especially water heaters.
+
+Python script:
+* Final tweaks to Widget actions, especially water heaters.
+* gact() wrapper for wdact() to allow directly calling gesture actions from custom HMI code.
+* sub Nx (x) : now allows optional argument x=0 to trigger click release event for Nextion component Nx.
+
+
+
 ## 2022-07-27
 Python script and TFTs:
 * Small fix for toggling HVAC (climate.*) devices (created a custom toggle action because they cannot be used with the standard toggle).
