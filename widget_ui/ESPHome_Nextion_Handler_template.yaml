@@ -1,412 +1,529 @@
-# v0.6_2022-06-03
 #----------------------------------------
 #* DEVICE/USER-SPECIFIC DETAILS (customize for each of your own Nextion Devices).
 #! BACKUP YOUR ORIGINAL ESPHome YAML config for your device.
 #! GET THE name, passwords etc from that config & enter them in the 'substitutions:' below:
-  substitutions:
-    ota_password: "from flashing initial config"     #<< replace with the one from you own device
-    fallback_ap_password: "from initial config"
-    esp_net_name: "from-config"                      # MUST MATCH your initial config (do not use '_', use '-' instead). (Sets device local network name & part of fallback AP name).
-    esp_comment: NSPanel 1                           # descriptive name (only used for description in ESPHome Dashboard).
-    ha_prefix: nsp1                                  # prefixed to HA entity_ids to make them unique (do not use '-' or spaces, use '_' instead: OPPOSITE of 'esp_net_name').
-    tft_url: !secret nsp1_tft_url                    # path, including filename, where you put TFT file created in the Nextion Editor: e.g, "https://MY_URL:8123/local/nsp1.tft" if you put the file in the in the "/config/www/" folder of your HA device.
-    wifi_ssid: !secret wifi_ssid                     # your home WiFi credentials.
-    wifi_password: !secret wifi_password
-  #  encr_key: "H0000000000000000000000000000000000000000000"  # Generate your own key here: https://esphome.io/components/api.html#configuration-variables (and uncomment the api: encrytion: key: "...") section below if you want encrypted HA communications.
-  #----------------------------------------          # No editing of the YAML below is required to use Nextion Handler.
-  
-  
-  
-  #*******************************************************************************
-  # Nextion Handler template (fill in substitutions above for each device)
-  # ESPHome Sonoff NSPanel configuration to act as broker between Nextion and Home Assistant.
-  # https://github.com/krizkontrolz/Home-Assistant-nextion_handler
-  #*******************************************************************************
-  
-  #***NH_REQUIRES*** <<< these mark additions required if modifying an existing ESPHome YAML config.
-  
-  #----------------------------------------
-  #__ESPHome will create and send data FROM (& TO) the NEXTION using the follwing HOME ASSISTANT entities:
-  #  sensor.${ha_prefix}_trigger:                written by Nextion (string formated as 1dp float with serial termination chars still appended ('ÿÿÿ' = hex: 0xFF 0xFF 0xFF)).
-  #  sensor.${ha_prefix}_ha_act:                 nextion_handler ACTION command_strings written by Nextion to ESP32 (strings, with terminatation chars still appended).
-  #  sensor.${ha_prefix}_ha_set1:                nextion_handler SET command_strings written by Nextion.
-  #  sensor.${ha_prefix}_ha_set2:                  "
-  #  sensor.${ha_prefix}_ha_set3:                  " (uncomment cofig. below to add ha_set3 .. 5 as needed).
-  #  sensor.${ha_prefix}_ha_set4:                  "
-  #  sensor.${ha_prefix}_ha_set5:                  "
-  #  esphome.${ha_prefix}_send_command :         Nextion command service (that HA uses to send Nextion Instructions back to the Nextion device).
-  #
-  #__ESPHome will make the following state/control/config entities available in HOME ASSISTANT:
-  #  switch.${ha_prefix}_relay_1:                NSPanel relay (switch) state & control.
-  #  switch.${ha_prefix}_relay_2:                  "
-  #  binary_sensor.${ha_prefix}_left_button:     NSPanel physical button state (binary_sensor).
-  #  binary_sensor.${ha_prefix}_right_button:      "
-  #  sensor.${ha_prefix}_temperature             NSPanel resistance sensor reading (corrected °C).
-  #  sensor.${ha_prefix}_wifi                    NSPanel ESP32 WiFi signal strength (dBm).
-  #  button.${ha_prefix}_tft_upload              HA Button service for uploading Nextion TFT files (from $tft_url set in substitutions).
-  #  button.${ha_prefix}_restart                 HA Button service for restarting NSPanel.
-  #  esphome.${ha_prefix}_play_rtttl             HA service for playing RTTTL sounds (using 'song_str' parameter).
-  #  switch.${ha_prefix}_couple_relay_1          Switch to toggle local coupling of button & relay on NSPanel.
-  #  switch.${ha_prefix}_couple_relay_2            "
-  #
-  #__ESPHome will write to the following NEXTION global variables (32-bit signed ints):
-  #  esp_wifi:                                   integer value of current ESP32 WiFi signal strength. (same data as HA sensor.*_wifi.)
-  #  esp_temp:                                   1 dp fixed point [integer (x * 10)] value of current ESP32 temperature. (same data as HA sensor.*_temperature)
-  #  CoupleRelay1:                               Controls the platform-Nextion software switch for relay-button coupling (2 way data sync).
-  #  CoupleRelay2:                                 "
-  #
-  #----------------------------------------
-  # Customised NSPanel config intially based on:
-  #   ESPHome docs:  https://www.esphome.io/components/display/nextion.html
-  #   Masto: https://github.com/masto/NSPanel-Demo-Files/blob/main/Dimming%20Update/Screensaver%20Page/nspanel-demo.yaml
-  # ESPHome Class Reference for Nextion (for lamdas functions):
-  #   https://esphome.io/api/classesphome_1_1nextion_1_1_nextion.html
-  #----------------------------------------
-  # Nextion info:
-  # 'COMPONENTS' are UI elements and have multiple attributes (aside from just .val or .txt).
-  # 'VARIABLES' are just a single .val or .txt value.
-  #    Global Progam.s variables are 32-bit int only (without a .val or .txt extension) (e.g. 'TRIGGER', 'esp_wifi').
-  #    Page '(X) Variables' can be either .val or .txt, and either local or global (e.g. 'CFG.HAact.txt')
-  #----------------------------------------
-  
-  
-  #----------------------------------------
-  # Configure Base ESPHome settings.
-  #----------------------------------------
-  
-  esphome:
-    name: $esp_net_name                            #<< This MUST MATCH ORIGINAL CONFIG - copy original value into substitutions above.
-    comment: $esp_comment
-    # ESP Start-up Actions (set initial states)
-    on_boot:
-      priority: -10
-      then:
-        - wait_until:
-            api.connected
-        - delay: 10s
-        - switch.turn_on: couple_relay_1   # Start with Left button linked to relay.
-        - switch.turn_off: couple_relay_2  # Start with Right button UNlinked.
-  
-  esp32:
-    board: esp32dev
-    framework:
-      type: arduino
-  
-  # Enable logging
-  logger:
-  
-  ota:
-    password: $ota_password                        #<< This MUST MATCH ORIGINAL CONFIG - copy original value into substitutions above.
-  
-  wifi:
-    ssid: $wifi_ssid
-    password: $wifi_password
-  
-    # Enable fallback hotspot (captive portal) in case WiFi connection fails
-    ap:
-      ssid: $esp_net_name Fallback Hotspot
-      password: $fallback_ap_password              #<< This MUST MATCH ORIGINAL CONFIG - copy original value into substitutions above.
-  
-  captive_portal:
-  
-  #! *** FIX *** for Sonoff NSPanel display to deactivate Protocol Reparse Mode so standard communication protocol will work.
-  # ONLY NEEDED ONCE in first config flashed to NSPanel - comment out after that:
-  # (deactivation is permanent once serial command 'DRAKJHSUYDGBNCJHGJKSHBDNÿÿÿ' has been sent: https://nextion.tech/instruction-set/#:~:text=Protocol%20Reparse%20mode).
-  # ---
-  # external_components:
-  #   - source: github://pr#2956
-  #     components: [nextion]
-  #     refresh: 1h
-  
-  
-  #----------------------------------------
-  # Home Assistent integration & services.
-  #----------------------------------------
-  
-  api:
-    #! *** Uncomment, and set enc_key in substitutions, to enable encrypted communications with HA *** (HA will aks for this key to connect).
-    # encryption:
-    #   key: $encr_key
-    # Configure some useful NSP services to be able to control from HA.
-    services:
-      #***NH_REQUIRES***
-      # service calls to nextion_handler in HA need to specify the entity_id of the ESPHome 'send_command' in the 'nx_cmd_service:'.
-      # the 'send_command' allows nextion_handler to complete the communications loop by sending Nextion Instructions back to the Nextion device.
-      - service: send_command
-        variables:
-          cmd: string
-        then:
-          - lambda: 'id(nx1).send_command_printf("%s", cmd.c_str());'  # RETURNs whether command was successful #! id(nx1).send_command(cmd) is a protected function => CANNOT CALL directly
-      #* Service to upload cutom TFT files (created in the Nextion Editor)
-      - service: upload_tft
-        then:
-          - lambda: 'id(nx1).upload_tft();'
-      # Service to play a song: for RTTTL strings see https://picaxe.com/rtttl-ringtones-for-tune-command/
-      - service: play_rtttl
-        variables:
-          song_str: string
-        then:
-          - rtttl.play:
-              rtttl: !lambda 'return song_str;'
-  
-  # HA Software Buttons to easily execute above services.
-  button:
-    #* Allow uploading TFT files (created in Nextion Editor) from HA.
-    - platform: template
-      name: $ha_prefix TFT Upload
-      device_class: update
-      entity_category: config
-      on_press:
-        - lambda: 'id(nx1).upload_tft();'
-    # Allow restarting NSP from HA.
-    - platform: restart
-      name: $ha_prefix Restart
-      device_class: restart
-  
-  
-  #----------------------------------------
-  # Configure NSP sensors/inputs.
-  #----------------------------------------
-  
-  #***NH_REQUIRES***
-  # Text sensors for transferring 'HA command strings' (comma separated sequences of HaCmds).
-  text_sensor:
-    # All strings are to sent by the Nextion to the ESP32 using 'Nextion Custom Text Sensor Protocol': https://esphome.io/components/text_sensor/nextion.html#nextion-custom-text-sensor-protocol
-    # NB: cannot use "_" or "-" etc for ESPHome variable names ('name:' setting below).
-  
-    # nextion_handler command_string with ACTION HaCmds set by a Nextion UI event, and sent by the SEND_ACTIONS subroutine.
-    - platform: nextion
-      component_name: HaAct
-      name: $ha_prefix HA Act
-      icon: mdi:gesture-tap-button
-  
-    # List of nextion_handler command_string with SET HaCmds specifiying how each pages data should be UPDATED from HA.
-    #   The strings are manually configured by the user on each page.
-    #   The strings are sent by the PostInitialize Event on each page.
-    #   (A list of HA_Set strings is used to allow sending messages larger than 255 chars (an HA limit on string sensors).)
-    - platform: nextion
-      component_name: HaSet1     # name used in Nextion write instructions (remove underscores - can be different from the Nextion variable itself).
-      name: $ha_prefix HA Set1  # used for entity_id in HA (spaces will be converted to '_', can't use '_' directly).
-      icon: mdi:update
-        
-    - platform: nextion
-      component_name: HaSet2
-      name: $ha_prefix HA Set2
-      icon: mdi:update
-  
-  
-  
-  sensor:
+substitutions:
+  ota_password: "from flashing initial config"       #<< replace with the one from you own device
+  fallback_ap_password: "from initial config"
+  esp_net_name: "from-config"                        # MUST MATCH your initial config (do not use '_', use '-' instead). (Sets device local network name & part of fallback AP name).
+  esp_comment: NSPanel 1                             # descriptive name (only used for description in ESPHome Dashboard).
+  ha_prefix: nsp1                                    # prefixed to HA entity_ids to make them unique (do not use '-' or spaces, use '_' instead: OPPOSITE of 'esp_net_name').
+  tft_url: "https://MY_URL:8123/local/nsp/nsp1.tft"  # You will place your TFT file at "/config/www/nsp/nsp1.tft" on your HA device and
+                                                     # the "https://MY_URL:8123/" part of the tft_url matches the URL to your HA broswer interface.
+  wifi_ssid: !secret wifi_ssid                       # your home WiFi credentials.
+  wifi_password: !secret wifi_password
+#  encr_key: "H0000000000000000000000000000000000000000000"  # Generate your own key here: https://esphome.io/components/api.html#configuration-variables (and uncomment the api: encrytion: key: "...") section below if you want encrypted HA communications.
+#----------------------------------------            # No editing of the YAML below is required to use Nextion Handler.
+                                                     # ****COPY AND PASTE everything beneath this line**** into your EXISTING ESPHome Nextion Handler YAML config file to update it (***UNCOMMENT encryption below if configured above).
+  config_version: "20220730"                         # << Copy over this version number as is (don't edit it) - it lets Home Assistant and the NSPanel know the version (YYYYMMDD) of this config file.
+
+
+#*******************************************************************************
+# Nextion Handler template (fill in substitutions above for each device)
+# ESPHome Sonoff NSPanel configuration to act as broker between Nextion and Home Assistant.
+# https://github.com/krizkontrolz/Home-Assistant-nextion_handler
+#*******************************************************************************
+
+#***NH_REQUIRES*** <<< these mark additions required if modifying an existing ESPHome YAML config.
+
+#----------------------------------------
+#__ESPHome will create and send data FROM (& TO) the NEXTION using the follwing HOME ASSISTANT entities:
+#  sensor.${ha_prefix}_trigger:                written by Nextion (string formated as 1dp float with serial termination chars still appended ('ÿÿÿ' = hex: 0xFF 0xFF 0xFF)).
+#  sensor.${ha_prefix}_ha_act:                 nextion_handler ACTION command_strings written by Nextion to ESP32 (strings, with terminatation chars still appended).
+#  sensor.${ha_prefix}_ha_set1:                nextion_handler SET command_strings written by Nextion.
+#  sensor.${ha_prefix}_ha_set2:                  "
+#  sensor.${ha_prefix}_ha_set3:                  " (uncomment cofig. below to add ha_set3 .. 5 as needed).
+#  sensor.${ha_prefix}_ha_set4:                  "
+#  sensor.${ha_prefix}_ha_set5:                  "
+#  sensor.${ha_prefix}_config_version:         Version number (YYYYMMDD) of this ESPHome YAML config.
+#  sensor.${ha_prefix}_TFT_version:            Version number (YYYYMMDD) of TFT installed on Nextion.
+#  sensor.${ha_prefix}_rtttl_str:              Last RTTTL (ring tone music) string (or shorthand code) sent from Nextion to play on ESP32. 
+#  esphome.${ha_prefix}_send_command :         Nextion command service (that HA uses to send Nextion Instructions back to the Nextion device).
+#
+#__ESPHome will make the following state/control/config entities available in HOME ASSISTANT:
+#  switch.${ha_prefix}_relay_1:                NSPanel relay (switch) state & control.
+#  switch.${ha_prefix}_relay_2:                  "
+#  binary_sensor.${ha_prefix}_left_button:     NSPanel physical button state (binary_sensor).
+#  binary_sensor.${ha_prefix}_right_button:      "
+#  sensor.${ha_prefix}_temperature             NSPanel resistance sensor reading (corrected °C).
+#  sensor.${ha_prefix}_wifi                    NSPanel ESP32 WiFi signal strength (dBm).
+#  button.${ha_prefix}_tft_upload              HA Button service for uploading Nextion TFT files (from $tft_url set in substitutions).
+#  button.${ha_prefix}_restart                 HA Button service for restarting NSPanel.
+#  esphome.${ha_prefix}_play_rtttl             HA service for playing RTTTL sounds (using 'song_str' parameter).
+#  switch.${ha_prefix}_couple_relay_1          Switch to toggle local coupling of button & relay on NSPanel.
+#  switch.${ha_prefix}_couple_relay_2            "
+#
+#__ESPHome will write to the following NEXTION global variables (32-bit signed ints):
+#  esp_ver:                                    Version number (YYYYMMDD) of this ESPHome YAML config.
+#  esp_wifi:                                   Integer value of current ESP32 WiFi signal strength. (same data as HA sensor.*_wifi.)
+#  esp_temp:                                   1 dp fixed point [integer (x * 10)] value of current ESP32 temperature. (same data as HA sensor.*_temperature)
+#  CoupleRelay1:                               Controls (and reflects state of) the platform-Nextion software switch for relay-button coupling (2 way data sync).
+#  CoupleRelay2:                                 "
+#  Relay1:                                     Controls (and reflects state of) the physical relay #1 and associated variables in Nextion, ESPHome, & HA.
+#  Relay2:                                       "
+#----------------------------------------
+# Customised NSPanel config intially based on:
+#   ESPHome docs:  https://www.esphome.io/components/display/nextion.html
+#   Masto: https://github.com/masto/NSPanel-Demo-Files/blob/main/Dimming%20Update/Screensaver%20Page/nspanel-demo.yaml
+# ESPHome Class Reference for Nextion (for lamdas functions):
+#   https://esphome.io/api/classesphome_1_1nextion_1_1_nextion.html
+#----------------------------------------
+# Nextion info:
+# 'COMPONENTS' are UI elements and have multiple attributes (aside from just .val or .txt).
+# 'VARIABLES' are just a single .val or .txt value.
+#    Global Progam.s variables are 32-bit int only (without a .val or .txt extension) (e.g. 'TRIGGER', 'esp_wifi').
+#    Page '(X) Variables' can be either .val or .txt, and either local or global (e.g. 'CFG.HA_ACT.txt').
+#----------------------------------------
+
+globals:
+  - id: yaml_config_ver
+    type: long int # YYYYMMDD is too large a number for int
+    restore_value: no
+    initial_value: $config_version
+
+#----------------------------------------
+# Configure Base ESPHome settings.
+#----------------------------------------
+
+esphome:
+  name: $esp_net_name                            #<< This MUST MATCH ORIGINAL CONFIG - copy original value into substitutions above.
+  comment: $esp_comment
+  # ESP Start-up Actions (*** CUSTOMISE to set desired states after booting).
+  on_boot:
+    priority: -10
+    then:
+      - wait_until:
+          api.connected
+      - delay: 10s
+      # Setting switch states will also set (and sync) states with Nextion & HA too.
+      - switch.turn_on: couple_relay_1   # Start with Left button linked to relay.
+      - switch.turn_off: couple_relay_2  # Start with Right button UNlinked.
+      - switch.turn_off: relay_1  # Start with Relays OFF.
+      - switch.turn_off: relay_2  # Start with Relays OFF.
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+ota:
+  password: $ota_password                        #<< This MUST MATCH ORIGINAL CONFIG - copy original value into substitutions above.
+
+wifi:
+  ssid: $wifi_ssid
+  password: $wifi_password
+
+  # Enable fallback hotspot (captive portal) in case WiFi connection fails
+  ap:
+    ssid: $esp_net_name Fallback Hotspot
+    password: $fallback_ap_password              #<< This MUST MATCH ORIGINAL CONFIG - copy original value into substitutions above.
+
+captive_portal:
+
+#! *** FIX *** for Sonoff NSPanel display to deactivate Protocol Reparse Mode so standard communication protocol will work.
+# ONLY NEEDED ONCE in first config flashed to NSPanel - comment out after that:
+# (deactivation is permanent once serial command 'DRAKJHSUYDGBNCJHGJKSHBDNÿÿÿ' has been sent: https://nextion.tech/instruction-set/#:~:text=Protocol%20Reparse%20mode).
+# ---
+external_components:
+  - source: github://pr#2956
+    components: [nextion]
+    refresh: 1h
+
+
+#----------------------------------------
+# Home Assistent integration & services.
+#----------------------------------------
+
+api:
+  #! *** Uncomment, and set enc_key in substitutions, to enable encrypted communications with HA *** (HA will aks for this key to connect).
+  # encryption:
+  #   key: $encr_key
+  # Configure some useful NSP services to be able to control from HA.
+  services:
     #***NH_REQUIRES***
-    #   nextion_handler variables - written to ESP32 by Nx using 'Nextion Custom Sensor Protocol' (91): https://esphome.io/components/sensor/nextion.html#nextion-custom-sensor-protocol
-    # Integer sensor that enforces state changes as a trigger for HA to use in nextion_handler automation (UI Events & Passive updates).
-    #   (Note that the sensor value in HA will be a STRING with dp set by 'accuracy_decimals' below,
-    #   and with '\x00' appended to the end - these require preprocessing in HA before they will work as expected.)
-    - platform: nextion
-      #component_name: TRIGGER  # not a page 'component', it is a Nextion Program.s Global Variable
-      variable_name: TRIGGER
-      #id: trigger  # Make available as ESPHome ID (if needed in code)
-      name: $ha_prefix Trigger
-      icon: mdi:clock-start
-      accuracy_decimals: 0  #<< makes converting back to integer easier in HA
-  
-    #* NSP SENSORS
-    # NSP (ESP) WiFi signal strength dBm (sent to both HA and Nextion).
-    - platform: wifi_signal
-      name: $ha_prefix WiFi
-      update_interval: 60s
-      # IF Nextion is not sleeping send the Nextion command to directly assign the global varialbe 'esp_wifi' the integer value of x.
-      # NB: there is no 'it.set_variable_value()' in the Nextion API (only components can be 'set') - have to send manual Nextion Instruction instead
-      on_value:
-        - lambda: 'id(nx1).send_command_printf("esp_wifi=%i", int(x));' 
-  
-  
-    # NSP temperature sensor °C (conversion from analogue resistance sensor) (sent to both HA and Nextion (x10)).
-    - platform: ntc
-      id: temperature
-      name: $ha_prefix Temperature  # << only make the final temperature value available in HA (not the preceding steps below)
-      sensor: resistance_sensor
-      calibration:
-        b_constant: 3950
-        reference_temperature: 25°C
-        reference_resistance: 10kOhm
-      # IF Nextion is not sleeping, send the Nextion command to directly assign the global varialbe 'esp_temp' the integer value of x * 10 (Nextion 1 fixed point float)
-      on_value:
-        - lambda: 'id(nx1).send_command_printf("esp_temp=%i", int(x*10));' 
-    - platform: resistance
-      id: resistance_sensor
-      sensor: ntc_source
-      configuration: DOWNSTREAM
-      resistor: 11.2kOhm
-    - platform: adc
-      id: ntc_source
-      pin: 38
-      update_interval: 60s  #10s
-      attenuation: 11db
-  
-  binary_sensor:
-    # NSP Physical Buttons - coupling to relays controlled through platform-Nextion (software) switches (below),
-    #   and multi-press (linking/unlinking button with relay, override toggling (unlinked) relay, or normal (linked) toggling relay).
-    # Left Button
-    - platform: gpio
-      name: $ha_prefix Left Button  # rename to match NSPanel orientation.
-      pin:
-        number: 14
-        inverted: true
-      on_multi_click:
-      - timing:                               #1: Short-press toggle relay IF coupling is turned on (in Nextion switch couple_relay_1, configured below).
-        - ON for 0.1s to 2s
-        - OFF for at least 0.5s
-        then:
-          if:
+    # service calls to nextion_handler in HA need to specify the entity_id of the ESPHome 'send_command' in the 'nx_cmd_service:'.
+    # the 'send_command' allows nextion_handler to complete the communications loop by sending Nextion Instructions back to the Nextion device.
+    - service: send_command
+      variables:
+        cmd: string
+      then:
+        - lambda: 'id(nx1).send_command_printf("%s", cmd.c_str());'  # RETURNs whether command was successful #! id(nx1).send_command(cmd) is a protected function => CANNOT CALL directly
+    #* Service to upload cutom TFT files (created in the Nextion Editor)
+    - service: upload_tft
+      then:
+        - lambda: 'id(nx1).upload_tft();'
+    # Service to play a song: for RTTTL strings see https://picaxe.com/rtttl-ringtones-for-tune-command/
+    - service: play_rtttl
+      variables:
+        song_str: string
+      then:
+        - rtttl.play:
+            rtttl: !lambda 'return song_str;'
+
+# HA Software Buttons to easily execute above services.
+button:
+  #* Allow uploading TFT files (created in Nextion Editor) from HA.
+  - platform: template
+    name: $ha_prefix TFT Upload
+    device_class: update
+    entity_category: config
+    on_press:
+      - lambda: 'id(nx1).upload_tft();'
+  # Allow restarting NSP from HA.
+  - platform: restart
+    name: $ha_prefix Restart
+    device_class: restart
+
+
+#----------------------------------------
+# Configure NSP sensors/inputs.
+#----------------------------------------
+
+#***NH_REQUIRES***
+# Text sensors for transferring 'HA command strings' (comma separated sequences of HaCmds).
+text_sensor:
+  # All strings are to sent by the Nextion to the ESP32 using 'Nextion Custom Text Sensor Protocol': https://esphome.io/components/text_sensor/nextion.html#nextion-custom-text-sensor-protocol
+  # NB: cannot use "_" or "-" etc for ESPHome variable names ('name:' setting below).
+
+  # nextion_handler command_string with ACTION HaCmds set by a Nextion UI event, and sent by the SEND_ACTIONS subroutine.
+  - platform: nextion
+    component_name: HaAct
+    name: $ha_prefix HA Act
+    icon: mdi:gesture-tap-button
+
+  # List of nextion_handler command_string with SET HaCmds specifiying how each pages data should be UPDATED from HA.
+  #   The strings are manually configured by the user on each page.
+  #   The strings are sent by the PostInitialize Event on each page.
+  #   (A list of HA_Set strings is used to allow sending messages larger than 255 chars (an HA limit on string sensors).)
+  # NB: Nextion strings DO NOT ALLOW correctly specifiying the source of Nextion data as VARIABLEs (have to use 'component_name:'),
+  #     OR correctly using the same name as the Nextion variable (some chars, such as '_' are not accepted in ESPHome).
+  #     ==> Have to remove '_' from Nextion variable names and specify them against 'component_name:' below instead. 
+  - platform: nextion
+    component_name: HaSet1     # name used in Nextion write instructions (remove underscores - can be different from the Nextion variable itself).
+    name: $ha_prefix HA Set1  # used for entity_id in HA (spaces will be converted to '_', can't use '_' directly).
+    icon: mdi:update
+      
+  - platform: nextion
+    component_name: HaSet2
+    name: $ha_prefix HA Set2
+    icon: mdi:update
+  #Uncomment extra strings when needed
+  # - platform: nextion
+  #   component_name: HaSet3
+  #   name: $ha_prefix HA Set3
+  #   icon: mdi:update
+  # - platform: nextion
+  #   component_name: HaSet4
+  #   name: $ha_prefix HA Set4
+  #   icon: mdi:update
+  # - platform: nextion
+  #   component_name: HaSet5
+  #   name: $ha_prefix HA Set5
+  #   icon: mdi:update
+
+  # OPTIONAL: Enable ESP32 to play RTTTL strings sent from Nextion.
+    # Creating RTTTL strings (info): https://en.wikipedia.org/wiki/Ring_Tone_Text_Transfer_Language
+    # Testing RTTTL strings (player): https://adamonsoon.github.io/rtttl-play/
+  - platform: nextion
+    component_name: G.tTMP
+    #variable_name: G.tTMP  # ERR: variable_name not valid for nextion text sensor !??? 
+    id: RtttlStr
+    name: $ha_prefix RTTTL str  # << pass on the HA during debugging (then comment out).
+    icon: mdi:music
+    entity_category: diagnostic
+    on_value:
+      then:
+        - rtttl.play:
+            # NB! ESPHome apprends flotsam '\x00' that needs to be removed (e.g., before checks for equality will work).
+            # need to use a temporary string variable in lambda to return a string of different length to the original value (x) - can't reassign values to x (original RtttlStr) directly in lambda.
+            rtttl: !lambda |-
+              std::string str = x;
+              //std::string str = id(RtttlStr).state;
+              str = str.substr(0, str.size()-1);  //!!Remove flotsam '\x00' ESPHome appends to the end of incoming strings.
+              if (str == "e") {
+                str = "Error:d=8,o=5,b=400:c6,2c5,1c4";
+              } else if (str == "c7") {
+                str = "Chirp7:d=4,o=5,b=600:c7";
+              } else if (str == "c6") {
+                str = "Chirp6:d=4,o=5,b=400:c6";
+              } else if (str == "c5") {
+                str = "Daah5:d=4,o=5,b=120:c5";
+              } else if (str == "c4") {
+                str = "Daah4:d=4,o=5,b=120:c4";
+              } else if (str == "err") {
+                str = "Error:d=8,o=5,b=400:c6,c5,1c4";
+              } else if (str == "confm") {
+                str = "Confirm:d=4,o=5,b=120:c5,8c7";
+              } else if (str == "start") {
+                str = "Start-up:d=8,o=5,b=180:c,e,g";
+              } else if (str == "done") {
+                str = "Doodle-dah:d=8,o=5,b=250:d#6,a#,d#6";
+              } else if (str == "warn") {
+                str = "Warn:d=4,o=5,b=60:8c7,8p,8c7,8p,8c7,8p,8c7";
+              } else if (str == "5th") {
+                str = "Fifth:d=4,o=5,b=63:8g5,8g5,8g5,2d#5";
+              } else if (str == "mup") {
+                str = "Muppets:d=4,o=5,b=250:c6,c6,a,b,8a,b,g,p,c6,c6,a,8b,8a,8p,g.,p,e,e,g,f,8e,f,8c6,8c,8d,e,8e,8e,8p,8e,g,2p,c6,c6,a,b,8a,b,g,p,c6,c6,a,8b,a,g.,p,e,e,g,f,8e,f,8c6,8c,8d,e,8e,d,8d,c";
+              }
+              return str;
+
+
+sensor:
+  #NB: ESPHome seems to convert all output sensor values to floating point (double), even if the incoming value is supplied as an integer (int or long int)
+  #
+  #***NH_REQUIRES***
+  #   nextion_handler variables - written to ESP32 by Nx using 'Nextion Custom Sensor Protocol' (91): https://esphome.io/components/sensor/nextion.html#nextion-custom-sensor-protocol
+  # Integer sensor that enforces state changes as a trigger for HA to use in nextion_handler automation (UI Events & Passive updates).
+  #   (Note that the sensor value in HA will be a STRING with dp set by 'accuracy_decimals' below,
+  #   and with '\x00' appended to the end - these require preprocessing in HA before they will work as expected.)
+  - platform: nextion
+    #component_name: TRIGGER  # not a page 'component', it is a Nextion Program.s Global Variable
+    variable_name: TRIGGER
+    #id: trigger  # Make available as ESPHome ID (if needed in code)
+    name: $ha_prefix Trigger
+    icon: mdi:clock-start
+    accuracy_decimals: 0  #<< makes converting back to integer (and displaying) easier in HA.
+  #Version of the currently installed TFT file on the Nextion (sent as an integer: YYYYMMDD)
+  - platform: nextion
+    variable_name: TFTVer
+    #id: tftver  # Make available as ESPHome ID (if needed in code)
+    name: $ha_prefix TFT version
+    entity_category: diagnostic
+    unit_of_measurement: Ver
+    icon: mdi:clipboard-text-clock
+    accuracy_decimals: 0  #<< makes converting back to integer (and displaying) easier in HA.
+  # Report Version of this ESPHome configuration file.
+  # Set version in substitution (as # YYYYMMDD) which is assigned to the global variable this_config_ver returned here.
+  - platform: template
+    name: $ha_prefix config version
+    entity_category: diagnostic
+    unit_of_measurement: Ver
+    icon: mdi:clipboard-text-clock
+    accuracy_decimals: 0  #<< makes converting back to integer (and displaying) easier in HA.
+    lambda: 'return id(yaml_config_ver);'
+    update_interval: 60s  #300s  
+    on_value:
+      - lambda: 'id(nx1).send_command_printf("esp_ver=%.0f", x);'   #!! ESPHome does type conversions of incoming data: can't format for original type (long int), have to format for CONVERTED type (double float?)
+
+  #* NSP SENSORS
+  # NSP (ESP) WiFi signal strength dBm (sent to both HA and Nextion).
+  - platform: wifi_signal
+    name: $ha_prefix WiFi
+    update_interval: 60s
+    # IF Nextion is not sleeping send the Nextion command to directly assign the global varialbe 'esp_wifi' the integer value of x.
+    # NB: there is no 'it.set_variable_value()' in the Nextion API (only components can be 'set') - have to send manual Nextion Instruction instead
+    on_value:
+      - lambda: 'id(nx1).send_command_printf("esp_wifi=%i", int(x));' 
+
+  # NSP temperature sensor °C (conversion from analogue resistance sensor) (sent to both HA and Nextion (x10)).
+  - platform: ntc
+    id: temperature
+    name: $ha_prefix Temperature  # << only make the final temperature value available in HA (not the preceding steps below)
+    sensor: resistance_sensor
+    calibration:
+      b_constant: 3950
+      reference_temperature: 25°C
+      reference_resistance: 10kOhm
+    # IF Nextion is not sleeping, send the Nextion command to directly assign the global varialbe 'esp_temp' the integer value of x * 10 (Nextion 1 fixed point float)
+    on_value:
+      - lambda: 'id(nx1).send_command_printf("esp_temp=%.0f", x*10);' 
+  - platform: resistance
+    id: resistance_sensor
+    sensor: ntc_source
+    configuration: DOWNSTREAM
+    resistor: 11.2kOhm
+  - platform: adc
+    id: ntc_source
+    pin: 38
+    update_interval: 60s  #10s
+    attenuation: 11db
+
+
+binary_sensor:
+  # NSP Physical Buttons - coupling to relays controlled through platform-Nextion (software) switches (below),
+  #   and multi-press (linking/unlinking button with relay, override toggling (unlinked) relay, or normal (linked) toggling relay).
+  # Left Button
+  - platform: gpio
+    name: $ha_prefix Left Button  # rename to match NSPanel orientation.
+    pin:
+      number: 14
+      inverted: true
+    on_multi_click:
+    - timing:                               #1: Short-press toggle relay IF coupling is turned on (in Nextion switch couple_relay_1, configured below).
+      - ON for 0.1s to 2s
+      - OFF for at least 0.1s
+      then:
+        if:
+          condition:
+          - switch.is_on: couple_relay_1
+          then:
+          - switch.toggle: relay_1
+    - timing:                              #(2): Long-press duration indicator sound.
+      - ON for at least 3s
+      then:
+        - rtttl.play: "chirp6:d=4,o=5,b=400:c6"
+    - timing:                              #2: Long-press will always toggle relay.
+      - ON for 3s to 5s  
+      - OFF for at least 0.1s
+      then:
+        - switch.toggle: relay_1
+    - timing:                              #3: VERY Long-press will always toggle 'direct' coupling of physical button to relay.
+      - ON for at least 6s  
+      then:
+        - switch.toggle: couple_relay_1
+        - if:
             condition:
             - switch.is_on: couple_relay_1
             then:
-            - switch.toggle: relay_1
-      - timing:                              #(2): Long-press duration indicator sound.
-        - ON for at least 3s
-        then:
-          - rtttl.play: "chirp6:d=4,o=5,b=400:c6"
-      - timing:                              #2: Long-press will always toggle relay.
-        - ON for 3s to 5s  
-        - OFF for at least 0.5s
-        then:
-          - switch.toggle: relay_1
-      - timing:                              #3: VERY Long-press will always toggle 'direct' coupling of physical button to relay.
-        - ON for at least 6s  
-        then:
-          - switch.toggle: couple_relay_1
-          - if:
-              condition:
-              - switch.is_on: couple_relay_1
-              then:
-                - rtttl.play: "doodle-dah:d=8,o=5,b=250:d#6,a5#,d#6"  # LINKED confirmation sound
-              else:
-                - rtttl.play: "doodle-duh:d=8,o=5,b=250:d#6,a5#,d#5"  # UNLINKED confirmation sound
-    # Right Button
-    - platform: gpio
-      name: $ha_prefix Right Button  # rename to match NSPanel orientation.
-      pin:
-        number: 27
-        inverted: true
-      on_multi_click:
-      - timing:                              #1: Short-press toggle relay IF coupling is turned on (in Nextion switch couple_relay_2, configured below).
-        - ON for 0.1s to 2s
-        - OFF for at least 0.5s
-        then:
-          if:
+              - rtttl.play: "doodle-dah:d=8,o=5,b=250:d#6,a5#,d#6"  # LINKED confirmation sound
+            else:
+              - rtttl.play: "doodle-duh:d=8,o=5,b=250:d#6,a5#,d#5"  # UNLINKED confirmation sound
+    - timing:                             #4: Button Released (after all above timing events have triggered)
+      - OFF for at least 0.2s
+      then:
+        # Update Nextion display whenever button is pushed (also give user feedback when no data is changed). 
+        - lambda: 'id(nx1).send_command_printf("page wake_page");'
+        - lambda: 'id(nx1).send_command_printf("loop_cnt=sleep_cnt+1");'
+        - delay: 1s  # allow initial page init to complete (inc. APPLY_VARS usually), then APPLY_VARS again to make sure
+        - lambda: 'id(nx1).send_command_printf("click APPLY_VARS,1");'
+      
+  # Right Button
+  - platform: gpio
+    name: $ha_prefix Right Button  # rename to match NSPanel orientation.
+    pin:
+      number: 27
+      inverted: true
+    on_multi_click:
+    - timing:                              #1: Short-press toggle relay IF coupling is turned on (in Nextion switch couple_relay_2, configured below).
+      - ON for 0.1s to 2s
+      - OFF for at least 0.1s
+      then:
+        if:
+          condition:
+          - switch.is_on: couple_relay_2
+          then:
+          - switch.toggle: relay_2
+    - timing:                              #(2): Long-press duration indicator sound.
+      - ON for at least 3s
+      then:
+        - rtttl.play: "chirp6:d=4,o=5,b=400:c6"
+    - timing:                              #2: Long-press will always toggle relay.
+      - ON for 3s to 5s  
+      - OFF for at least 0.1s
+      then:
+        - switch.toggle: relay_2
+    - timing:                              #3: VERY Long-press will always toggle 'direct' coupling of physical button to relay.
+      - ON for at least 6s  
+      then:
+        - switch.toggle: couple_relay_2
+        - if:
             condition:
             - switch.is_on: couple_relay_2
             then:
-            - switch.toggle: relay_2
-      - timing:                              #(2): Long-press duration indicator sound.
-        - ON for at least 3s
-        then:
-          - rtttl.play: "chirp6:d=4,o=5,b=400:c6"
-      - timing:                              #2: Long-press will always toggle relay.
-        - ON for 3s to 5s  
-        - OFF for at least 0.5s
-        then:
-          - switch.toggle: relay_2
-      - timing:                              #3: VERY Long-press will always toggle 'direct' coupling of physical button to relay.
-        - ON for at least 6s  
-        then:
-          - switch.toggle: couple_relay_2
-          - if:
-              condition:
-              - switch.is_on: couple_relay_2
-              then:
-                - rtttl.play: "doodle-dah:d=8,o=5,b=250:d#6,a5#,d#6"  # LINKED confirmation sound
-              else:
-                - rtttl.play: "doodle-duh:d=8,o=5,b=250:d#6,a5#,d#5"  # UNLINKED confirmation sound
+              - rtttl.play: "doodle-dah:d=8,o=5,b=250:d#6,a5#,d#6"  # LINKED confirmation sound
+            else:
+              - rtttl.play: "doodle-duh:d=8,o=5,b=250:d#6,a5#,d#5"  # UNLINKED confirmation sound
+    - timing:                             #4: Button Released (after all above timing events have triggered)
+      - OFF for at least 0.2s
+      then:
+        # Update Nextion display whenever button is pushed (also give user feedback when no data is changed). 
+        - lambda: 'id(nx1).send_command_printf("page wake_page");'
+        - lambda: 'id(nx1).send_command_printf("loop_cnt=sleep_cnt+1");'
+        - delay: 1s  # allow initial page init to complete (inc. APPLY_VARS usually), then APPLY_VARS again to make sure
+        - lambda: 'id(nx1).send_command_printf("click APPLY_VARS,1");'
+
+#----------------------------------------
+# Configure NSP output peripherals.
+#----------------------------------------
+
+# NSP Relays & display power
+switch:
+  # NSP Relays (1 & 2) - coupling to physical buttons controlled through platform-Nextion (software) switches (below).
+  # Set restore_mode to desired power-on behaviour, see options at: https://esphome.io/components/switch/gpio.html
+  # Relay 1
+  - platform: gpio
+    name: $ha_prefix Relay 1
+    id: relay_1
+    pin:
+      number: 22
+    # restore_mode: ALWAYS_ON  # comment out if you want this to always be RESTORE_DEFAULT_OFF (default, try to restore previous state, otherwise Off).
+    on_turn_on:
+      #- lambda: 'if ( !(id(nx1).is_sleeping())) {id(nx1).send_command_printf("Relay1=1");}' 
+      - lambda: 'id(nx1).send_command_printf("Relay1=1");' 
+    on_turn_off:
+      #- lambda: 'if ( !(id(nx1).is_sleeping())) {id(nx1).send_command_printf("Relay1=0");}' 
+      - lambda: 'id(nx1).send_command_printf("Relay1=0");' 
+    # Relay 2
+  - platform: gpio
+    name: $ha_prefix Relay 2
+    id: relay_2
+    pin:
+      number: 19
+    # restore_mode: ALWAYS_ON  # comment out if you want this to always be RESTORE_DEFAULT_OFF (default).
+    on_turn_on:
+      #- lambda: 'if ( !(id(nx1).is_sleeping())) {id(nx1).send_command_printf("Relay2=1");}' 
+      - lambda: 'id(nx1).send_command_printf("Relay2=1");' 
+    on_turn_off:
+      #- lambda: 'if ( !(id(nx1).is_sleeping())) {id(nx1).send_command_printf("Relay2=0");}' 
+      - lambda: 'id(nx1).send_command_printf("Relay2=0");' 
+
+  # Display power (must always have power).
+  - platform: gpio
+    id: display_power
+    entity_category: config
+    pin:
+      number: 4
+      inverted: true
+    restore_mode: ALWAYS_ON  #NOTE: must always provide power to display.
+
   
-  #----------------------------------------
-  # Configure NSP output peripherals.
-  #----------------------------------------
-  
-  # NSP Relays & display power
-  switch:
-    # NSP Relays (1 & 2) - coupling to physical buttons controlled through platform-Nextion (software) switches (below).
-    # Set restore_mode to desired power-on behaviour, see options at: https://esphome.io/components/switch/gpio.html
-    # Relay 1
-    - platform: gpio
-      name: $ha_prefix Relay 1
-      id: relay_1
-      pin:
-        number: 22
-      # restore_mode: ALWAYS_ON  # comment out if you want this to always be RESTORE_DEFAULT_OFF (default, try to restore previous state, otherwise Off).
-      on_turn_on:
-        - lambda: 'id(nx1).send_command_printf("Relay1=1");' 
-      on_turn_off:
-        - lambda: 'id(nx1).send_command_printf("Relay1=0");' 
-      # Relay 2
-    - platform: gpio
-      name: $ha_prefix Relay 2
-      id: relay_2
-      pin:
-        number: 19
-      # restore_mode: ALWAYS_ON  # comment out if you want this to always be RESTORE_DEFAULT_OFF (default).
-      on_turn_on:
-        - lambda: 'id(nx1).send_command_printf("Relay2=1");' 
-      on_turn_off:
-        - lambda: 'id(nx1).send_command_printf("Relay2=0");' 
-  
-    # Display power (must always have power).
-    - platform: gpio
-      id: display_power
-      entity_category: config
-      pin:
-        number: 4
-        inverted: true
-      restore_mode: ALWAYS_ON  #NOTE: must always provide power to display.
-  
-    #&&&&
-    # Allow (un)Coupling of NSP hardware Buttons to Relays to be controlled dynamically (from Nextion, HA, or ESP).
-    #   Written to by Nextion using 'Nextion Custom Switch Protocol' (90): https://esphome.io/components/switch/nextion.html#nextion-custom-switch-protocol.
-    # Control Coupling of Relay 1 (to Left Button).
-    - platform: nextion
-      nextion_id: nx1
-      variable_name: CoupleRelay1  # Nextion Global VARIABLE writen to ESPHome with with Custom Switch Protocol HMI (0 = False, otherwise True)
-      #component_name: CFG.btLinkR1  #<< 'component' name (WITHOUT '.val' attribute).  
-      id: couple_relay_1
-      name: $ha_prefix Couple Relay 1
-      entity_category: config
-      #update_interval: 10s   #<< Do NOT set this polling option when using Nextion Custom Switch Protocol (which 'pushes' state changes).
-      icon: mdi:link
-    # Control Coupling of Relay 2 (to Right Button).
-    - platform: nextion
-      nextion_id: nx1
-      variable_name: CoupleRelay2  # Nextion Global VARIABLE writen to ESPHome with with Custom Switch Protocol HMI (0 = False).
-      #component_name: CFG.btLinkR2  #<< 'component' name (WITHOUT '.val' attribute). 
-      id: couple_relay_2
-      name: $ha_prefix Couple Relay 2
-      entity_category: config
-      #update_interval: 10s   #<< Do NOT set this polling option when using Nextion Custom Switch Protocol (which 'pushes' state changes).
-      icon: mdi:link
-  
-  # NSP Piezo Buzzer (PWM control).
-  output:
-    - platform: ledc
-      id: buzzer_out
-      pin:
-        number: 21
-  
-  # NSP Buzzer RTTTL (ringtone text transfer language) support.
-  rtttl:
-    id: buzzer
-    output: buzzer_out
-  
-  # UART for communicating with the NSP display.
-  uart:
-    id: uart_display
-    tx_pin: 16
-    rx_pin: 17
-    baud_rate: 115200
-  
-  # Configure the NSP Nextion device.
-  display:
-    - platform: nextion
-      id: nx1
-      uart_id: uart_display
-      tft_url: $tft_url
-  
+  # Allow (un)Coupling of NSP hardware Buttons to Relays to be controlled dynamically (from Nextion, HA, or ESP).
+  #   Written to by Nextion using 'Nextion Custom Switch Protocol' (90): https://esphome.io/components/switch/nextion.html#nextion-custom-switch-protocol.
+  # Control Coupling of Relay 1 (to Left Button).
+  - platform: nextion
+    nextion_id: nx1
+    variable_name: CoupleRelay1  # Nextion Global VARIABLE writen to ESPHome with with Custom Switch Protocol HMI (0 = False, otherwise True)
+    #component_name: CFG.btLinkR1  #<< 'component' name (WITHOUT '.val' attribute).  
+    id: couple_relay_1
+    name: $ha_prefix Couple Relay 1
+    entity_category: config
+    icon: mdi:link
+  # Control Coupling of Relay 2 (to Right Button).
+  - platform: nextion
+    nextion_id: nx1
+    variable_name: CoupleRelay2  # Nextion Global VARIABLE writen to ESPHome with with Custom Switch Protocol HMI (0 = False).
+    #component_name: CFG.btLinkR2  #<< 'component' name (WITHOUT '.val' attribute). 
+    id: couple_relay_2
+    name: $ha_prefix Couple Relay 2
+    entity_category: config
+    #update_interval: 10s   #<< Do NOT set this polling option when using Nextion Custom Switch Protocol (which 'pushes' state changes).
+    icon: mdi:link
+
+# NSP Piezo Buzzer (PWM control).
+output:
+  - platform: ledc
+    id: buzzer_out
+    pin:
+      number: 21
+
+# NSP Buzzer RTTTL (ringtone text transfer language) support.
+rtttl:
+  id: buzzer
+  output: buzzer_out
+
+# UART for communicating with the NSP display.
+uart:
+  id: uart_display
+  tx_pin: 16
+  rx_pin: 17
+  baud_rate: 115200
+
+# Configure the NSP Nextion device.
+display:
+  - platform: nextion
+    id: nx1
+    uart_id: uart_display
+    tft_url: $tft_url
