@@ -140,12 +140,12 @@ substitutions:
 ## UI Features
   
 ### Page Layout and Function
-Each page is tiled with Widget cards, one per entity. Information and touch interactions adapt to the type of entity they are displaying.  
+Each 'Main' Widget page is tiled with Widget cards, one per entity. Information and touch interactions adapt to the type of entity they are displaying.  
 * **🔹 Main Pages:** The 'Main' content pages are filled completely with Widget cards (as shown in the example images below).  Navigation is by `edge swipe` gestures (from the bezel/edge into the display) that cycle forwards and backwards through the main pages.
 * **🔹 Popup Pages:** Some actions bring up 'popup' pages that provide added controls and information.  These are distinguished by a title bar at the top, and a back arrow in the top left corner for navigating back to the 'Main' page you came from.
 * **🔹Widget Cards:** Each card has an icon (with circular background), then three rows of text: the 'title' at the top, a row of short 'alternate' text, and the main 'info' text along the width of the card at the bottom.  Users interact with Widgets by `press` and `nudge` (swipes starting on the Widget card) gestures (described below).
 * **🔹 Icons:** Icons and their coloring conventions [follow the detailed set of Minimilist Design UI standards for this project](/UI_Design/Minimalist/): cards with white/grey icons typically only provide information and will not trigger any actions when touched, whereas colored icons indicate that touch interactions with the card will trigger a range of actions (as detailed below).  A grey circle behind the icon indicates that the entity is in an off/inactive state, while a colored background highlights when entities are in an on/active/alert state.  The available icon pairs, currated and precompiled to these conventions, are indexed below. 
-  
+* **🔹 Gesture Indicator:**  When you tap the screen, a gesture indicator will pop up in the top left corner and dynamically update as the gesture is modified by holding the touch for longer.
 
  **Screenshots of Widget UI** (3 'Main' pages, each tiled with 2x4 entity cards) showing how the appearance of cards adapts to the type of entity allocated to them.  
    
@@ -168,23 +168,24 @@ The [gesture enginge](/Tips_and_Tricks/NEXTION_GESTURES.md) allows a wide range 
 #### Page/Edge Swipe Gestures  
  
 * **🔹 `⬅` `➡` Left and Right `edge swipes`:** cycle forwards and backwards through 'Main' pages (for as many 'Main' pages as are required for the configured list of Widgets).  If you hold the gesture until the timer bar appears, you can skip forward/backward multiple pages at a time (as shown on the gesture indicator).
-* **🔹 `⬇` Downward swipes:** will bring up the 'Settings' popup page from any 'Main' page (or will dismiss a popup page).  Opening the settings page will also fetch an updated count of the number of entities in your configured `widgets:` list (so the that correct number of pages can be allocated). Holding `⬇` until the timer bar appears will put the screen to sleep immediately from any Widget page.
-* **🔹 `⬆` Upward swipes:** force an immediate update of the Widget information on the current page by fetching refreshed data from HA.
+* **🔹 `⬇` Downward `edge swipes`:** will bring up the 'Settings' popup page from any 'Main' page (or will dismiss a popup page).  Opening the settings page will also fetch an updated count of the number of entities in your configured `widgets:` list (so the that correct number of pages can be allocated). Holding `⬇` until the timer bar appears will put the screen to sleep immediately from any Widget page.
+* **🔹 `⬆` Upward `edge swipes`:** force an immediate update of the Widget information on the current page by fetching refreshed data from HA.
 
 #### Widget Swipe/Nudge (and hold) Gestures  
 `Nudge` gestures are swipes that start on a Widget card (away from the edge of the screen).  Nudges are a compact way of replacing slider bars to make incremental step increases/decreases to an entity attribute (such a lights brightness, color temperature and hue).  Holding a `nudge` will bring up the timer bar to trigger multiple step changes.  The gesture indicator will show what attribute would be changed and progressively updates the amount of change with each step in the timer bar.
-* **🔹 `◀` `▶` Left and Right nudges:** incrementally increase/decrease an entity attribute the step changes show in the gesture indicator. 
-* **🔹 `▲` `▼` Up and Down nudges:** incrementally increase/decrease a second entity attribute in step changes.  
-To make a single `nudge` increment/decrement, release before the `timer bar` appears.  The main thing to remember with `nudges` is that you increase the size of step adjustments by _holding_ the touch for a longer duration (rather than by _moving_ your finger further).
+* **🔹 `◀` `▶` Left and Right `nudges`:** progessively adjust a value by the amount shown in the gesture indicator. 
+* **🔹 `▲` `▼` Up and Down `nudges`:** progressively adjust another value in step changes.  
+To make a single `nudge` increment/decrement, release before the `timer bar` appears.  
+👉  The main thing to remember with `nudges` is that you increase the size of step adjustments by _holding_ the touch for a longer duration (rather than by _moving_ your finger further).
 
 #### Widget Press (and hold) Gestures  
-* **🔹 `◐` LHS tap:** A tap on the Widget icon (left half of Widget card) performs the most common action for that type of entity, such a toggling it.  
-	(Taps are of short duration, where you lift your finger _before the timer bar appears_.) 
-* **🔹 `◑` RHS tap:** will open the `popup card` for that entity (if it has one) or perform another common action for that entity. 
+* **🔹 `◐` LHS press:** A short press on the Widget icon (left half of Widget card) performs the most common action for that type of entity, such a toggling it.  
+	(For short presses, lift your finger _before the timer bar appears_.) 
+* **🔹 `◑` RHS press:** opens the `Popup Control` page for that entity (if it has one) or perform another common action for that entity. 
 * **🔹 `◉` Long press:** performs the indicated alternate action for that type of entity. (Actions for LHS and RHS may be different.)  
 	(Hold a press until the timer bar first appears to trigger the long-press action.) 
 * **🔹 `◎` Very long press:** performs the indicated alternate action for that type of entity. (Actions for LHS and RHS may be different.)  
-	(Hold a press until the timer bar increases by 2 more steps after first appearing to trigger the very-long-press action).
+	(Hold a press until the `◎` gesture icon appears to trigger the very-long-press action).
 	
 #### Cancelling after starting a Gesture  
 * **🔹 `✖` Cancel gesture (and `✘` cancel action):** Cancels, without performing any action, when:  
@@ -192,6 +193,11 @@ To make a single `nudge` increment/decrement, release before the `timer bar` app
 	**b)** any gesture is held long enough until the timer bar completely fills,  
 	**c)** you move finger your to a point a short distance from your starting position, or   
 	**d)** the entity has no action for that gesture, indicated by `✘` in the text description.
+	
+#### Popup Press (and hold) Adjustors
+* **🔹 `⮜`, `⮞` Press and hold:** Incrementally adjust a value or option number.
+	This functions similarly to `nudge` swipes but works by pressing and holding selector arrow buttons or values in Popup Control pages.
+
 
 The `gesture indicator` will update dynamically throughout touch events to give the user feedback on what gesture is currently being detected and what action will be performed if you lift your finger at that point.  You can safely explore the UI by trying out the different gestures and seeing how they are modified by the duration `timer`, then cancel by returning your finger close to the start of the stroke to make the `✖` (cancel) gesture icon appear if you want to avoid triggering any action at the end.	
 	
@@ -200,8 +206,8 @@ The `gesture indicator` will update dynamically throughout touch events to give 
 </details>  
   
   
-## Popup Pages (incl. NSPanel Settings & Relays)
-Popup pages provide additional detail and control, particularly where generic Widget cards are too limiting:  
+## Popup Control Pages (including NSPanel Settings)
+Popup Controls provide additional detail and control, particularly where generic Widget cards are too limiting:  
   
 <details>
   <summary>▶️ show details on Popups for Settings, Lights, Media Players, HVAC/Climate Controls, and Notifications ...</summary>
@@ -234,14 +240,14 @@ Be conservative with the update settings initially, then tweak them when your co
 * **🔹 Media Player Popup -** provides full control of media players:
   * Controls for Volume, Mute, Power, Play, Pause, Forward, Back, and Select Source.
   * Shows information on current state, media/track information, and track position and duration (if available for device).
-  
 
 * **🔹 Climate Control Popup -** provides full control of HVAC devices:
   * Temperature controls for devices both with single set points and those which set the targets as a range with lower and upper bounds.  For devices that set a temperature range, the set point will show in blue for the lower bound and red for the upper bound - tap the temperature value to toggle between which set point you want to view and adjust.
   * Humidity slider (for devices with this feature). 
   * Icon buttons for controlling the four main HVAC modes.  (Long pressing the buttons gives access to less common modes, such as drying - see the gesture indicator when you long press the buttons).
   * Selector controls for preset modes, fan modes and swing modes.  Use the arrows to cycle forwards and backwards (in multiple steps) through the available options.  Press and hold the text describing the current mode to directly select an option by its numbered position in the available list of options.
- * **🔹 Notifications -** allows reading and dismissing Home Assistant persistent_notications.
+	
+* **🔹 Notifications -** allows reading and dismissing Home Assistant persistent_notications.
    * 'Notifications' is a special type of Widget card because it uses _all_ the entities in the domain, not just a single notifiction entity.
    * Enter `entity: persistent_notification.all` to create a notifications UI card (then customise it as you wish).
    * This allows the NSPanel to be used as a convenient message board for HA (delivering messages to all rooms in the house with an NSPanel).  
@@ -271,30 +277,30 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
   <summary>▶️ Full ist of gesture controls for each type of Widget card ...</summary>
 
 
-(Icons for `press` and `nudge` gestures follow those that appear in the UI `gesture indicator`, as desccribed in the Gestures section above.)
+(Icons for `press` and `nudge` gestures follow those that appear in the UI `gesture indicator`, as desccribed in the list of Gesture types above.)
 
 
 * 🔸 **Light Cards:**
-  * `◐`: Toggle light on/off  
-  * LHS `◉`: Force turning light OFF (fix out of sync lights)  
-  * LHS `◎`: Force turning light on  
+  * `◐`: Toggle light On/Off  
+  * LHS `◉`: Force turning light Off (fix out of sync lights)  
+  * LHS `◎`: Force turning light On  
   * `◑`: Detailed Popup Control (with color wheel and slider controls etc.)  
   * RHS `◉`: Turn on/change the bulb to a supported white mode  
-  * `◀`, `▶`: Adjust light Brightness (20% steps).
-  	If light is off:  
+  * `◀`, `▶`: Adjust light Brightness (20% steps).  
+  	If the light is off:  
 	`◀` will turn light on at Minimum (1%) brightness  
 	`▶` will turn light on at Maximum (100%) brightness  
   * `▲`, `▼`: Adjust the light's Color Temperature (if it is in WW mode) or Hue (if it is in an RGB mode) (in steps of 20)
 
 * 🔸 **Media Player Cards:**
-  * `◐`: Toggle media player on/off  
+  * `◐`: Toggle media player On/Off  
   * LHS `◉`: Toggle Play/Pause  
   * LHS `◎`: Source select (cycle backwards through source list)  
   * `◑`: Detailed Popup Control (with volume slider, source selector etc.) 
-  * RHS `◉`: Toggle mute  
-  * RHS `◎`: Source select (cycle forwards through source list)  
+  * RHS `◉`: Toggle Mute  
+  * RHS `◎`: Select Source (cycle forwards through source list)  
   * `◀`, `▶`: Skip Backwards/Forwards through tracks/channels/media list  
-  * `▲`, `▼`: Adjust volume (5% steps) 
+  * `▲`, `▼`: Adjust Volume (5% steps) 
 
 * 🔸 **Climate/HVAC Cards:**
   * `◐`: Toggle HVAC device on/off  
@@ -303,10 +309,10 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
   * `◑`: Detailed Popup Control (with temperature and humidity sliders, mode selectors etc.) 
   * RHS `◉`: Heat mode  
   * RHS `◎`: Heat-Cool mode  
-  * `◀`, `▶`: Adjust humidity (5% steps)  
-  * `▲`, `▼`: Adjust temperature (1° steps) 
+  * `◀`, `▶`: Adjust Humidity (5% steps)  
+  * `▲`, `▼`: Adjust Temperature (1° steps) 
 
-* 🔺 **Persistent Notifications Cards:**
+* 🔸 **Persistent Notifications Cards:**
   * `◐`, `◑`: Detailed Popup Control (cycle through and delete HA notifictions)
 
 ---
@@ -326,14 +332,14 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
   * `◐`, `◑`: Execute Button actions  
 	
 * 🔺 **Cover Cards:**
-  * `◐`: Toggle cover open/closed position 
+  * `◐`: Toggle cover Open/Closed position 
   * LHS `◉`: Stop cover open/close  
   * LHS `◎`: Fully Open cover  
-  * `◑`: Toggle tilt (for slats in blinds) 
-  * RHS `◉`: Stop tilt  
-  * RHS `◎`: Open tilt  
-  * `◀`, `▶`: Adjust tilt of slats (10% steps)  
-  * `▲`, `▼`: Adjust ▲open/▼close position (20% steps)  
+  * `◑`: Toggle Tilt (for slats in blinds) 
+  * RHS `◉`: Stop Tilt  
+  * RHS `◎`: Open Tilt  
+  * `◀`, `▶`: Adjust Tilt of slats (10% steps)  
+  * `▲`, `▼`: Adjust ▲Open/▼Close position (20% steps)  
 
 * 🔺 **Fan Cards:**
   * `◐`: Toggle fan On/Off 
@@ -349,15 +355,15 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
   * `◐`, `◑`: Toggle humidfier On/Off 
   * LHS & RHS `◉`: Turn Off  
   * LHS & RHS `◎`: Turn On  
-  * `◀`, `▶`: Adjust humiity (5% steps)  
+  * `◀`, `▶`: Adjust Humiity (5% steps)  
 
 * 🔸 **Input Number Cards:**
   * LHS `◉`: Set to Minimum value  
   * LHS `◎`: Set to 25% (between Min and Max)  
   * RHS `◉`: Set to Maximum value  
   * RHS `◎`: Set to 75% (between Min and Max)  
-  * `◀`, `▶`: Adjust value (Course: 10% steps between Min and Max)  
-  * `▲`, `▼`: Adjust value (Fine: 1% steps)  
+  * `◀`, `▶`: Adjust Number (Coarse: 10% steps between Min and Max)  
+  * `▲`, `▼`: Adjust Number (Fine: 1% steps)  
 	
 * 🔸 **Input_Select and Select Cards:**
   * LHS `◉`: Set to First option in list  
@@ -372,7 +378,7 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
   * LHS & RHS `◎`: Open lock  
 
 * 🔸 **Scene Cards:**
-  * `◐`, `◑`: Turn on scene (there is no 'turn off' for scenes)  
+  * `◐`, `◑`: Turn On scene (there is no 'turn off' for scenes)  
 
 * 🔸 **Timer Cards:**
   * `◐`, `◑`: Start/Continue timer 
@@ -401,8 +407,8 @@ A set of `nudge` and `press` gestures allows users to interact with Widgets in d
 * 🔸 **Cards for Switch, Script, Input boolean, Siren, Group, Camera, and  Remote**   
 (_All entity types that only have Toggle, On, and Off_)
   * `◐`, `◑`: Toggle (tap icon)
-  * LHS & RHS `◉`: Turn OFF (long press)
-  * LHS & RHS `◎`: Turn on (very long press)
+  * LHS & RHS `◉`: Turn Off (long press)
+  * LHS & RHS `◎`: Turn On (very long press)
 
 "🔺" indicates entity types where I'm particularly after more feedback (because I don't have these devices to test myself).	
 	
@@ -467,17 +473,17 @@ While the intention of the Widget UI is to keep configuration as simple as possi
   
   
 ## Icons (with Index Image)
-A currated set of precompiled icon images is used on the cards.  These are paired (for off/unhighlighted and on/highlighted states), with icons and coloring already formatted to [follow the Minimilist Design UI standards](/UI_Design/Minimalist/).  A default icon will be allocated based on the entity type (domain and class).  But you can set a different one in your `widgets:` list by specifying the _number_ (not name) of the icon you want from the index below. (Default, automatically assigned, icons are in the first 6 rows.)  You can also use templating to dynamically change the `icon:` and the `icon_state:` in your your `widget:` list configuration.
+A currated set of precompiled icon images is used on the cards.  These are paired (for off/unhighlighted and on/highlighted states), with icons and coloring already formatted to [follow the Minimilist Design UI standards](/UI_Design/Minimalist/).  A default icon will be allocated based on the entity type (domain and class).  But you can set a different one in your `widgets:` list by specifying the _number_ (not name) of the icon you want from the index below.  You can also use templating to dynamically change the `icon:` and the `icon_state:` (0/1) in your your `widget:` list configuration.
   
 <details>
   <summary>▶️ show Icon Index ...</summary>
 
- **Index numbers for available icon choices.**  Icons are paired - the off/unhighlighted state is on the left and the on/highlighted version is on the right.  Use the index number of the icon you want in the `icon:` setting of each `- entity:` in your `widget:` list (or omit this setting to accept the default for that entity type).  **Icon 47** is used in its unhighlighted state to blank out the icon area on 'blank' cards, and it is used in its highlighted state as the ❗ _error symbol_ to give users feedback that they need to fix a problem with their `widget:` config for that entity.  **Icon 46** is used to show when an entity is unavailable.
+ **Index numbers for available icon choices.**  The off/unhighlighted state is on the left and the on/highlighted version is on the right.  Use the index number of the icon you want in the `icon:` setting of each `- entity:` in your `widget:` list (or omit this setting to accept the default for that entity type).  **Icon 47** is used in its unhighlighted state to blank out the icon area on 'blank' cards, and it is used in its highlighted state as the ❗ _error icon_ to give users feedback that they need to fix a problem with their `widget:` config for that entity.  **Icon 46** is used to show when an entity is unavailable.
    
  ![Widget UI Icon index](https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/widget_ui/Widget_Icons_Index.png "Icon numbering index")
 
 ### Icons are grouped as follows:
- * 🔵 0 .. 47 (6 rows): default and system.
+ * 🔵 0 .. 47 (6 rows): domain default icons and system.
  * 🟠 48 .. 71 (3 rows): lights (orange for indoor, green for outdoor).  
    (_spare row_.)
  * 🔴 80 .. 87 (1 row): media players.
@@ -493,7 +499,7 @@ A currated set of precompiled icon images is used on the cards.  These are paire
  Remaining slots are spares for future additions.  The images (pair) are the maximum size that the Nextion Editor will compile and store in a TFT file.
  
 	
-Temp (gesture icons): ```◐◑◉◎ ⦿⊙✖✘▲▼◀▶⬅⬆⬇➡ 🠖➞🠔🠕🠗◀▶⯅⯆◑◐◉⦿⊙✖```
+(gesture icons): ```◐◑◉◎ ⦿⊙✖✘▲▼◀▶⬅⬆⬇➡ 🠖➞🠔🠕🠗◀▶⯅⯆◑◐◉⦿⊙✖```
  --- 
   
   
