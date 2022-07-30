@@ -1,24 +1,26 @@
 # * Home Assistant Nextion Handler
-# * (v0.7_2022-07-27 beta)
+# * (v0.7_2022-07-30)
 # Handler for NH 'command_strings' sent from Nextion events & update requests.
 # see: https://github.com/krizkontrolz/Home-Assistant-nextion_handler
 #
 # ------------------------------------------------------------------------------
 #
 # * CHANGELOG: https://github.com/krizkontrolz/Home-Assistant-nextion_handler/blob/main/CHANGELOG.md
-# Fix toggling of climate.* entities (new: cl tgl e) (cannot use normal toggle)
-#
+# gact() wrapper for wdact() to allow directly caling gesture actions from custom HMI code.
+# sub Nx (x) : now allows option x=0 to trigger click release event for Nextion component Nx.
+# tweaks & fixes to Widget actions
+# add water heater actions
 # ------------------------------------------------------------------------------
 #
 # TODO:
-#    (v0.7 fine tuning new NSPanel Widget gestures & actions - done)
 #    (v0.7 new features for entities I don't own need beta testers:
-#     climate.*, fan.*, humidifier.*, lock.*, water_heater.*)
+#     fan.*, humidifier.*, lock.*, water_heater.*)
+#    Create setinf(e, inf, alt, cbd, leni, lena, lenc) to provide access to Widget dashboard information.
 #    ...
 # ------------------------------------------------------------------------------
 # Reformatted code with Black: https://black.vercel.app/
 
-VERSION = 20220727  # version of this script as YYYYMMDD integer; ('__version__' not allowed in restricted env)
+VERSION = 20220730  # version of this script as YYYYMMDD integer; ('__version__' not allowed in restricted env)
 
 # *------------------------------------------------------------------------------
 # * CONFIGURABLE CONSTANTS
@@ -74,7 +76,7 @@ DOMAINS_DICT = {
     "button": (516, 4),
     "calendar": (5, 5),
     "camera": (134, 6),
-    "climate": (2695, 7),
+    "climate": (2823, 7),
     "cover": (648, 8),
     "device_tracker": (9, 9),
     "fan": (650, 10),
@@ -340,12 +342,10 @@ def get_entity_id_state(e, nx_lookup=None, domain_prefix=None):
         # NOTE: WIDGETS_LIST now read with other automation data at start
         # * Get list of Widgets (& their settings) from 'widgets:' YAML section
         try:
-            n = int(
-                e[1:]
-            )  # the rest of the entity alias after @ should be the widget number (0...) and its index position in the YAML list
-            entity_id = WIDGETS_LIST[n][
-                "entity"
-            ]  # entity_id is REQUIRED - no default provided - will trigger exception if missing
+            # the rest of the entity alias after @ should be the widget number (0...) and its index position in the YAML list
+            n = int(e[1:])
+            # entity_id is REQUIRED - no default provided - will trigger exception if missing
+            entity_id = WIDGETS_LIST[n]["entity"]
         except:
             raise ValueError(
                 '@Alias for Widget not found in "widgets:" list from YAML in calling automation: <{}>'.format(
@@ -360,9 +360,8 @@ def get_entity_id_state(e, nx_lookup=None, domain_prefix=None):
         entity_id = e
     # Get the state of entity_id - this also ensures that entity_id is valid
     try:
-        ent_state = hass.states.get(
-            entity_id
-        )  # full mapped state & attribute data for entity
+        # full mapped state & attribute data for entity
+        ent_state = hass.states.get(entity_id)
         state = ent_state.state  # just the _string_ for the state
     except:
         raise ValueError(
@@ -1569,9 +1568,8 @@ def get_widget_info(entity_id):
 
     # Domain part of entity_id -> domain codes (full & num) & icon
     ent_domain = entity_id.split(".")[0]
-    (wd_dmn, wd_icon) = DOMAINS_DICT.get(
-        ent_domain, (2, DEFAULT_ICON)
-    )  # defaults to generic sensor
+    # defaults to generic sensor
+    (wd_dmn, wd_icon) = DOMAINS_DICT.get(ent_domain, (2, DEFAULT_ICON))
     domain_num = wd_dmn & DOMAIN_NUM_MASK
 
     # TODO: add meaningful info for each domain (e.g. Notifications) - this is a simple placeholder for now
@@ -2080,7 +2078,7 @@ def get_widget_info(entity_id):
                 wd_info = "Updating {}".format(installed, latest)
                 wd_alt = "Busy"
             elif wd_bst:
-                wd_info = "{}->{}".format(installed, latest)
+                wd_info = "{}»{}".format(installed, latest)  # →->
                 wd_alt = "Skip?"
             else:
                 if skipped:
@@ -2098,21 +2096,19 @@ def get_widget_info(entity_id):
             wd_alt = "{} %".format(bat)
             wd_bst = 0 if state == ["docked"] else 1
         # * water heaters
-        #! Fix no on/off
-        #! Handle modes & away_mode
         elif domain_num == 34:
             set_t = ent_state.attributes.get("temperature", None)
             if set_t is None:
                 set_t = ent_state.attributes.get("target_temp_low", "?")
             temp = ent_state.attributes.get("current_temperature", None)
-            # speed = ent_state.attributes.get("speed", None)
-            # if wd_bst == 0 or speed is None:
-            wd_alt = state.title()
+            away_mode = ent_state.attributes.get("away_mode", False)
+            wd_alt = state.title()  # the current mode
             wd_bst = 0 if state in ["off", "unknown"] else 1
+            away_str = "Away" if away_mode else "Set"
             if temp is None:
-                wd_info = "Set {}°".format(set_t)
+                wd_info = "{} {}°".format(away_str, set_t)
             else:
-                wd_info = "Set {}° ({}°)".format(set_t, temp)
+                wd_info = "{} {}° ({}°)".format(away_str, set_t, temp)
         # * weather
         # TODO: better handling of weather icons (add popup page eventually?)
         elif domain_num == 35:
@@ -2184,11 +2180,12 @@ def setwd(args_list):
         num_args = len(args_list)
         if num_args == 0:
             # If called without arguments, just write the Global Widget settings to Nextion and SKIP Widget Page update
+            # assigned directly as integers: set to skip Page update (& only update Global vars)
             [page_num, start_wd, num_cards] = [
                 0,
                 0,
                 0,
-            ]  # assigned directly as integers: set to skip Page update (& only update Global vars)
+            ]
         elif 3 <= num_args <= 7:
             [page_num_, start_wd_, num_cards_] = args_list[:3]
             try:
@@ -2213,7 +2210,6 @@ def setwd(args_list):
             exptn, "setwd", "> <".join(args_list)
         )
         logger.warning("nextion_handler.py " + err_msg)
-        # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
     # * Get & Send data for each Widget card on page: Name, Icon, Domain_code, Boolean_status, Info status, Alt_text
     card = 0
@@ -2228,8 +2224,8 @@ def setwd(args_list):
     if 0 < num_page_widgets < num_cards:
         page_widgets.extend([None] * (num_cards - num_page_widgets))
     for card, wd in enumerate(page_widgets):
-        try:  # Handle exception INSIDE 'for' loop (so that 1 problem card doesn't stop others from updating)
-
+        # Handle exception INSIDE 'for' loop (so that 1 problem card doesn't stop others from updating)
+        try:
             ERR_INFO = False
             # Defaults for 'blank' (including 'None') Widget cards
             card_sfx = "{:02}".format(card)
@@ -2250,10 +2246,8 @@ def setwd(args_list):
                 wd_icon_yaml = wd.get("icon", None)  # index number
                 wd_bst_yaml = wd.get("icon_state", None)  # boolean icon state (0/1)
                 entity_id = wd.get("entity", None)
-                if entity_id in [
-                    "template",
-                    "blank",
-                ]:  # alternate name for blank - more logical in some use cases
+                # "template" is alternate name for "blank" - more logical in some use cases
+                if entity_id in ["template", "blank"]:
                     entity_id = None
                 # Get entity data (may modify defalut icon)
                 if entity_id:
@@ -2406,7 +2400,6 @@ def tgl(args_list):
             )
         )
         logger.warning("nextion_handler.py " + err_msg)
-        # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
     return True
 
@@ -2437,7 +2430,6 @@ def ton(args_list):
             )
         )
         logger.warning("nextion_handler.py " + err_msg)
-        # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
     return True
 
@@ -2468,7 +2460,6 @@ def tof(args_list):
             )
         )
         logger.warning("nextion_handler.py " + err_msg)
-        # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
     return True
 
@@ -2591,11 +2582,7 @@ def sel(args_list):
             )
         )
         logger.warning("nextion_handler.py " + err_msg)
-        # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
-    #! dbg
-    # msg = 'Nextion Handler Debug:\n<{}> <{}>.'.format('inps', '> <'.join(args_list))
-    # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Debug!', 'message': msg, 'notification_id': 'nx_handler_debug_inps' }, False)
     return True
     # --- sel() ---
 
@@ -2627,7 +2614,6 @@ def inpb(args_list):
             )
         )
         logger.warning("nextion_handler.py " + err_msg)
-        # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
     return True
 
@@ -2665,12 +2651,11 @@ def inpn(args_list):
             )
         )
         logger.warning("nextion_handler.py " + err_msg)
-        # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
     return True
 
 
-# 'lt act E ..' commond Consolidates and replaces depracted 'lt_act' NHcmds above
+# 'lt act E ..' commond Consolidates and replaces depracted 'lt_act' NHcmds
 def lt(args_list):
     """lt act E (arg1) (arg2) (arg3) (call action with code 'act' for lt E)
     action/service options:
@@ -2787,10 +2772,6 @@ def lt(args_list):
                     else:
                         h = x
                     h = h % 360
-                    # if h > 360:
-                    #     h = h - 360
-                    # elif h < 0:
-                    #     h = h + 360
                     if y_[0] in ["+", "-"]:
                         s = s + y
                     else:
@@ -2891,7 +2872,6 @@ def scn(args_list):
             )
         )
         logger.warning("nextion_handler.py " + err_msg)
-        # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
     return True
 
@@ -2926,12 +2906,10 @@ def scpt(args_list):
             )
         )
         logger.warning("nextion_handler.py " + err_msg)
-        # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
     return True
 
 
-# TODO completed: all features now added
 def mp(args_list):
     """mp act E (arg1) (arg2) (call action/'service' with code 'act' for media_player E)
     action/service options:
@@ -3048,25 +3026,6 @@ def mp(args_list):
                         "media_content_id": x_,
                         "media_content_type": y_,
                     }
-                # elif act == "src":
-                #     # OLD 'src' version - selects wrong INDEX
-                #     # Rejoin args BUT without extra '_' added above
-                #     x_ = " ".join(args_list[2:])
-                #     curr_src = ent_state.attributes.get("source", None)
-                #     src_list = ent_state.attributes.get("source_list", None)
-                #     if src_list:
-                #         list_len = len(src_list)
-                #         curr_idx = src_list.index(curr_src)
-                #         new_idx = adjust(
-                #             curr_idx, x_, 0, list_len, IS_MOD=True, AS_INT=True
-                #         )
-                #         if new_idx is None:
-                #             # When x_ is not a vaild adjustment string, treat it as a direct source string instead
-                #             new_src = x_
-                #         else:
-                #             new_src = src_list[new_idx]
-                #         service = "select_source"
-                #         service_data = {"entity_id": entity_id, "source": new_src}
                 elif act == "src":
                     # NEW 'src' version - uses new list handling of adjust() helper
                     # Rejoin args BUT without extra '_' added above
@@ -3117,10 +3076,6 @@ def mp(args_list):
     # --- mp() ---
 
 
-#! Needs to be tested (I don't have any climate.* devices)
-# TODO all main features completed (see possible extra features in other TODOs below)
-# climate.set_aux_heat, climate.set_preset_mode, climate.set_temperature, climate.set_humidity,
-# climate.set_fan_mode, climate.set_hvac_mode, climate.set_swing_mode, climate.turn_on, climate.turn_off
 def cl(args_list):
     """cl act E (arg1) (arg2...) (call action/'service' with code 'act' for
     climate entity E)
@@ -3158,7 +3113,6 @@ def cl(args_list):
             else:
                 transfer_err_msg = "The specified ACTION CODE is not valid."
         elif len(args_list) >= 3:
-            # args_list_ext = args_list + ['_']*3  # extend COPY of list with '_'s to indicate potential unassigned/default values
             act, e, x_ = args_list[:3]
             if act in ["hm", "pm", "fm", "sm"]:
                 # join 'mode' values that contain spaces
@@ -3359,13 +3313,11 @@ def cl(args_list):
             )
         )
         logger.warning("nextion_handler.py " + err_msg)
-        # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
     return True
     # --- cl() ---
 
 
-#! needs testing
 def cv(args_list):
     """mp act E (arg1) (call action/'service' with code 'act' for cover E).
     Action/Service options:
@@ -3373,16 +3325,14 @@ def cv(args_list):
         cv open E (open cover E)
         cv close E (close cover E)
         cv stop E (stop cover E)
-        cv tog_t E (toggle tilt for cover E)
+        cv tgl_t E (toggle tilt for cover E)
         cv open_t E (open tilt for cover E)
         cv close_t E (close tilt for cover E)
         cv stop_t E (stop tilt for cover E)
         cv pos E x (set cover E to postion x (0..100))
         cv pos_t E x (set cover E titl position to x (0..100))
     """
-    # Service options deemed unsuitable to include in a Nextion UI:
-    # ...
-
+    # use generic tgl() to toggle position
     prefix = "cover."
     domain = "cover"
     service = None  # assigned based on 'act' code
@@ -3404,7 +3354,7 @@ def cv(args_list):
                 service = "close_cover"
             elif act == "stop":
                 service = "stop_cover"
-            elif act == "tog_t":
+            elif act == "tgl_t":
                 service = "toggle_tilt"
             elif act == "open_t":
                 service = "open_cover_tilt"
@@ -3416,9 +3366,6 @@ def cv(args_list):
             else:
                 transfer_err_msg = "The specified ACTION CODE is not valid."
         elif len(args_list) == 3:
-            # services with 1 arguements (in addition to entity_id):
-            # args_list_ext = args_list + ['_']*3  # extend COPY of list with '_'s to indicate potential unassigned/default values
-            # act, e, x_, y_, z_ = args_list_ext[:5]
             act, e, x_ = args_list
             entity_id, ent_state, state = get_entity_id_state(e, domain_prefix=prefix)
             try:
@@ -3468,7 +3415,6 @@ def cv(args_list):
             )
         )
         logger.warning("nextion_handler.py " + err_msg)
-        # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
     return True
     # --- cv() ---
@@ -3506,7 +3452,6 @@ def say(args_list):
             )
         )
         logger.warning("nextion_handler.py " + err_msg)
-        # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
     return True
 
@@ -3544,7 +3489,6 @@ def ntf(args_list):
             )
         )
         logger.warning("nextion_handler.py " + err_msg)
-        # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
     return True
 
@@ -3585,7 +3529,6 @@ def ntfx(args_list):
             exptn, "ntfx", "> <".join(args_list)
         )
         logger.warning("nextion_handler.py " + err_msg)
-        # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
     return True
 
@@ -3596,31 +3539,28 @@ def ntfx(args_list):
 
 
 def sub(args_list):
-    """sub Nx (`click Nx,1` the Nextion (hidden) hotspot to execute a Nx 'subroutine')"""
-    # could add other options, e.g., for 'Nextion timer subroutines'
+    """sub Nx (x) (`click Nx,x` the Nextion (hidden) hotspot)
+    Executes a Nx 'subroutine'.
+    Default x is 1 (click press); x = 0 triggers click release event.
+    """
     # no entity or prefix
     try:
-        if len(args_list) == 1:
+        num_args = len(args_list)
+        if num_args == 1:
             # click (set to 1) a subroutine hotspot: click SEND_ACTIONS,1
             nx_sub = args_list[0]
-            nx_cmd_str = "click " + nx_sub + ",1"
-            send_nx_cmd(nx_cmd_str)
-        # if len(args_list) == 1:
-        #     # start/click (set to 1) timer/button the stop/release (set to 0)
-        #     nx_sub = args_list[0]
-        #     nx_cmd_str = nx_sub + '=0'
-        #     send_nx_cmd(nx_cmd_str)
-        #     nx_cmd_str = nx_sub + '=1'
-        #     send_nx_cmd(nx_cmd_str)
-        # elif len(args_list) == 2:
-        #     # reverse order (to 0(off) then 1(on) if any 2nd parameter is given)
-        #     [nx_sub] = args_list[0]
-        #     nx_cmd_str = nx_sub + '=1'
-        #     send_nx_cmd(nx_cmd_str)
-        #     nx_cmd_str = nx_sub + '=0'
-        #     send_nx_cmd(nx_cmd_str)
+            click_str = ",1"  # default (click press event)
+        elif num_args == 2:
+            # click (set to 1) a subroutine hotspot: click SEND_ACTIONS,1
+            nx_sub, x_ = args_list
+            if x_ == "0":
+                click_str = ",0"  # click release event
+            else:
+                click_str = ",1"
         else:
             raise ValueError("Wrong number of items in arguments list.")
+        nx_cmd_str = "click " + nx_sub + click_str
+        send_nx_cmd(nx_cmd_str)
     except ValueError as exptn:
         err_msg = (
             "{}\nNextion Handler failed within CONTROL function:\n<{}> <{}>.".format(
@@ -3628,7 +3568,40 @@ def sub(args_list):
             )
         )
         logger.warning("nextion_handler.py " + err_msg)
-        # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
+        raise ValueError(err_msg)
+    return True
+
+
+def gact(args_list):
+    """gact e gest_type gest_cnt
+    (Perform gesture action, based on gest_type and gest_cnt, on entity 'e'.)
+    Wrapper for wdact(), making Widget actions callable from custom HMI code.
+    """
+    # Gesture types: ◐◑◉◎ ▶◀▼▲
+    # ◐91, ◑95: short press (LHS, RHS)
+    # ◉92, ◉96: long press
+    # ◎93, ◎97: very long press
+    # ▶81, ◀82: horizontal swipes
+    # ▼83, ▲84: vertical swipes
+    # Parse incoming agruments
+    if len(args_list) == 3:
+        try:
+            e, gest_type_, gest_cnt_ = args_list
+            entity_id, ent_state, state = get_entity_id_state(e)
+            ent_domain = entity_id.split(".")[0]
+            (wd_dmn, wd_icon) = DOMAINS_DICT.get(ent_domain, (2, DEFAULT_ICON))
+            wdact([e, wd_dmn, gest_type_, gest_cnt_])
+        except:
+            err_msg = "{}\nNextion Handler, problem parsing arguments in ACTION function:\n<{}> <{}>.".format(
+                exptn, "gact", "> <".join(args_list)
+            )
+            logger.warning("nextion_handler.py " + err_msg)
+            raise ValueError(err_msg)
+    else:
+        err_msg = "Nextion Handler, wrong number of arguments in ACTION function:\n<{}> <{}>.".format(
+            "gdact", "> <".join(args_list)
+        )
+        logger.warning("nextion_handler.py " + err_msg)
         raise ValueError(err_msg)
     return True
 
@@ -3638,7 +3611,6 @@ def wdact(args_list):
     (Assign an action to entity 'e' based on its domain code 'wd_dmn', and the
     type (gest_type) and duration (gest_cnt) of the Nextion gesture.)
     """
-
     # Parse incoming agruments
     if len(args_list) == 4:
         try:
@@ -3667,83 +3639,86 @@ def wdact(args_list):
         # hass.services.call('persistent_notification', 'create', {'title': 'Nextion Handler Error!', 'message': err_msg, 'notification_id': 'nx_handler_error_set' }, False)
         raise ValueError(err_msg)
     # * toggles (ALL entities capable of toggling - they may support additional interactions, handled below)
-    if (wd_dmn & DIRECT_TOGGLE_MASK) and gest_type == 91:  # Top Left 'Icon' quadrant
+    if gest_type == 91 and (wd_dmn & DIRECT_TOGGLE_MASK):  # Top Left 'Icon' quadrant
         tgl([e])
     # * toggle ONLY cards: Both sides: toggle/tof/ton
     # The ONLY interaction these entities are capable of is TOGGLING (incl. separate ON & OFF)
     elif (wd_dmn & ALL_INTERACTIONS_MASK) == DIRECT_TOGGLE_MASK:
-        if gest_type == 95:  # 91 already handled above
+        # 91 ◐ already toggles with DIRECT_TOGGLE_MASK
+        if gest_type == 95:  # ◑ short press RHS
             tgl([e])
-        elif gest_type in [92, 96]:
+        elif gest_type in [92, 96]:  # ◉ long press
             tof([e])
-        elif gest_type in [93, 97]:
+        elif gest_type in [93, 97]:  # ◎ vlong press
             ton([e])
     # * light
     elif domain_num == 18:
-        if gest_type == 92:
+        # 91 ◐ already toggles with DIRECT_TOGGLE_MASK
+        if gest_type == 92:  # ◉ long press LHS
             tof([e])
-        elif gest_type == 93:
+        elif gest_type == 93:  # ◎ vlong press LHS
             ton([e])
-        elif gest_type == 96:
+        # gest_type == 95 ◑ Nextion Popup page
+        elif gest_type == 96:  # ◉ long press RHS
             lt(["wt", e])
-        elif gest_type == 81:  # ->
+        elif gest_type == 81:  # -> ▶ brightness gsetp=20
             adjustment = "+{}".format(20 * gest_cnt)
             lt(["brt", e, adjustment])
-        elif gest_type == 82:  # <-
+        elif gest_type == 82:  # <- ◀
             adjustment = "-{}".format(20 * gest_cnt)
             lt(["brt", e, adjustment])
-        elif gest_type == 83:  # V
+        elif gest_type == 83:  # v ▼ colortemp/hue gstepv=20
             adjustment = "-{}".format(20 * gest_cnt)
             lt(["hct", e, adjustment])
-        elif gest_type == 84:  # ^
+        elif gest_type == 84:  # ^ ▲
             adjustment = "+{}".format(20 * gest_cnt)
             lt(["hct", e, adjustment])
     # * media_player
     elif domain_num == 20:
-        if gest_type == 92:
-            mp(["pp", e])  # toggle play-pause
-        elif gest_type == 93:
-            # mp(['src', e, str(3 - gest_cnt)]) # source back gest_cnt-3 steps
-            mp(["src", e, "-1"])  # source back 1 step
-        # gest_type == 95 used for popup page in HMI
-        elif gest_type == 96:
-            mp(["mut", e, "-1"])  # toggle mute
-        elif gest_type == 97:
-            # mp(['src', e, str(gest_cnt - 3)]) # source forward gest_cnt-3 steps
-            mp(["src", e, "1"])  # source forward 1 step
-        elif gest_type == 81:  # ->
+        # 91 ◐ already toggles with DIRECT_TOGGLE_MASK
+        if gest_type == 92:  # ◉ toggle play-pause
+            mp(["pp", e])
+        elif gest_type == 93:  # ◎ source back 1 step
+            mp(["src", e, "-1"])
+        # gest_type == 95 ◑ Nextion Popup page
+        elif gest_type == 96:  # ◉ toggle mute
+            mp(["mut", e, "-1"])
+        elif gest_type == 97:  # ◎ source forward 1 step
+            mp(["src", e, "1"])
+        elif gest_type == 81:  # -> ▶ track (x repeats)
             for i in range(gest_cnt):
                 mp(["nxt", e])  # next track
-        elif gest_type == 82:  # <-
+        elif gest_type == 82:  # <- ◀
             for i in range(gest_cnt):
                 mp(["prv", e])  # previous track
-        elif gest_type == 83:  # V
+        elif gest_type == 83:  # v ▼ volume gsetepv=5%
             adjustment = "-{}".format(0.05 * gest_cnt)
             mp(["vol", e, adjustment])  # step volume up
             # for i in range(gest_cnt):
             #     mp(['v-', e]) # step volume up
-        elif gest_type == 84:  # ^
+        elif gest_type == 84:  # ^ ▲
             adjustment = "+{}".format(0.05 * gest_cnt)
             mp(["vol", e, adjustment])  # step volume down
             # for i in range(gest_cnt):
             #     mp(['v+', e]) # step volume down
-    # * alarm_control_panel  #! needs testing on physical device
+    # * alarm_control_panel
+    #! needs testing on physical device
     # TODO: possible future pop-up card will use short tap TR (gest_type == 95)
     # TODO: Does not support alarm codes (Can secrets be passed to Py scripts?)
     # TODO: Possibly add a 'setting:' dictionary in future for specifying additional info.
     elif domain_num == 1:
         service = None
-        if gest_type == 91:  # short press LHS
+        if gest_type == 91:  # ◐ short press LHS
             service = "alarm_arm_night"
-        elif gest_type == 92:  # long press LHS
+        elif gest_type == 92:  # ◉ long press LHS
             service = "alarm_arm_home"
-        elif gest_type == 93:  # vlong press LHS
+        elif gest_type == 93:  # ◎ vlong press LHS
             service = "alarm_disarm"
-        elif gest_type == 95:  # short press RHS
+        elif gest_type == 95:  # ◑ short press RHS
             service = "alarm_arm_away"
-        elif gest_type == 96:  # long press RHS
+        elif gest_type == 96:  # ◉ long press RHS
             service = "alarm_arm_vacation"
-        elif gest_type == 97:  # vlong press RHS
+        elif gest_type == 97:  # ◎ vlong press RHS
             service = "alarm_disarm"
         if service:
             hass.services.call(
@@ -3752,9 +3727,9 @@ def wdact(args_list):
     # * automation
     elif domain_num == 2:
         service = None
-        if gest_type == 91:  # short press anywhere
+        if gest_type in [91, 95]:  # ◐◑ short press LHS & RHS
             service = "toggle"
-        else:  # long(+) press anywhere
+        elif gest_type in [92, 96]:  # ◉◎ long press LHS & RHS
             service = "trigger"
         if service:
             hass.services.call("automation", service, {"entity_id": entity_id}, False)
@@ -3763,71 +3738,69 @@ def wdact(args_list):
         if gest_type in [91, 95]:
             hass.services.call("button", "press", {"entity_id": entity_id}, False)
     # * climate
-    #! needs testing
     # G.tACT_LIST.txt="Toggle|Cool|Auto|Popup Control|Heat|Heat-Cool|Humidity% +|Humidity% -|Temp° -|Temp° +"
     elif domain_num == 7:
-        if gest_type == 91: # require special toggle
+        if gest_type == 91:  # ◐ require special toggle
             cl(["tgl", e])
-        elif gest_type == 92:  # long press LHS
+        elif gest_type == 92:  # ◉ long press LHS
             cl(["hm", e, "cool"])
-        elif gest_type == 93:  # v long press RHS
+        elif gest_type == 93:  # ◎ vlong press RHS
             cl(["hm", e, "auto"])
-        # Nx Popup Page elif gest_type == 95:  # short press RHS
-        elif gest_type == 96:  # long press RHS
+        # gest_type == 95 ◑ Nextion Popup page
+        elif gest_type == 96:  # ◉ long press RHS
             cl(["hm", e, "heat"])
-        elif gest_type == 97:  # v long press RHS
+        elif gest_type == 97:  # ◎ vlong press RHS
             cl(["hm", e, "heat_cool"])
-        elif gest_type == 81:  #!-> gstep=1
-            adjustment = "+{}".format(gest_cnt)
+        elif gest_type == 81:  # -> ▶ humidity gstep=5
+            adjustment = "+{}".format(5 * gest_cnt)
             cl(["hum", e, adjustment])
-        elif gest_type == 82:  #!<-
-            adjustment = "-{}".format(gest_cnt)
+        elif gest_type == 82:  # <- ◀
+            adjustment = "-{}".format(5 * gest_cnt)
             cl(["hum", e, adjustment])
-        elif gest_type == 83:  #!v gsetpv=1
+        elif gest_type == 83:  # v ▼ temperature gsetpv=1
             adjustment = "-{}".format(gest_cnt)
             cl(
                 ["tauto", e, adjustment]
             )  # auto guestimate which temp set point to adjust
-        elif gest_type == 84:  #!^
+        elif gest_type == 84:  # ^ ▲
             adjustment = "+{}".format(gest_cnt)
             cl(["tauto", e, adjustment])
     # * cover
-    #! needs testing
     #  position of cover: 0 means closed and 100 is fully open.
     elif domain_num == 8:
         adjustment = None
         service = None
         attr = None
-        # gest_type == 91 already toggles
-        if gest_type == 92:  # long press LHS
+        # 91 ◐ already toggles with DIRECT_TOGGLE_MASK
+        if gest_type == 92:  # ◉ long press LHS
             # service = 'stop_cover'
             cv(["stop", e])
-        elif gest_type == 93:  # v long press RHS
+        elif gest_type == 93:  # ◎ vlong press RHS
             # service = 'open_cover'
             cv(["open", e])
-        elif gest_type == 95:  # short press RHS
+        elif gest_type == 95:  # ◑ short press RHS
             # service = 'toggle_tilt'
-            cv(["tog_t", e])
-        elif gest_type == 96:  # long press RHS
+            cv(["tgl_t", e])
+        elif gest_type == 96:  # ◉ long press RHS
             # service = 'stop_cover_tilt'
             cv(["stop_t", e])
-        elif gest_type == 97:  # v long press RHS
+        elif gest_type == 97:  # ◎ vlong press RHS
             # service = 'open_cover_tilt'
             cv(["open_t", e])
-        elif gest_type == 81:  #!->
+        elif gest_type == 81:  # -> ▶ tilt gstep=20
             adjustment = "+{}".format(20 * gest_cnt)
             # service = 'set_cover_tilt_position'
             cv(["pos_t", e, adjustment])
-        elif gest_type == 82:  #!<-
+        elif gest_type == 82:  # <- ◀
             adjustment = "-{}".format(20 * gest_cnt)
             # service = 'set_cover_tilt_position'
             cv(["pos_t", e, adjustment])
-        elif gest_type == 83:  #!v
+        elif gest_type == 83:  # v ▼ position gstepv=10
             # CHANGED so that Dragging down CLOSES cover (i.e. DECREASE 'current_positon' %)
             adjustment = "-{}".format(10 * gest_cnt)  # close by reducing the %open
             # service = 'set_cover_position'
             cv(["pos", e, adjustment])
-        elif gest_type == 84:  #!^
+        elif gest_type == 84:  # ^ ▲
             adjustment = "+{}".format(10 * gest_cnt)  # open by increasing the %open
             # service = 'set_cover_position'
             cv(["pos", e, adjustment])
@@ -3836,119 +3809,122 @@ def wdact(args_list):
     elif domain_num == 10:
         service = None
         data = None
-        # gest_type == 91 already toggles
-        if gest_type == 92:  # long press LHS
+        # 91 ◐ already toggles with DIRECT_TOGGLE_MASK
+        if gest_type == 92:  # ◉ long press LHS
             service = "oscillate"
             data = True  #! check actual True/False or as text?? (True at: https://www.home-assistant.io/integrations/fan/)
             hass.services.call(
                 "fan", service, {"entity_id": entity_id, "oscillating": data}, False
             )
-        elif gest_type == 93:  # vlong press LHS
+        elif gest_type == 93:  # ◎ vlong press LHS
             service = "oscillate"
             data = False
             hass.services.call(
                 "fan", service, {"entity_id": entity_id, "oscillating": data}, False
             )
-        # elif gest_type == 95:  # short press RHS
-        #     pass  # placeholder (in case popup is added)
-        elif gest_type == 96:  # long press RHS
+        # gest_type == 95 ◑ Nextion Popup page (placeholder for future)
+        elif gest_type == 96:  # ◉ long press RHS
             service = "set_direction"
             data = "forward"
             hass.services.call(
                 "fan", service, {"entity_id": entity_id, "direction": data}, False
             )
-        elif gest_type == 97:  # vlong press RHS
+        elif gest_type == 97:  # ◎ vlong press RHS
             service = "set_direction"
             data = "reverse"
             hass.services.call(
                 "fan", service, {"entity_id": entity_id, "direction": data}, False
             )
-        elif gest_type == 81:  #!->
+        elif gest_type == 81:  # -> ▶ (x repeats)
             service = "increase_speed"
             for i in gest_cnt:
                 hass.services.call("fan", service, {"entity_id": entity_id}, False)
-        elif gest_type == 82:  #!<-
+        elif gest_type == 82:  # <- ◀
             service = "decrease_speed"
             for i in gest_cnt:
                 hass.services.call("fan", service, {"entity_id": entity_id}, False)
         # TODO: V (add precentage step controls - redundant?)
-        elif gest_type == 83:  #!v  duplicate <--> for now
+        elif gest_type == 83:  # v ▼  duplicate <--> for now
             service = "decrease_speed"
             for i in gest_cnt:
                 hass.services.call("fan", service, {"entity_id": entity_id}, False)
-        elif gest_type == 84:  #!^
+        elif gest_type == 84:  # ^ ▲
             service = "increase_speed"
             for i in gest_cnt:
                 hass.services.call("fan", service, {"entity_id": entity_id}, False)
     # * humidifier
     #! needs testing
     elif domain_num == 13:
-        # gest_type 91 already toggles
-        if gest_type in [91, 95]:  # short press (LHS & RHS)
+        # 91 ◐ already toggles with DIRECT_TOGGLE_MASK
+        if gest_type in [91, 95]:  # ◐◑ short press (LHS & RHS)
             tgl([e])
-        elif gest_type in [92, 96]:  # long press
+        elif gest_type in [92, 96]:  # ◉ long press
             tof([e])
-        elif gest_type in [93, 97]:  # vlong press
+        elif gest_type in [93, 97]:  # ◎ vlong press
             ton([e])
-        elif gest_type == 81:  #!->
+        elif gest_type == 81:  # -> ▶ humidity gstep=5
             adj = "+{}".format(5 * gest_cnt)
             service = "set_humidity"
             curr_h = ent_state.attributes.get("target_humidity", 0)
             hmin = ent_state.attributes.get("min_humidity", 0)
             hmax = ent_state.attributes.get("max_humidity", 100)
-            new_h = adjust(curr_h, adj, int(hmin), int(hmax), AS_INT=True)  # int
+            new_h = adjust(curr_h, adj, int(hmin), int(hmax), AS_INT=True)
             service_data = {"entity_id": entity_id, "humidity": new_h}
             hass.services.call("humidifier", service, service_data, False)
-        elif gest_type == 82:  #!<-
+        elif gest_type == 82:  # <- ◀
             adj = "-{}".format(5 * gest_cnt)
             service = "set_humidity"
             curr_h = ent_state.attributes.get("target_humidity", 0)
             hmin = ent_state.attributes.get("min_humidity", 0)
             hmax = ent_state.attributes.get("max_humidity", 100)
-            new_h = adjust(curr_h, adj, int(hmin), int(hmax), AS_INT=True)  # int
+            new_h = adjust(curr_h, adj, int(hmin), int(hmax), AS_INT=True)
             service_data = {"entity_id": entity_id, "humidity": new_h}
             hass.services.call("humidifier", service, service_data, False)
-        # elif gest_type in [73, 83]: #!v (add mode cycling?)
+        # elif gest_type == 83: #TODO v ▼ (add mode cycling?)
         #     adjustment = "+{}".format(gest_cnt)
         #     service = 'set_mode'
-        # elif gest_type in [74, 84]:  #!^
+        # elif gest_type == 84:  # ^ ▲
         #     adjustment = "-{}".format(gest_cnt)
     # * input number
     elif domain_num == 16:
         adjustment = None
+        # 91 ◐ already toggles with DIRECT_TOGGLE_MASK
+        # gest_type == 95 ◑ Nextion Popup page (placeholder for future)
         if gest_type == 92:
-            adjustment = "0%"  # set to min
+            adjustment = "0%"  # ◉ long press LHS set to min
         elif gest_type == 96:
-            adjustment = "100%"  # set to max
+            adjustment = "100%"  # ◉ long press RHS set to max
         elif gest_type == 93:
-            adjustment = "25%"  # set to 25% (of range)
+            adjustment = "25%"  # ◎ vlong press LHS set to 25% (of range)
         elif gest_type == 97:
-            adjustment = "75%"  # set to 75% (of range)
-        elif gest_type == 81:  # ->
+            adjustment = "75%"  # ◎ vlong press RHS set to 75% (of range)
+        elif gest_type == 81:  # -> ▶ gsetp=10 (% of range)
             adjustment = "+{}%".format(10 * gest_cnt)
-        elif gest_type == 82:  # <-
+        elif gest_type == 82:  # <- ◀
             adjustment = "-{}%".format(10 * gest_cnt)
-        elif gest_type == 83:  # v
+        elif gest_type == 83:  # v ▼ gestep=1 (% of range)
             adjustment = "-{}%".format(gest_cnt)
-        elif gest_type == 84:  # ^
+        elif gest_type == 84:  # ^ ▲
             adjustment = "+{}%".format(gest_cnt)
         if adjustment:
             inpn([entity_id, adjustment])
-    # * input_select AND select
+    # * input_select (17) AND select (26)
     elif domain_num in [17, 26]:
         adjustment = None
+        # 91 ◐ already toggles with DIRECT_TOGGLE_MASK
+        # gest_type == 95 ◑ Nextion Popup page (placeholder for future)
         if gest_type == 92:
-            adjustment = "0"  # set to first option
+            adjustment = "0"  # ◉ long press LHS set to first option
         elif gest_type == 96:
-            adjustment = "--1"  # set to last
-        elif gest_type == 81:  # ->
+            adjustment = "--1"  # ◉ long press RHS set to last
+        elif gest_type == 81:  # -> ▶ cycle gstep=1
             adjustment = "+{}".format(gest_cnt)  # cycle list
-        elif gest_type == 82:  # <-
+        elif gest_type == 82:  # <- ◀
             adjustment = "-{}".format(gest_cnt)  # cycle list
-        elif gest_type == 83:  # v
-            adjustment = "--{}".format(gest_cnt)  # direct pick (from bottom)
-        elif gest_type == 84:  # ^
-            adjustment = "{}".format(gest_cnt - 1)  # direct pick
+        elif gest_type == 83:  # v ▼ direct pick gstepv=1
+            adjustment = "{}".format(gest_cnt)  # direct pick
+        elif gest_type == 84:  # ^ ▲
+            adjustment = "--{}".format(gest_cnt - 1)  # direct pick (from bottom)
         if adjustment:
             if domain_num == 17:  # input_select
                 inps([entity_id, adjustment])
@@ -3959,123 +3935,101 @@ def wdact(args_list):
     elif domain_num == 19:
         service = None
         data = None
-        if gest_type in [91, 95]:  # short press (LHS & RHS)
+        if gest_type in [91, 95]:  # ◐◑ short press (LHS & RHS)
             service = "lock"
-        elif gest_type in [92, 96]:  # long press
+        elif gest_type in [92, 96]:  # ◉ long press
             service = "unlock"
-        elif gest_type in [93, 97]:  # vlong press
+        elif gest_type in [93, 97]:  # ◎ vlong press
             service = "open"
         if service:
             hass.services.call("lock", service, {"entity_id": entity_id}, False)
-    # * select (device setting options): included with #17 input_select
-
+    # * select (26) - included with input_select (17)
     # * scene
     elif domain_num == 24:
         # both taps
-        if gest_type in [91, 95]:
+        if gest_type in [91, 95]:  # ◐◑ short press (LHS & RHS)
             hass.services.call("scene", "turn_on", {"entity_id": entity_id}, False)
-    # #* script - ALREADY part of 'ONLY TOGGLES' group above
-    # elif domain_num == 25:
-    #     if gest_type == 91:  # short press anywhere
-    #         service = 'toggle'
-    #     else:  # long(+) press anywhere
-    #         service = 'turn_off'
-    #     hass.services.call('script', service, {'entity_id': entity_id}, False)
-
-    # #* switch - ALREADY part of 'ONLY TOGGLES' group above
-    # elif domain_num == 30:
-    #     if gest_type == 91:  # short press anywhere
-    #         service = 'toggle'
-    #     else:  # long(+) press anywhere
-    #         service = 'turn_off'
-    #     hass.services.call('switch', service, {'entity_id': entity_id}, False)
-
+    # #* script (25) - ALREADY part of 'ONLY TOGGLES' group above
+    # #* switch (30) - ALREADY part of 'ONLY TOGGLES' group above
     # * timer
     elif domain_num == 31:
         service = None
-        if gest_type in [91, 95]:  # short press (LHS & RHS)
+        if gest_type in [91, 95]:  # ◐◑ short press (LHS & RHS)
             service = "start"
-        elif gest_type in [92, 96]:  # long press
+        elif gest_type in [92, 96]:  # ◉ long press
             service = "pause"
-        elif gest_type == 93:  # LHS vlong press
+        elif gest_type == 93:  # ◎ LHS vlong press
             service = "cancel"
-        elif gest_type == 97:  # RHS vlong press
+        elif gest_type == 97:  # ◎ RHS vlong press
             service = "finish"
         if service:
             hass.services.call("timer", service, {"entity_id": entity_id}, False)
     # * update
     elif domain_num == 32:
         service = None
-        if gest_type == 91:  # short press LHS
+        if gest_type == 91:  # ◐ short press LHS
             service = "install"
-        elif gest_type == 95:  # short press RHS
+        elif gest_type == 95:  # ◑ short press RHS
             service = "skip"
-        elif gest_type == 96:  # long press RHS
+        elif gest_type == 96:  # ◉ long press RHS
             service = "clear_skipped"
         if service:
             hass.services.call("update", service, {"entity_id": entity_id}, False)
     # * vacuum - too many brand-specific services & sensor values to do much more generically
     elif domain_num == 33:
         l_service = None
-        if gest_type == 91:  # short LHS
+        if gest_type == 91:  # ◐ short press LHS
             if state == "cleaning":
                 # '.turn_on' For the Xiaomi Vacuum, Roomba, and Neato use '.start' instead.
                 l_service = ["stop", "turn_off"]
             else:
                 l_service = ["start", "turn_on"]
-        elif gest_type == 92:  # long LHS
+        elif gest_type == 92:  # ◉ long press LHS
             l_service = ["return_to_base"]
-        elif gest_type == 95:  # short press RHS
+        elif gest_type == 95:  # ◑ short press RHS
             l_service = ["locate"]
             # l_service = ['stop']
-        elif gest_type == 96:  # long RHS
+        elif gest_type == 96:  # ◉ long press RHS
             l_service = ["clean_spot"]
         for service in l_service:
             hass.services.call("vacuum", service, {"entity_id": entity_id}, False)
     # * water heater
-    #! NEED TO FIX - DOES NOT support on/off/toggle
     #! needs testing
     elif domain_num == 34:
-        # gest_type 91 already toggles
-        if gest_type in [91, 95]:  # short press (LHS & RHS)
-            tgl([e])
-        elif gest_type in [92, 96]:  # long press
-            # TODO: use RHS for away mode on/off (docs have errors)
-            tof([e])
-        elif gest_type in [93, 97]:  # vlong press
-            ton([e])
-        elif gest_type == 81:  #!->
-            # TODO: find a way of detecting farenheit, then change defaults for oF
-            adj = "+{}".format(gest_cnt)
+        service = ""
+        service_data = ""
+        # DOES NOT support on/off/toggle - toggle/on/off AWAY MODE instead
+        if gest_type in [91, 95]:  # ◐◑ short press (LHS & RHS)  - away mode TOGGLE
+            service = "set_away_mode"
+            curr_m = ent_state.attributes.get("away_mode", False)
+            new_val = not curr_m
+            service_data = {"entity_id": entity_id, "away_mode": new_val}
+        elif gest_type in [92, 96]:  # ◉ long press - away mode ON
+            service = "set_away_mode"
+            service_data = {"entity_id": entity_id, "away_mode": True}
+        elif gest_type in [93, 97]:  # ◎ vlong press - away mode OFF
+            service = "set_away_mode"
+            service_data = {"entity_id": entity_id, "away_mode": False}
+        elif gest_type in [83, 84]:  # v^ ▼▲ temperature gstepv=1
+            # TODO: find a way of detecting farenheit, then change defaults for oF/oC
+            # HA docs default range is 110F (40C) - 140F (60C)
+            if gest_type == 83:  # v ▼
+                adj = "-{}".format(gest_cnt)
+            else:  # ^ ▲
+                adj = "+{}".format(gest_cnt)
             service = "set_temperature"
             curr_t = ent_state.attributes.get("temperature", None)
             if curr_t is None:
                 curr_t = ent_state.attributes.get("target_temp_low", 50)
-            tmin = ent_state.attributes.get("min_temp", 30)
-            tmax = ent_state.attributes.get("max_temp", 70)
+            tmin = ent_state.attributes.get("min_temp", 40)
+            tmax = ent_state.attributes.get("max_temp", 140)
             new_t = adjust(
                 float(curr_t), adj, float(tmin), float(tmax), AS_INT=True
             )  # int
             service_data = {"entity_id": entity_id, "temperature": new_t}
+        if service_data:
             hass.services.call("water_heater", service, service_data, False)
-        elif gest_type == 82:  #!<-
-            adj = "-{}".format(gest_cnt)
-            service = "set_temperature"
-            curr_t = ent_state.attributes.get("temperature", None)
-            if curr_t is None:
-                curr_t = ent_state.attributes.get("target_temp_low", 50)
-            tmin = ent_state.attributes.get("min_temp", 30)
-            tmax = ent_state.attributes.get("max_temp", 70)
-            new_t = adjust(
-                float(curr_t), adj, float(tmin), float(tmax), AS_INT=True
-            )  # int
-            service_data = {"entity_id": entity_id, "temperature": new_t}
-            hass.services.call("water_heater", service, service_data, False)
-        # elif gest_type in [73, 83]: #!V (add mode cycling?)
-        #     adjustment = "+{}".format(gest_cnt)
-        #     service = 'set_mode'
-        # elif gest_type in [74, 84]:  #!^
-        #     adjustment = "-{}".format(gest_cnt)
+    # * end of entity types/domains
     # --- wdact() ---
     return True
 
