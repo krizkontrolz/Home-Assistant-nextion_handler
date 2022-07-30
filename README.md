@@ -1,5 +1,5 @@
 # Home Assistant Nextion Handler
-(_Version 0.6_) 
+(_Version 0.7_) 
 
 'Nextion Handler' allows you to use a Nextion touch screen device (NSPanels in particular) to interact with Home Assistant (HA).  It uses a supporting Python script in Home Assitant to interpret and respond to instructions programmed into the Nextion device.  You can either use the full framework to create your own fully customised UIs in the Nextion Editor, or you can use specially pre-compiled files that don't require any programing and just some very basic configuration (or you can mix the two).
 
@@ -73,6 +73,7 @@ The **[Tips_and_Tricks](/Tips_and_Tricks) folder** has guides and example files 
 If you want to leave suggestions, comments, or feature requests there are online forum pages for this project at:
 * 🟠 Home Assistant Community Forum [project page](https://community.home-assistant.io/t/nextion-handler-for-home-assistant-for-nspanels/394858/4).
 * 🟠 Unofficial Nextion User Forum [projgect page](https://unofficialnextion.com/t/nextion-gesture-tips-tricks/1585).
+* 🟠 Discord [project page](https://discord.gg/E2ukjnQfr5)
 ---
 
 
