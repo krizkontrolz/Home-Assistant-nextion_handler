@@ -1,7 +1,6 @@
 # 🟠 Widget UI
 (_Last updated 2022/07/30_)  
-**WAIT for v0.7 (Current Installation files v06_2022-06-03)**  
-🚧 All documentation is currently being updated for version 0.7 as it is about to come out of beta.  I do not recommend installing v0.6 at this stage - either wait for v0.7 release or join the beta (which is likely the v0.7 release version at this point anyway).
+**🔸 Current Installation files v07_2022-07-30**  
 
 ## Current Features and Status
 
@@ -39,7 +38,7 @@ The Widgets cards now support, and automatically configure themselves, to all 36
   
   
 ### Installation steps
-(_🔸EU & US versions 0.7 are near the end of beta testing, and will be released when this documentation has been updated_.)
+🔸v0.7 Files are now available: `ESPHome_Nextion_Handler_template.yaml`, `nextion_handler.py`, `nsp1_*.tft` (for both EU & US NSPanels). 
 
 <details>
   <summary>1️⃣ Fill and flash the ESPHome YAML template:</summary>   
@@ -67,7 +66,7 @@ substitutions:
   esp_comment: NSPanel 1                             # descriptive name (only used for description in ESPHome Dashboard).
   ha_prefix: nsp1                                    # prefixed to HA entity_ids to make them unique (do not use '-' or spaces, use '_' instead: OPPOSITE of 'esp_net_name').
   tft_url: "https://MY_URL:8123/local/nsp/nsp1.tft"  # You will place your TFT file at "/config/www/nsp/nsp1.tft" on your HA device and
-                                                     # the "https://MY_URL:8123/" part of the tft_url matches the URL to your HA web interface.
+                                                     # the "https://MY_URL:8123/" part of the tft_url matches the URL to your HA broswer interface.
   wifi_ssid: !secret wifi_ssid                       # your home WiFi credentials.
   wifi_password: !secret wifi_password
 #  encr_key: "H0000000000000000000000000000000000000000000"  # Generate your own key here: https://esphome.io/components/api.html#configuration-variables (and uncomment the api: encrytion: key: "...") section below if you want encrypted HA communications.
