@@ -265,7 +265,7 @@ The `gesture indicator` will update dynamically throughout touch events to give 
 
 **Demonstration of the `gesture indicator` giving UI feedback on a touch interaction.**	 
 
-![Gesture indicator demo](/widget_ui/images/NSP_Gesture_Indicator_150.gif)
+![Gesture indicator demo](/widget_ui/images/NSP_Gesture_Indicator.gif)
 
   
 ### 🔷 Widget Card Touch Interactions (by Entity type)
