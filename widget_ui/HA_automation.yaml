@@ -2,10 +2,10 @@
 # If you changed the 'ha_prefix:' from 'nsp1' in the 'substitutions:' of your ESPHome config, then edit below to match.
 # Otherwise you should only need to enter your list of entities in the 'widgets:' section below.
 
-# NSPanel Widget UI config (v0.6_2022-06-03)
+# NSPanel Widget UI config (v0.7_2022-07-30)
 - alias: "NSP1 Nextion handler"
   mode: queued # need a good sequential queue to handle multiple calls in quick succession
-  max: 5
+  max: 3
   trigger:
     - platform: state
       entity_id: sensor.nsp1_trigger # << TRIGGER - state changes are sent from Nx to signal this script should do something.
@@ -23,20 +23,22 @@
           # Add a list of your entities here: only the "- entity: " parameter is mandatory,
           # but usually customise the "name:" and "icon:" too.
           # See: https://github.com/krizkontrolz/Home-Assistant-nextion_handler/tree/main/widget_ui
-          - entity: persistent_notification.all  # special case
-          - entity: template                     # special case (advanced) - create your own
+          # *** Edit and replace for your own devices
+          - entity: light.kitchen_lights
+            name: Kitchen
+            icon: 50  # see icon index in GitHub docs
+          - entity: update.home_assistant_core_update
+            name: HA Core
+          # Notifications are a special case
+          - entity: persistent_notification.all
+          # Templates (advanced special case) let you customise all Widgtet information - create your own
+          - entity: template
             icon: 133
             icon_state: 1
             name: Template
             alt: "Custom"
             info: "Template this text"
-          #*** Edit for your own devices
-          - entity: light.kitchen_lights         # replace with your own light to start
-            name: Kitchen
-            icon: 50                             # see icon index
-          - entity: update.home_assistant_core_update
-            name: HA Core
-          #*** Some other suggestions - edit to match your own entities (after testing a single entity first)
+          # *** Some other suggestions - edit to match your own entities (after testing a single entity first)
           # - entity: sensor.gdacs
           #   icon: 40
           #   icon_state: "{{ states.sensor.gdacs.state|int > 1 }}"
