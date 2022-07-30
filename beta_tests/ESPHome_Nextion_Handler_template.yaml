@@ -9,13 +9,13 @@ substitutions:
   esp_comment: NSPanel 1                             # descriptive name (only used for description in ESPHome Dashboard).
   ha_prefix: nsp1                                    # prefixed to HA entity_ids to make them unique (do not use '-' or spaces, use '_' instead: OPPOSITE of 'esp_net_name').
   tft_url: "https://MY_URL:8123/local/nsp/nsp1.tft"  # You will place your TFT file at "/config/www/nsp/nsp1.tft" on your HA device and
-                                                     # the "https://MY_URL:8123/" part of the tft_url matches the URL to your HA web interface.
+                                                     # the "https://MY_URL:8123/" part of the tft_url matches the URL to your HA broswer interface.
   wifi_ssid: !secret wifi_ssid                       # your home WiFi credentials.
   wifi_password: !secret wifi_password
 #  encr_key: "H0000000000000000000000000000000000000000000"  # Generate your own key here: https://esphome.io/components/api.html#configuration-variables (and uncomment the api: encrytion: key: "...") section below if you want encrypted HA communications.
 #----------------------------------------            # No editing of the YAML below is required to use Nextion Handler.
                                                      # ****COPY AND PASTE everything beneath this line**** into your EXISTING ESPHome Nextion Handler YAML config file to update it (***UNCOMMENT encryption below if configured above).
-  config_version: "20220729"                         # << Copy over this version number as is (don't edit it) - it lets Home Assistant and the NSPanel know the version (YYYYMMDD) of this config file.
+  config_version: "20220730"                         # << Copy over this version number as is (don't edit it) - it lets Home Assistant and the NSPanel know the version (YYYYMMDD) of this config file.
 
 
 #*******************************************************************************
