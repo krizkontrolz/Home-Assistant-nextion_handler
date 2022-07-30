@@ -266,7 +266,7 @@ As functionality is developed, more popups will be added to support some of the 
 </details>  
 
   
-## Widget Card Tap Interactions (by Entity type)
+## Widget Card Touch Interactions (by Entity type)
 	
 A set of `nudge` and `press` gestures allows users to interact with Widgets in different ways, as shown in the UI by the `gesture indicator` (`nudges`: `◀` `▶` `▲` `▼`, and `presses`: `◐` `◑` `◉` `◎` `✖`).  The `actions` that are triggered by each of those gestures adapt to the type of entity on that Widget card and are shown as a `text description` next to the `gesture icon` in the `gesture indicator`.  This makes it easy for users to learn all the possible Widget interactions from feedback displayed directly on the Nextion display - but the set of interactions for each entity type is also summarised below for reference: 
 
